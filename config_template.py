@@ -37,6 +37,11 @@ class ConfigTemplate:
                     lambda x: x is None or (len(x) == 2 and all(y >= 0 for y in x))
                 ],
             ),
+            config_field.Field(
+                name=constants.Constants.EPISODE_TIMEOUT,
+                types=[int, type(None)],
+                requirements=[lambda x: x is None or x > 0],
+            ),
         ],
         dependent_variables=[constants.Constants.ENVIRONMENT],
         dependent_variables_required_values=[[constants.Constants.MINIGRID]],
@@ -46,32 +51,32 @@ class ConfigTemplate:
     _epislon_greedy_template = config_template.Template(
         fields=[
             config_field.Field(
-                name=constants.Constants.Epsilon,
+                name=constants.Constants.EPSILON,
                 types=[float],
                 requirements=[lambda x: x <= 1 and x >= 0],
             )
         ],
         dependent_variables=[constants.Constants.POLICY],
         dependent_variables_required_values=[[constants.Constants.EPSILON_GREEDY]],
-        level=[constants.Constants.Q_LEARNeR, constants.Constants.EPSILON_GREEDY],
+        level=[constants.Constants.Q_LEARNER, constants.Constants.EPSILON_GREEDY],
     )
 
     _q_learner_template = config_template.Template(
         fields=[
             config_field.Field(
                 name=constants.Constants.ALPHA,
-                types=[list],
-                requirements=[lambda x: all(isinstance(y, int) and y > 0 for y in x)],
+                types=[float],
+                requirements=[lambda x: x > 0],
             ),
             config_field.Field(
                 name=constants.Constants.GAMMA,
-                types=[float, int, type(None)],
-                requirements=[lambda x: x <= 0],
+                types=[float],
+                requirements=[lambda x: x <= 1 and x >= 0],
             ),
             config_field.Field(
                 name=constants.Constants.POLICY,
-                types=[float, int, type(None)],
-                requirements=[lambda x: x is None or x >= 0],
+                types=[str],
+                requirements=[lambda x: x in [constants.Constants.EPSILON_GREEDY]],
             ),
         ],
         dependent_variables=[constants.Constants.LEARNER],
@@ -87,11 +92,21 @@ class ConfigTemplate:
                 types=[int],
                 requirements=[lambda x: x > 0],
             )
-        ]
+        ],
+        level=[constants.Constants.TRAINING],
     )
 
     base_template = config_template.Template(
         fields=[
+            config_field.Field(
+                name=constants.Constants.EXPERIMENT_NAME,
+                types=[str, type(None)],
+            ),
+            config_field.Field(
+                name=constants.Constants.SEED,
+                types=[int],
+                requirements=[lambda x: x >= 0],
+            ),
             config_field.Field(
                 name=constants.Constants.ENVIRONMENT,
                 types=[str],
