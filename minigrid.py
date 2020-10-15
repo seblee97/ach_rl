@@ -10,21 +10,27 @@ class MiniGrid:
     def __init__(
         self,
         size: Tuple[int, int],
-        starting_xy: Optional[List[int]] = None,
+        starting_xy: Optional[Tuple[int, int]] = None,
         reward_xy: Optional[Tuple[int, int]] = None,
+        episode_timeout: Optional[int] = None,
     ):
         self._size = size
-        self._starting_xy = starting_xy or list(self.random_coordinate())
+        self._starting_xy = starting_xy or self.random_coordinate()
         self._reward_xy = reward_xy or self.random_coordinate()
+        self._episode_timeout = episode_timeout or np.inf
 
         self._agent_position: List[int]
-        self._reset_environment()
+        self._active: bool
+        self._episode_step_count: int
+        self.reset_environment()
 
         self._action_space = [0, 1, 2, 3]
         self._state_space = list(np.ndindex(size))
 
+        self._visitation_counts = np.zeros(self._size)
+
     @property
-    def starting_xy(self) -> List[int]:
+    def starting_xy(self) -> Tuple[int, int]:
         return self._starting_xy
 
     @property
@@ -38,6 +44,25 @@ class MiniGrid:
     @property
     def state_space(self) -> List[Tuple[int, int]]:
         return self._state_space
+
+    @property
+    def active(self) -> bool:
+        return self._active
+
+    @property
+    def episode_step_count(self) -> int:
+        return self._episode_step_count
+
+    @property
+    def visitation_counts(self) -> np.ndarray:
+        return self._visitation_counts
+
+    def show_grid(self) -> np.ndarray:
+        """Generate 2d array of current state of environment."""
+        state = np.zeros(self._size)
+        state[self._reward_xy[0]][self._reward_xy[1]] = 0.5
+        state[self._agent_position[0]][self._agent_position[1]] = 1
+        return state
 
     def random_coordinate(self) -> Tuple[int, int]:
         """Generate random set of coordinates within grid dimensions.
@@ -100,21 +125,28 @@ class MiniGrid:
         elif action == 3:
             self._move_agent_down()
 
-        if self._check_for_reward():
-            return 1.0, tuple(self._agent_position)
-        else:
-            return 0.0, tuple(self._agent_position)
+        self._episode_step_count += 1
+        self._visitation_counts[self._agent_position[0]][self._agent_position[1]] += 1
 
-    def _check_for_reward(self) -> bool:
+        reward = self._compute_reward()
+
+        if self._episode_step_count == self._episode_timeout:
+            self._active = False
+
+        return reward, tuple(self._agent_position)
+
+    def _compute_reward(self) -> float:
         """Check for reward, i.e. whether agent position is equal to reward position.
-        If reward is found, reset environment for new episode.
+        If reward is found, end episode by setting active property to false.
         """
         if self._agent_position == list(self._reward_xy):
-            self._reset_environment()
-            return True
+            self._active = False
+            return 1.0
         else:
-            return False
+            return 0.0
 
-    def _reset_environment(self) -> None:
+    def reset_environment(self) -> None:
         """Reset environment. Bring agent back to starting position."""
-        self._agent_position = self._starting_xy
+        self._active = True
+        self._episode_step_count = 0
+        self._agent_position = list(self._starting_xy)
