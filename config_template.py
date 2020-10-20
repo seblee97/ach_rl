@@ -48,41 +48,66 @@ class ConfigTemplate:
         level=[constants.Constants.MINIGRID],
     )
 
-    _epislon_greedy_template = config_template.Template(
+    _learner_template = config_template.Template(
         fields=[
             config_field.Field(
-                name=constants.Constants.EPSILON,
-                types=[float],
-                requirements=[lambda x: x <= 1 and x >= 0],
-            )
-        ],
-        dependent_variables=[constants.Constants.POLICY],
-        dependent_variables_required_values=[[constants.Constants.EPSILON_GREEDY]],
-        level=[constants.Constants.Q_LEARNER, constants.Constants.EPSILON_GREEDY],
-    )
-
-    _q_learner_template = config_template.Template(
-        fields=[
+                name=constants.Constants.TYPE,
+                types=[str],
+                requirements=[
+                    lambda x: x
+                    in [
+                        constants.Constants.SARSA_LAMBDA,
+                        constants.Constants.Q_LEARNING,
+                    ]
+                ],
+            ),
             config_field.Field(
-                name=constants.Constants.ALPHA,
+                name=constants.Constants.LEARNING_RATE,
                 types=[float],
                 requirements=[lambda x: x > 0],
             ),
             config_field.Field(
-                name=constants.Constants.GAMMA,
+                name=constants.Constants.DISCOUNT_FACTOR,
                 types=[float],
                 requirements=[lambda x: x <= 1 and x >= 0],
             ),
             config_field.Field(
-                name=constants.Constants.POLICY,
+                name=constants.Constants.EPSILON,
+                types=[int, float],
+                requirements=[lambda x: x >= 0 and x <= 1],
+            ),
+            config_field.Field(
+                name=constants.Constants.VISITATION_PENALTY,
+                types=[float, int, type(None)],
+                requirements=[lambda x: x is None or x >= 0],
+            ),
+            config_field.Field(
+                name=constants.Constants.INITIALISATION,
                 types=[str],
-                requirements=[lambda x: x in [constants.Constants.EPSILON_GREEDY]],
+                requirements=[
+                    lambda x: x
+                    in [
+                        constants.Constants.RANDOM,
+                        constants.Constants.ZEROS,
+                        constants.Constants.ONES,
+                    ]
+                ],
             ),
         ],
-        dependent_variables=[constants.Constants.LEARNER],
-        dependent_variables_required_values=[[constants.Constants.Q_LEARNER]],
-        nested_templates=[_epislon_greedy_template],
-        level=[constants.Constants.Q_LEARNER],
+        level=[constants.Constants.LEARNER],
+    )
+
+    _sarsa_lambda_template = config_template.Template(
+        fields=[
+            config_field.Field(
+                name=constants.Constants.TRACE_LAMBDA,
+                types=[int, float],
+                requirements=[lambda x: x >= 0 and x <= 1],
+            )
+        ],
+        dependent_variables=[constants.Constants.TYPE],
+        dependent_variables_required_values=[constants.Constants.SARSA_LAMBDA],
+        level=[constants.Constants.SARSA_LAMBDA],
     )
 
     _training_template = config_template.Template(
@@ -112,11 +137,11 @@ class ConfigTemplate:
                 types=[str],
                 requirements=[lambda x: x in [constants.Constants.MINIGRID]],
             ),
-            config_field.Field(
-                name=constants.Constants.LEARNER,
-                types=[str],
-                requirements=[lambda x: x in [constants.Constants.Q_LEARNER]],
-            ),
         ],
-        nested_templates=[_minigrid_template, _q_learner_template, _training_template],
+        nested_templates=[
+            _minigrid_template,
+            _learner_template,
+            _sarsa_lambda_template,
+            _training_template,
+        ],
     )
