@@ -32,12 +32,13 @@ class BackwardSARSARunner(base_runner.BaseRunner):
             self._environment.reset_environment()
             episode_reward = 0
             state = self._environment.agent_position
+            action = self._learner.select_behaviour_action(state)
             while self._environment.active:
-                action = self._learner.select_behaviour_action(state)
-                reward, new_state = self._environment.step(action)
-                next_action = self._learner.select_behaviour_action(new_state)
-                self._learner.step(state, action, reward, new_state, next_action)
-                state = new_state
+                reward, next_state = self._environment.step(action)
+                next_action = self._learner.select_behaviour_action(next_state)
+                self._learner.step(state, action, reward, next_state, next_action)
+                state = next_state
+                action = next_action
                 episode_reward += reward
             episode_rewards.append(episode_reward)
             episode_lengths.append(self._environment.episode_step_count)
