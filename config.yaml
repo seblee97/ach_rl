@@ -9,16 +9,18 @@ minigrid:
     no_op_penalty: 0
     starting_position:  [0, 0] # random if not given
     reward_position:  [18, 12] # random if not given
-    episode_timeout:  100 # infinity if not given
+    episode_timeout:  200 # infinity if not given
 
-learner: q_learner
+learner: 
+    type: sarsa_lambda
+    learning_rate: 0.1
+    discount_factor: 0.9    
+    epsilon: 0.1
+    visitation_penalty: 0
+    initialisation: random
 
-q_learner:
-    alpha: 0.1
-    gamma: 0.9
-    policy: epsilon_greedy
-    epsilon_greedy:
-        epsilon: 0.1
+sarsa_lambda:
+    trace_lambda: 0.1
 
 training:
-    num_episodes: 100
+    num_episodes: 500
