@@ -1,10 +1,12 @@
 import random
-from typing import Optional, Tuple, List
+from typing import List, Optional, Tuple
 
 import numpy as np
 
+from environments import base_environment
 
-class MiniGrid:
+
+class MiniGrid(base_environment.BaseEnvironment):
     """Grid world environment. Single reward"""
 
     def __init__(
@@ -19,15 +21,14 @@ class MiniGrid:
         self._reward_xy = reward_xy or self.random_coordinate()
         self._episode_timeout = episode_timeout or np.inf
 
+        self._action_space = [0, 1, 2, 3]
+        self._state_space = list(np.ndindex(size))
+        self._visitation_counts = np.zeros(self._size)
+
         self._agent_position: List[int]
         self._active: bool
         self._episode_step_count: int
         self.reset_environment()
-
-        self._action_space = [0, 1, 2, 3]
-        self._state_space = list(np.ndindex(size))
-
-        self._visitation_counts = np.zeros(self._size)
 
     @property
     def starting_xy(self) -> Tuple[int, int]:
@@ -150,3 +151,4 @@ class MiniGrid:
         self._active = True
         self._episode_step_count = 0
         self._agent_position = list(self._starting_xy)
+        # self._visitation_counts[self._agent_position[0]][self._agent_position[1]] += 1
