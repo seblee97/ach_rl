@@ -3,6 +3,8 @@ import ach_config
 from learners import q_learner
 from runners import base_runner
 
+from typing import Tuple
+
 
 class QLearningRunner(base_runner.BaseRunner):
     def __init__(self, config: ach_config.AchConfig):
@@ -23,21 +25,23 @@ class QLearningRunner(base_runner.BaseRunner):
         )
         return learner
 
-    def train(self, num_episodes: int):
-        state = self._environment.agent_position
-        episode_rewards = []
-        episode_lengths = []
-        for _ in range(num_episodes):
-            self._environment.reset_environment()
-            episode_reward = 0
-            state = self._environment.agent_position
-            while self._environment.active:
-                action = self._learner.select_behaviour_action(state)
-                reward, new_state = self._environment.step(action)
-                self._learner.step(state, action, reward, new_state)
-                state = new_state
-                episode_reward += reward
-            episode_rewards.append(episode_reward)
-            episode_lengths.append(self._environment.episode_step_count)
+    def _train_episode(self) -> Tuple[float, int]:
+        """Perform single training loop.
 
-        return episode_rewards, episode_lengths
+        Returns:
+            episode_reward: scalar reward accumulated over episode.
+            num_steps: number of steps taken for episode.
+        """
+        episode_reward = 0
+
+        self._environment.reset_environment()
+        state = self._environment.agent_position
+
+        while self._environment.active:
+            action = self._learner.select_behaviour_action(state)
+            reward, new_state = self._environment.step(action)
+            self._learner.step(state, action, reward, new_state)
+            state = new_state
+            episode_reward += reward
+
+        return episode_reward, self._environment.episode_step_count
