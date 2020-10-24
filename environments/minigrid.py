@@ -151,4 +151,3 @@ class MiniGrid(base_environment.BaseEnvironment):
         self._active = True
         self._episode_step_count = 0
         self._agent_position = list(self._starting_xy)
-        # self._visitation_counts[self._agent_position[0]][self._agent_position[1]] += 1
