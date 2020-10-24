@@ -1,12 +1,13 @@
 from typing import List, Optional, Tuple
 
 import constants
-import numpy as np
 
-from learners import base_learner
+from learners import tabular_learner
 
 
-class BackwardSARSALambda(base_learner.BaseLearner):
+class TabularSARSALambda(tabular_learner.TabularLearner):
+    """Backward SARSA(lambda)."""
+
     def __init__(
         self,
         action_space: List[int],
@@ -18,68 +19,22 @@ class BackwardSARSALambda(base_learner.BaseLearner):
         visitation_penalty: Optional[float] = None,
         epsilon: Optional[float] = None,
     ):
-        self._action_space = action_space
-        self._state_space = state_space
-
-        self._state_id_mapping = {state: i for i, state in enumerate(self._state_space)}
-
-        self._state_action_values = self._initialise_values(
-            initialisation_strategy=initialisation_strategy
+        super().__init__(
+            action_space=action_space,
+            state_space=state_space,
+            learning_rate=learning_rate,
+            gamma=gamma,
+            initialisation_strategy=initialisation_strategy,
+            visitation_penalty=visitation_penalty,
         )
         self._state_action_eligibility_traces = self._initialise_values(
             initialisation_strategy=constants.Constants.ZEROS
         )
-
-        self._learning_rate = learning_rate
-        self._gamma = gamma
-        self._visitation_penalty = visitation_penalty
-        self._epsilon = epsilon
         self._trace_lambda = trace_lambda
-
-    def _initialise_values(self, initialisation_strategy: str) -> np.ndarray:
-        """Initialise values for each state, action pair in state-action space.
-
-        Args:
-            initialisation_strategy: name of method used to initialise.
-
-        Returns:
-            initial_values: matrix containing state-action id / value mapping.
-        """
-        if initialisation_strategy == constants.Constants.RANDOM:
-            return np.random.rand(len(self._state_space), len(self._action_space))
-        elif initialisation_strategy == constants.Constants.ZEROS:
-            return np.zeros((len(self._state_space), len(self._action_space)))
-        elif initialisation_strategy == constants.Constants.ONES:
-            return np.ones((len(self._state_space), len(self._action_space)))
-
-    def _max_state_action_value(self, state: Tuple[int, int]) -> float:
-        """Find highest value in given state.
-
-        Args:
-            state: state for which to find highest value.
-
-        Returns:
-            value: corresponding highest value.
-        """
-        state_id = self._state_id_mapping[state]
-        return np.amax(self._state_action_values[state_id])
-
-    def _greedy_action(self, state: Tuple[int, int]) -> int:
-        """Find action with highest value in given state.
-
-        Args:
-            state: state for which to find action with highest value.
-
-        Returns:
-            action: action with highest value in state given.
-        """
-        state_id = self._state_id_mapping[state]
-        return np.argmax(self._state_action_values[state_id])
 
     def select_target_action(self, state: Tuple[int, int]) -> int:
         """Select action according to target policy, i.e. policy being learned.
-        For Q-learning this corresponds to the greedy policy, so action with
-        highest value in given state is selected.
+        Here, action with highest value in given state is selected.
 
         Args:
             state: current state.
@@ -92,23 +47,17 @@ class BackwardSARSALambda(base_learner.BaseLearner):
 
     def select_behaviour_action(self, state: Tuple[int, int]) -> Tuple[int, float]:
         """Select action with behaviour policy, i.e. policy collecting trajectory data
-        and generating behaviour. For Q-learning this corresponds to an
-        epsilon-greedy policy. This chooses the greedy policy with probability
-        (1 - epsilon) and a random action with probability epsilon.
+        and generating behaviour. Sarsa lambda is on-policy so this is the same as the
+        target policy, namely the greedy action.
 
         Args:
             state: current state.
 
         Returns:
-            action: selected action from specified policy.
+            action: greedy action.
         """
         action = self._greedy_action(state=state)
         return action
-        # if random.random() < self._epsilon:
-        #     action = random.choice(self._action_space)
-        # else:
-        #     action = self._greedy_action(state=state)
-        # return action
 
     def step(
         self,
@@ -152,12 +101,12 @@ class BackwardSARSALambda(base_learner.BaseLearner):
         # increment trace associated with visited state, action pair
         self._state_action_eligibility_traces[state_id][action] += 1
 
-        # decay eligibility traces
+        # update other state-action values
         self._state_action_values += (
             self._learning_rate * delta * self._state_action_eligibility_traces
         )
 
-        # update other state-action values
+        # decay eligibility traces
         self._state_action_eligibility_traces *= self._gamma * self._trace_lambda
 
         # apply visitation penalty
