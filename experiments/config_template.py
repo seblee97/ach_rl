@@ -68,7 +68,7 @@ class ConfigTemplate:
             ),
             config_field.Field(
                 name=constants.Constants.DISCOUNT_FACTOR,
-                types=[float],
+                types=[float, int],
                 requirements=[lambda x: x <= 1 and x >= 0],
             ),
             config_field.Field(
@@ -116,9 +116,30 @@ class ConfigTemplate:
                 name=constants.Constants.NUM_EPISODES,
                 types=[int],
                 requirements=[lambda x: x > 0],
-            )
+            ),
+            config_field.Field(
+                name=constants.Constants.TEST_FREQUENCY,
+                types=[int],
+                requirements=[lambda x: x > 0],
+            ),
         ],
         level=[constants.Constants.TRAINING],
+    )
+
+    _logging_template = config_template.Template(
+        fields=[
+            config_field.Field(
+                name=constants.Constants.CHECKPOINT_FREQUENCY,
+                types=[int],
+                requirements=[lambda x: x > 0],
+            ),
+            config_field.Field(
+                name=constants.Constants.COLUMNS,
+                types=[list],
+                requirements=[lambda x: all(isinstance(y, str) for y in x)],
+            ),
+        ],
+        level=[constants.Constants.LOGGING],
     )
 
     base_template = config_template.Template(
@@ -143,5 +164,6 @@ class ConfigTemplate:
             _learner_template,
             _sarsa_lambda_template,
             _training_template,
+            _logging_template,
         ],
     )
