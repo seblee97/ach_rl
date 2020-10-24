@@ -1,12 +1,12 @@
 import random
-from typing import List, Dict, Optional, Tuple
+from typing import List, Optional, Tuple
 
-import constants
-
-from learners import base_learner
+from learners import tabular_learner
 
 
-class TabularQLearner(base_learner.BaseLearner):
+class TabularQLearner(tabular_learner.TabularLearner):
+    """Q-learning (Watkins)."""
+
     def __init__(
         self,
         action_space: List[int],
@@ -17,67 +17,15 @@ class TabularQLearner(base_learner.BaseLearner):
         visitation_penalty: Optional[float] = None,
         epsilon: Optional[float] = None,
     ):
-        self._action_space = action_space
-        self._state_space = state_space
-        self._state_action_values = self._initialise_values(
-            action_space, state_space, initialisation_strategy=initialisation_strategy
+        super().__init__(
+            action_space=action_space,
+            state_space=state_space,
+            learning_rate=learning_rate,
+            gamma=gamma,
+            initialisation_strategy=initialisation_strategy,
+            visitation_penalty=visitation_penalty,
         )
-        self._learning_rate = learning_rate
-        self._gamma = gamma
-        self._visitation_penalty = visitation_penalty
         self._epsilon = epsilon
-
-    def _initialise_values(
-        self,
-        action_space: List[int],
-        state_space: List[Tuple[int, int]],
-        initialisation_strategy: str,
-    ) -> Dict[int, float]:
-        """Initialise values for each state, action pair in state-action space.
-
-        Args:
-            action_space: list of permissible actions.
-            state_space: list of states in environment.
-
-        Returns:
-            initial_values: dictionary containing state-action id / value mapping.
-        """
-        if initialisation_strategy == constants.Constants.RANDOM:
-            return {
-                state: {action: random.random() for action in action_space}
-                for state in state_space
-            }
-        elif initialisation_strategy == constants.Constants.ZEROS:
-            return {
-                state: {action: 0.0 for action in action_space} for state in state_space
-            }
-        elif initialisation_strategy == constants.Constants.ONES:
-            return {
-                state: {action: 1.0 for action in action_space} for state in state_space
-            }
-
-    def _max_state_action_value(self, state: Tuple[int, int]) -> float:
-        """Find highest value in given state.
-
-        Args:
-            state: state for which to find highest value.
-
-        Returns:
-            value: corresponding highest value.
-        """
-        return max(self._state_action_values[state].values())
-
-    def _greedy_action(self, state: Tuple[int, int]) -> int:
-        """Find action with highest value in given state.
-
-        Args:
-            state: state for which to find action with highest value.
-
-        Returns:
-            action: action with highest value in state given.
-        """
-        action_values = self._state_action_values[state]
-        return max(action_values, key=lambda key: action_values[key])
 
     def select_target_action(self, state: Tuple[int, int]) -> int:
         """Select action according to target policy, i.e. policy being learned.
@@ -111,32 +59,6 @@ class TabularQLearner(base_learner.BaseLearner):
             action = self._greedy_action(state=state)
         return action
 
-    def update(
-        self,
-        state: Tuple[int, int],
-        action: int,
-        bootstrapped_return: float,
-    ):
-        """Update state-action values.
-
-        Make q-learning update (Equation 7.9 in Sutton & Barto):
-        Q(s, a) <- Q(s, a) + alpha * rho * [G - Q(s, a)]
-        where G is a n-step bootstrapped return.
-
-        Args:
-            state: state to be updated.
-            action: action to be updated.
-            importance_weight: weighting to account for potential difference
-            between behaviour and target policies.
-            bootstrapped_return: reward in next n-steps plus bootstrapped Q value.
-        """
-        initial_state_action_value = self._state_action_values[state][action]
-        updated_state_action_value = (
-            initial_state_action_value
-            + self._learning_rate * (bootstrapped_return - initial_state_action_value)
-        )
-        self._state_action_values[state][action] = updated_state_action_value
-
     def step(
         self,
         state: Tuple[int, int],
@@ -159,7 +81,9 @@ class TabularQLearner(base_learner.BaseLearner):
             reward: scalar reward received from environment.
             new_state: next state.
         """
-        initial_state_action_value = self._state_action_values[state][action]
+        state_id = self._state_id_mapping[state]
+        initial_state_action_value = self._state_action_values[state_id][action]
+
         updated_state_action_value = (
             initial_state_action_value
             + self._learning_rate
@@ -169,6 +93,6 @@ class TabularQLearner(base_learner.BaseLearner):
                 - initial_state_action_value
             )
         )
-        self._state_action_values[state][action] = (
+        self._state_action_values[state_id][action] = (
             updated_state_action_value - self._visitation_penalty
         )
