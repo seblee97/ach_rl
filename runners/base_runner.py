@@ -115,6 +115,8 @@ class BaseRunner(abc.ABC):
                 data=self._environment.visitation_counts,
             )
 
+        self._logger.checkpoint_df()
+
         return (
             train_episode_rewards,
             train_episode_lengths,
