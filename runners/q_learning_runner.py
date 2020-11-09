@@ -1,4 +1,4 @@
-import ach_config
+from experiments import ach_config
 
 from learners import q_learner
 from runners import base_runner
@@ -34,7 +34,7 @@ class QLearningRunner(base_runner.BaseRunner):
         """
         episode_reward = 0
 
-        self._environment.reset_environment()
+        self._environment.reset_environment(train=True)
         state = self._environment.agent_position
 
         while self._environment.active:
