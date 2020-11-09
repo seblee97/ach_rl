@@ -190,6 +190,17 @@ class ConfigTemplate:
         level=[constants.Constants.LOGGING],
     )
 
+    _post_processing_template = config_template.Template(
+        fields=[
+            config_field.Field(
+                name=constants.Constants.PLOT_TAGS,
+                types=[list],
+                requirements=[lambda x: all(isinstance(y, str) for y in x)],
+            )
+        ],
+        level=[constants.Constants.POST_PROCESSING],
+    )
+
     base_template = config_template.Template(
         fields=[
             config_field.Field(
@@ -213,5 +224,6 @@ class ConfigTemplate:
             _sarsa_lambda_template,
             _training_template,
             _logging_template,
+            _post_processing_template,
         ],
     )
