@@ -53,10 +53,7 @@ class TabularQLearner(tabular_learner.TabularLearner):
         Returns:
             action: selected action from specified policy.
         """
-        if random.random() < self._epsilon:
-            action = random.choice(self._action_space)
-        else:
-            action = self._greedy_action(state=state)
+        action = self._epsilon_greedy_action(state=state, epsilon=self._epsilon)
         return action
 
     def step(
