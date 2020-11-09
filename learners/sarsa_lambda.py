@@ -16,6 +16,7 @@ class TabularSARSALambda(tabular_learner.TabularLearner):
         gamma: float,
         initialisation_strategy: str,
         behaviour: str,
+        target: str,
         trace_lambda: float,
         visitation_penalty: Optional[float] = None,
         epsilon: Optional[float] = None,
@@ -26,44 +27,15 @@ class TabularSARSALambda(tabular_learner.TabularLearner):
             learning_rate=learning_rate,
             gamma=gamma,
             initialisation_strategy=initialisation_strategy,
+            behaviour=behaviour,
+            target=target,
             visitation_penalty=visitation_penalty,
         )
         self._state_action_eligibility_traces = self._initialise_values(
             initialisation_strategy=constants.Constants.ZEROS
         )
         self._trace_lambda = trace_lambda
-        self._behaviour = behaviour
         self._epsilon = epsilon
-
-    def select_target_action(self, state: Tuple[int, int]) -> int:
-        """Select action according to target policy, i.e. policy being learned.
-        Here, action with highest value in given state is selected.
-
-        Args:
-            state: current state.
-
-        Returns:
-            action: greedy action.
-        """
-        action = self._greedy_action(state=state)
-        return action
-
-    def select_behaviour_action(self, state: Tuple[int, int]) -> Tuple[int, float]:
-        """Select action with behaviour policy, i.e. policy collecting trajectory data
-        and generating behaviour. Sarsa lambda is on-policy so this is the same as the
-        target policy, namely the greedy action.
-
-        Args:
-            state: current state.
-
-        Returns:
-            action: greedy action.
-        """
-        if self._behaviour == constants.Constants.GREEDY:
-            action = self._greedy_action(state=state)
-        elif self._behaviour == constants.Constants.EPSILON_GREEDY:
-            action = self._epsilon_greedy_action(state=state, epsilon=self._epsilon)
-        return action
 
     def step(
         self,
