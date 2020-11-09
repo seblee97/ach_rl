@@ -15,6 +15,7 @@ class TabularSARSALambda(tabular_learner.TabularLearner):
         learning_rate: float,
         gamma: float,
         initialisation_strategy: str,
+        behaviour: str,
         trace_lambda: float,
         visitation_penalty: Optional[float] = None,
         epsilon: Optional[float] = None,
@@ -31,6 +32,8 @@ class TabularSARSALambda(tabular_learner.TabularLearner):
             initialisation_strategy=constants.Constants.ZEROS
         )
         self._trace_lambda = trace_lambda
+        self._behaviour = behaviour
+        self._epsilon = epsilon
 
     def select_target_action(self, state: Tuple[int, int]) -> int:
         """Select action according to target policy, i.e. policy being learned.
@@ -56,7 +59,10 @@ class TabularSARSALambda(tabular_learner.TabularLearner):
         Returns:
             action: greedy action.
         """
-        action = self._greedy_action(state=state)
+        if self._behaviour == constants.Constants.GREEDY:
+            action = self._greedy_action(state=state)
+        elif self._behaviour == constants.Constants.EPSILON_GREEDY:
+            action = self._epsilon_greedy_action(state=state, epsilon=self._epsilon)
         return action
 
     def step(
