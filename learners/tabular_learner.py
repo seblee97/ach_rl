@@ -89,8 +89,8 @@ class TabularLearner(abc.ABC):
         """
         state_id = self._state_id_mapping[state]
         actions_available = [
-            action if action not in excluded_actions else -np.inf
-            for action in self._state_action_values[state_id]
+            action if i not in excluded_actions else -np.inf
+            for (i, action) in enumerate(self._state_action_values[state_id])
         ]
         return np.argmax(actions_available)
 
