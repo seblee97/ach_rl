@@ -16,7 +16,8 @@ import constants
 class Plotter:
     """Class for plotting scalar data."""
 
-    def __init__(self, logfile_path: str, plot_tags: List[str]):
+    def __init__(self, save_path: str, logfile_path: str, plot_tags: List[str]):
+        self._save_path = save_path
         self._logfile_path = logfile_path
         self._plot_tags = plot_tags
 
@@ -73,7 +74,9 @@ class Plotter:
                         row=row, col=col, data_tag=self._plot_tags[graph_index]
                     )
 
-        self.fig.savefig(save_path, dpi=100)
+        self.fig.savefig(
+            os.path.join(self._save_path, constants.Constants.PLOT_PDF), dpi=100
+        )
 
     def _plot_scalar(
         self,
