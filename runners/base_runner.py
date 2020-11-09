@@ -63,7 +63,9 @@ class BaseRunner(abc.ABC):
     def _setup_plotter(self, config: ach_config.AchConfig) -> plotter.Plotter:
         """Initialise plotter object for use in post-processing run."""
         return plotter.Plotter(
-            logfile_path=config.logfile_path, plot_tags=config.plot_tags
+            save_folder=config.checkpoint_path,
+            logfile_path=config.logfile_path,
+            plot_tags=config.plot_tags,
         )
 
     @abc.abstractmethod
