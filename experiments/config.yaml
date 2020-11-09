@@ -46,4 +46,11 @@ logging:
         - visitation_count_heatmap
         - individual_test_run
         - individual_train_run
+
+post_processing:
+    plot_tags:
+        - train_episode_reward
+        - train_episode_length
+        - test_episode_reward
+        - test_episode_length
         
