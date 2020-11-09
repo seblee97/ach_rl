@@ -1,5 +1,7 @@
 import os
 from typing import List
+from typing import Union
+from typing import Optional
 
 import pandas as pd
 import numpy as np
@@ -41,6 +43,7 @@ def plot_multi_seed_multi_run(
     window_width: int,
     xlabel: str,
     ylabel: str,
+    threshold_line: Optional[Union[float, int]] = None,
     show_deviations: bool = True,
     save: bool = True,
 ):
@@ -50,17 +53,24 @@ def plot_multi_seed_multi_run(
         folder_path: full path to folder containing results
         tag: name of column in csvs to plot.
         window_width: width of window over which to smooth data (after averaging).
+        xlabel: x axis label
+        ylabel: y axis label
+        threshold_line: whether to plot dotted line at some threshold
         show_deviations: whether to plot transluscent variance fill around mean.
         save: whether or not to save plot as image in folder path.
     """
     exp_names = [
         f for f in os.listdir(folder_path) if (f != "figures" and not f.startswith("."))
     ]
-    experiment_folders = [os.path.join(folder_path, f) for f in exp_names]
+    experiment_folders = [
+        os.path.join(folder_path, f)
+        for f in sorted(exp_names, key=lambda x: float(x.split("_")[1]))
+    ]
     fig = plt.figure()
     for i, exp in enumerate(experiment_folders):
         attribute_data = []
-        for seed in os.listdir(exp):
+        seed_folders = [f for f in os.listdir(exp) if not f.startswith(".")]
+        for seed in seed_folders:
             df = pd.read_csv(os.path.join(exp, seed, "data_logger.csv"))
             tag_data = df[tag]
             attribute_data.append(tag_data)
@@ -76,6 +86,13 @@ def plot_multi_seed_multi_run(
             alpha=0.3,
         )
         plt.legend()
+    if threshold_line is not None:
+        plt.plot(
+            [0, len(smooth_mean_data)],
+            [threshold_line, threshold_line],
+            linestyle="dashed",
+            color="black",
+        )
     if save:
         os.makedirs(os.path.join(folder_path, "figures"), exist_ok=True)
         fig.savefig(
