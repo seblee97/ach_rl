@@ -128,10 +128,42 @@ class ConfigTemplate:
                     in [constants.Constants.GREEDY, constants.Constants.EPSILON_GREEDY]
                 ],
             ),
+            config_field.Field(
+                name=constants.Constants.TARGET,
+                types=[str],
+                requirements=[
+                    lambda x: x
+                    in [constants.Constants.GREEDY, constants.Constants.EPSILON_GREEDY]
+                ],
+            ),
         ],
         dependent_variables=[constants.Constants.TYPE],
         dependent_variables_required_values=[constants.Constants.SARSA_LAMBDA],
         level=[constants.Constants.SARSA_LAMBDA],
+    )
+
+    _q_learning_template = config_template.Template(
+        fields=[
+            config_field.Field(
+                name=constants.Constants.BEHAVIOUR,
+                types=[str],
+                requirements=[
+                    lambda x: x
+                    in [constants.Constants.GREEDY, constants.Constants.EPSILON_GREEDY]
+                ],
+            ),
+            config_field.Field(
+                name=constants.Constants.TARGET,
+                types=[str],
+                requirements=[
+                    lambda x: x
+                    in [constants.Constants.GREEDY, constants.Constants.EPSILON_GREEDY]
+                ],
+            ),
+        ],
+        dependent_variables=[constants.Constants.TYPE],
+        dependent_variables_required_values=[constants.Constants.Q_LEARNING],
+        level=[constants.Constants.Q_LEARNING],
     )
 
     _training_template = config_template.Template(
@@ -222,6 +254,7 @@ class ConfigTemplate:
             _minigrid_template,
             _learner_template,
             _sarsa_lambda_template,
+            _q_learning_template,
             _training_template,
             _logging_template,
             _post_processing_template,
