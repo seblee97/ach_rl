@@ -60,3 +60,5 @@ class Constants:
     SARSA = "sarsa"
     EXPECTED_SARSA = "expected_sarsa"
     Q_LEARNING = "q_learning"
+    POST_PROCESSING = "post_processing"
+    PLOT_TAGS = "plot_tags"
