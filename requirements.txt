@@ -4,4 +4,4 @@ matplotlib==3.3.2
 PyYAML==5.3.1
 scipy==1.5.2
 
--e https://github.com/seblee97/config_package.git#egg=config-package
+-e git://github.com/seblee97/config_package.git#egg=config-package
