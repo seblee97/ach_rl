@@ -2,6 +2,8 @@ import os
 from typing import List
 
 import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
 from experiments import ach_config
 
 from utils import decorators
@@ -15,6 +17,7 @@ class Logger:
     """
 
     def __init__(self, config: ach_config.AchConfig):
+        self._checkpoint_path = config.checkpoint_path
         self._logfile_path = config.logfile_path
         self._df_columns = self._get_df_columns(config)
         self._logger_df = pd.DataFrame(columns=self._df_columns)
@@ -39,7 +42,30 @@ class Logger:
         )
         self._logger_df.at[step, tag] = scalar
 
-    @decorators.timer
+    def write_array_data(self, name: str, data: np.ndarray) -> None:
+        """Write array data to np save file.
+
+        Args:
+            name: filename for save.
+            data: data to save.
+        """
+        full_path = os.path.join(self._checkpoint_path, name)
+        np.save(file=full_path, arr=data)
+
+    def plot_array_data(self, name: str, data: np.ndarray) -> None:
+        """Plot array data to image file.
+
+        Args:
+            name: filename for save.
+            data: data to save.
+        """
+        full_path = os.path.join(self._checkpoint_path, name)
+        fig = plt.figure()
+        plt.imshow(data)
+        plt.colorbar()
+        fig.savefig(fname=full_path)
+        plt.close(fig)
+
     def checkpoint_df(self) -> None:
         """Merge dataframe with previously saved checkpoint.
 
