@@ -8,8 +8,11 @@ minigrid:
     living_reward: 0
     no_op_penalty: 0
     starting_position:  [0, 0] # random if not given
-    reward_position:  [38, 45] # random if not given
-    episode_timeout:  200 # infinity if not given
+    num_rewards: 3
+    reward_positions: [[38, 45], [5, 12], [48, 1]] # random if not given
+    reward_magnitudes: [1., 1., 2.]
+    repeat_rewards: False
+    episode_timeout: 400 # infinity if not given
 
 learner: 
     type: sarsa_lambda
@@ -21,10 +24,13 @@ learner:
 
 sarsa_lambda:
     trace_lambda: 0.05
+    behaviour: epsilon_greedy
 
 training:
-    num_episodes: 50000
+    num_episodes: 100000
     test_frequency: 1
+    full_test_log_frequency: 2500
+    train_log_frequency: 2500
 
 logging:
     checkpoint_frequency: 100
@@ -33,3 +39,11 @@ logging:
         - train_episode_length
         - test_episode_reward
         - test_episode_length
+    arrays:
+    plots:
+        - plot_episode_lengths
+        - plot_episode_rewards
+        - visitation_count_heatmap
+        - individual_test_run
+        - individual_train_run
+        
