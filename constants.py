@@ -62,3 +62,4 @@ class Constants:
     Q_LEARNING = "q_learning"
     POST_PROCESSING = "post_processing"
     PLOT_TAGS = "plot_tags"
+    PLOT_PDF = "plot.pdf"
