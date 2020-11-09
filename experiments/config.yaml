@@ -25,6 +25,11 @@ learner:
 sarsa_lambda:
     trace_lambda: 0.05
     behaviour: epsilon_greedy
+    target: greedy
+
+q_learning:
+    behaviour: epsilon_greedy
+    target: greedy
 
 training:
     num_episodes: 100000
@@ -39,6 +44,8 @@ logging:
         - train_episode_length
         - test_episode_reward
         - test_episode_length
+        - no_repeat_test_episode_reward
+        - no_repeat_test_episode_length
     arrays:
     plots:
         - plot_episode_lengths
@@ -46,6 +53,8 @@ logging:
         - visitation_count_heatmap
         - individual_test_run
         - individual_train_run
+        - individual_no_rep_test_run
+        - individual_no_rep_train_run
 
 post_processing:
     plot_tags:
