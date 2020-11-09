@@ -170,4 +170,5 @@ class BaseRunner(abc.ABC):
 
     def post_process(self) -> None:
         """Solidify any data and make plots."""
+        self._plotter.load_data()
         self._plotter.make_plots()
