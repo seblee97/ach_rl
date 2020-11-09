@@ -17,6 +17,8 @@ class QLearningRunner(base_runner.BaseRunner):
         learner = q_learner.TabularQLearner(
             action_space=self._environment.action_space,
             state_space=self._environment.state_space,
+            behaviour=config.behaviour,
+            target=config.target,
             initialisation_strategy=config.initialisation,
             epsilon=config.epsilon,
             learning_rate=config.learning_rate,
