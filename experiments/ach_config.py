@@ -34,3 +34,6 @@ class AchConfig(base_configuration.BaseConfiguration):
         assert (
             len(self.reward_magnitudes) == self.num_rewards
         ), "Number of reward magnitudes must match number of rewards,"
+
+    def _maybe_reconfigure(self, property_name: str) -> None:
+        pass
