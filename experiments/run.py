@@ -17,7 +17,7 @@ BASE_CONFIGURATION = ach_config.AchConfig(
     config="config.yaml", template=config_template.ConfigTemplate.base_template
 )
 
-VISITATION_PENALTIES = [0, 0.001, 0.002, 0.005, 0.01, 0.05]
+VISITATION_PENALTIES = [0, 0.001, 0.002]
 
 
 def run():
@@ -26,7 +26,7 @@ def run():
     experiment_path = os.path.join(results_folder, timestamp)
     for visitation_penalty in VISITATION_PENALTIES:
         print(visitation_penalty)
-        for seed in range(5):
+        for seed in range(3):
             print(seed)
             config = copy.deepcopy(BASE_CONFIGURATION)
             experiment_utils.set_random_seeds(seed)
@@ -50,25 +50,49 @@ def run():
 
             if config.type == constants.Constants.SARSA_LAMBDA:
                 r = sarsa_lambda_runner.SARSALambdaRunner(config=config)
-            elif config.type == constants.Constants.Q_LEARNER:
+            elif config.type == constants.Constants.Q_LEARNING:
                 r = q_learning_runner.QLearningRunner(config=config)
 
             r.train()
 
-    plotting_functions.plot_multi_seed_multi_run(
-        folder_path=experiment_path,
-        tag=constants.Constants.TEST_EPISODE_LENGTH,
-        window_width=40,
-        xlabel=constants.Constants.EPISODE,
-        ylabel=constants.Constants.TEST_EPISODE_LENGTH,
-    )
-    plotting_functions.plot_multi_seed_multi_run(
-        folder_path=experiment_path,
-        tag=constants.Constants.TRAIN_EPISODE_LENGTH,
-        window_width=40,
-        xlabel=constants.Constants.EPISODE,
-        ylabel=constants.Constants.TRAIN_EPISODE_LENGTH,
-    )
+    if constants.Constants.PLOT_EPISODE_LENGTHS in config.plots:
+        if config.num_rewards == 1:
+            threshold = sum(config.reward_positions[0])
+        else:
+            threshold = None
+        plotting_functions.plot_multi_seed_multi_run(
+            folder_path=experiment_path,
+            tag=constants.Constants.TEST_EPISODE_LENGTH,
+            window_width=40,
+            threshold_line=threshold,
+            xlabel=constants.Constants.EPISODE,
+            ylabel=constants.Constants.TEST_EPISODE_LENGTH,
+        )
+        plotting_functions.plot_multi_seed_multi_run(
+            folder_path=experiment_path,
+            tag=constants.Constants.TRAIN_EPISODE_LENGTH,
+            window_width=40,
+            threshold_line=threshold,
+            xlabel=constants.Constants.EPISODE,
+            ylabel=constants.Constants.TRAIN_EPISODE_LENGTH,
+        )
+    if constants.Constants.PLOT_EPISODE_REWARDS in config.plots:
+        plotting_functions.plot_multi_seed_multi_run(
+            folder_path=experiment_path,
+            tag=constants.Constants.TEST_EPISODE_REWARD,
+            window_width=40,
+            threshold_line=sum(config.reward_magnitudes),
+            xlabel=constants.Constants.EPISODE,
+            ylabel=constants.Constants.TEST_EPISODE_REWARD,
+        )
+        plotting_functions.plot_multi_seed_multi_run(
+            folder_path=experiment_path,
+            tag=constants.Constants.TRAIN_EPISODE_REWARD,
+            window_width=40,
+            threshold_line=sum(config.reward_magnitudes),
+            xlabel=constants.Constants.EPISODE,
+            ylabel=constants.Constants.TRAIN_EPISODE_REWARD,
+        )
 
 
 if __name__ == "__main__":
