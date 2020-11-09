@@ -1,10 +1,13 @@
 import abc
-from typing import List, Tuple
+from typing import List
+from typing import Tuple
 
 import constants
-from environments import base_environment, minigrid
+from environments import base_environment
+from environments import minigrid
 from experiments import ach_config
 from utils import logger
+from utils import plotter
 
 
 class BaseRunner(abc.ABC):
@@ -14,9 +17,14 @@ class BaseRunner(abc.ABC):
         self._environment = self._setup_environment(config=config)
         self._learner = self._setup_learner(config=config)
         self._logger = self._setup_logger(config=config)
+        self._plotter = self._setup_plotter(config=config)
 
         self._checkpoint_frequency = config.checkpoint_frequency
         self._test_frequency = config.test_frequency
+        self._train_log_frequency = config.train_log_frequency
+        self._full_test_log_frequency = config.full_test_log_frequency
+        self._array_logging = config.arrays or []
+        self._plot_logging = config.plots or []
         self._num_episodes = config.num_episodes
 
         config.save_configuration(folder_path=config.checkpoint_path)
@@ -26,18 +34,23 @@ class BaseRunner(abc.ABC):
     ) -> base_environment.BaseEnvironment:
         """Initialise environment specified in configuration."""
         if config.environment == constants.Constants.MINIGRID:
-            if config.reward_position is not None:
-                reward_position = tuple(config.reward_position)
+            if config.reward_positions is not None:
+                reward_positions = [
+                    tuple(position) for position in config.reward_positions
+                ]
             else:
-                reward_position = None
+                reward_positions = None
             if config.starting_position is not None:
                 agent_starting_position = tuple(config.starting_position)
             else:
                 agent_starting_position = None
             environment = minigrid.MiniGrid(
                 size=tuple(config.size),
+                num_rewards=config.num_rewards,
+                reward_magnitudes=config.reward_magnitudes,
                 starting_xy=agent_starting_position,
-                reward_xy=reward_position,
+                reward_xy=reward_positions,
+                repeat_rewards=config.repeat_rewards,
                 episode_timeout=config.episode_timeout,
             )
 
@@ -46,6 +59,12 @@ class BaseRunner(abc.ABC):
     def _setup_logger(self, config: ach_config.AchConfig) -> logger.Logger:
         """Initialise logger object to record data from experiment."""
         return logger.Logger(config=config)
+
+    def _setup_plotter(self, config: ach_config.AchConfig) -> plotter.Plotter:
+        """Initialise plotter object for use in post-processing run."""
+        return plotter.Plotter(
+            logfile_path=config.logfile_path, plot_tags=config.plot_tags
+        )
 
     @abc.abstractmethod
     def _setup_learner(self, config: ach_config.AchConfig):
@@ -65,7 +84,17 @@ class BaseRunner(abc.ABC):
             if i % self._checkpoint_frequency == 0:
                 self._logger.checkpoint_df()
 
+            if i % self._test_frequency == 0:
+                self._test_episode(episode=i)
+
             train_reward, train_step_count = self._train_episode()
+
+            if i % self._train_log_frequency == 0:
+                if constants.Constants.INDIVIDUAL_TRAIN_RUN in self._plot_logging:
+                    self._logger.plot_array_data(
+                        name=f"{constants.Constants.INDIVIDUAL_TRAIN_RUN}_{i}",
+                        data=self._environment.plot_episode_history(),
+                    )
 
             self._logger.write_scalar_df(
                 tag=constants.Constants.TRAIN_EPISODE_LENGTH,
@@ -78,19 +107,11 @@ class BaseRunner(abc.ABC):
                 scalar=train_reward,
             )
 
-            if i % self._test_frequency == 0:
-                test_reward, test_step_count = self._test_episode()
-
-                self._logger.write_scalar_df(
-                    tag=constants.Constants.TEST_EPISODE_LENGTH,
-                    step=i,
-                    scalar=test_step_count,
-                )
-                self._logger.write_scalar_df(
-                    tag=constants.Constants.TEST_EPISODE_REWARD,
-                    step=i,
-                    scalar=test_reward,
-                )
+        if constants.Constants.VISITATION_COUNT_HEATMAP in self._plot_logging:
+            self._logger.plot_array_data(
+                name=constants.Constants.VISITATION_COUNT_HEATMAP,
+                data=self._environment.visitation_counts,
+            )
 
         return (
             train_episode_rewards,
@@ -104,8 +125,11 @@ class BaseRunner(abc.ABC):
         """Perform single training loop."""
         pass
 
-    def _test_episode(self) -> Tuple[float, int]:
+    def _test_episode(self, episode: int) -> Tuple[float, int]:
         """Perform 'test' rollout with target policy
+
+        Args:
+            episode: current episode number.
 
         Returns:
             episode_reward: scalar reward accumulated over episode.
@@ -113,7 +137,7 @@ class BaseRunner(abc.ABC):
         """
         episode_reward = 0
 
-        self._environment.reset_environment()
+        self._environment.reset_environment(train=False)
         state = self._environment.agent_position
 
         while self._environment.active:
@@ -121,4 +145,29 @@ class BaseRunner(abc.ABC):
             reward, state = self._environment.step(action)
             episode_reward += reward
 
-        return episode_reward, self._environment.episode_step_count
+        self._logger.write_scalar_df(
+            tag=constants.Constants.TEST_EPISODE_LENGTH,
+            step=episode,
+            scalar=self._environment.episode_step_count,
+        )
+        self._logger.write_scalar_df(
+            tag=constants.Constants.TEST_EPISODE_REWARD,
+            step=episode,
+            scalar=episode_reward,
+        )
+
+        if episode % self._full_test_log_frequency == 0:
+            if constants.Constants.INDIVIDUAL_TEST_RUN in self._array_logging:
+                self._logger.write_array_data(
+                    name=f"{constants.Constants.INDIVIDUAL_TEST_RUN}_{episode}",
+                    data=self._environment.plot_episode_history(),
+                )
+            if constants.Constants.INDIVIDUAL_TEST_RUN in self._plot_logging:
+                self._logger.plot_array_data(
+                    name=f"{constants.Constants.INDIVIDUAL_TEST_RUN}_{episode}",
+                    data=self._environment.plot_episode_history(),
+                )
+
+    def post_process(self) -> None:
+        """Solidify any data and make plots."""
+        self._plotter.make_plots()
