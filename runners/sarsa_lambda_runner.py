@@ -1,4 +1,4 @@
-import ach_config
+from experiments import ach_config
 
 from learners import sarsa_lambda
 from runners import base_runner
@@ -18,6 +18,7 @@ class SARSALambdaRunner(base_runner.BaseRunner):
             action_space=self._environment.action_space,
             state_space=self._environment.state_space,
             initialisation_strategy=config.initialisation,
+            behaviour=config.behaviour,
             epsilon=config.epsilon,
             learning_rate=config.learning_rate,
             gamma=config.discount_factor,
@@ -35,7 +36,7 @@ class SARSALambdaRunner(base_runner.BaseRunner):
         """
         episode_reward = 0
 
-        self._environment.reset_environment()
+        self._environment.reset_environment(train=True)
         state = self._environment.agent_position
         action = self._learner.select_behaviour_action(state)
 
