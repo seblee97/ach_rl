@@ -14,6 +14,8 @@ class TabularQLearner(tabular_learner.TabularLearner):
         learning_rate: float,
         gamma: float,
         initialisation_strategy: str,
+        behaviour: str,
+        target: str,
         visitation_penalty: Optional[float] = None,
         epsilon: Optional[float] = None,
     ):
@@ -23,38 +25,11 @@ class TabularQLearner(tabular_learner.TabularLearner):
             learning_rate=learning_rate,
             gamma=gamma,
             initialisation_strategy=initialisation_strategy,
+            behaviour=behaviour,
+            target=target,
             visitation_penalty=visitation_penalty,
         )
         self._epsilon = epsilon
-
-    def select_target_action(self, state: Tuple[int, int]) -> int:
-        """Select action according to target policy, i.e. policy being learned.
-        For Q-learning this corresponds to the greedy policy, so action with
-        highest value in given state is selected.
-
-        Args:
-            state: current state.
-
-        Returns:
-            action: greedy action.
-        """
-        action = self._greedy_action(state=state)
-        return action
-
-    def select_behaviour_action(self, state: Tuple[int, int]) -> Tuple[int, float]:
-        """Select action with behaviour policy, i.e. policy collecting trajectory data
-        and generating behaviour. For Q-learning this corresponds to an
-        epsilon-greedy policy. This chooses the greedy policy with probability
-        (1 - epsilon) and a random action with probability epsilon.
-
-        Args:
-            state: current state.
-
-        Returns:
-            action: selected action from specified policy.
-        """
-        action = self._epsilon_greedy_action(state=state, epsilon=self._epsilon)
-        return action
 
     def step(
         self,
