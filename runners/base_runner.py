@@ -130,10 +130,17 @@ class BaseRunner(abc.ABC):
         pass
 
     def _test_episode(self, episode: int) -> Tuple[float, int]:
-        """Perform 'test' rollout with target policy
+        """Perform test rollouts, once with target policy,
+        and---if specified---once with non-repeat target.
 
         Args:
             episode: current episode number.
+        """
+        self._greedy_test_episode(episode=episode)
+        self._non_repeat_test_episode(episode=episode)
+
+    def _greedy_test_episode(self, episode: int) -> None:
+        """Perform 'test' rollout with target policy
 
         Returns:
             episode_reward: scalar reward accumulated over episode.
@@ -169,6 +176,56 @@ class BaseRunner(abc.ABC):
             if constants.Constants.INDIVIDUAL_TEST_RUN in self._plot_logging:
                 self._logger.plot_array_data(
                     name=f"{constants.Constants.INDIVIDUAL_TEST_RUN}_{episode}",
+                    data=self._environment.plot_episode_history(),
+                )
+
+    def _non_repeat_test_episode(self, episode: int) -> None:
+        """Perform 'test' rollout with target policy, except actions are never
+        repeated in same state. Instead next best action is chosen.
+        This is to break loops in test rollouts.
+
+        Returns:
+            episode_reward: scalar reward accumulated over episode.
+            num_steps: number of steps taken for episode.
+        """
+        episode_reward = 0
+
+        states_visited = {}
+
+        self._environment.reset_environment(train=False)
+        state = self._environment.agent_position
+        states_visited[state] = []
+
+        while self._environment.active:
+            action = self._learner.non_repeat_greedy_action(
+                state, excluded_actions=states_visited[state]
+            )
+            reward, state = self._environment.step(action)
+            if state not in states_visited:
+                states_visited[state] = []
+            states_visited[state].append(action)
+            episode_reward += reward
+
+        self._logger.write_scalar_df(
+            tag=constants.Constants.NO_REPEAT_TEST_EPISODE_LENGTH,
+            step=episode,
+            scalar=self._environment.episode_step_count,
+        )
+        self._logger.write_scalar_df(
+            tag=constants.Constants.NO_REPEAT_TEST_EPISODE_REWARD,
+            step=episode,
+            scalar=episode_reward,
+        )
+
+        if episode % self._full_test_log_frequency == 0:
+            if constants.Constants.INDIVIDUAL_NO_REP_TEST_RUN in self._array_logging:
+                self._logger.write_array_data(
+                    name=f"{constants.Constants.INDIVIDUAL_NO_REP_TEST_RUN}_{episode}",
+                    data=self._environment.plot_episode_history(),
+                )
+            if constants.Constants.INDIVIDUAL_NO_REP_TEST_RUN in self._plot_logging:
+                self._logger.plot_array_data(
+                    name=f"{constants.Constants.INDIVIDUAL_NO_REP_TEST_RUN}_{episode}",
                     data=self._environment.plot_episode_history(),
                 )
 
