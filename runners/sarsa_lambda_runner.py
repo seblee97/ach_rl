@@ -19,6 +19,7 @@ class SARSALambdaRunner(base_runner.BaseRunner):
             state_space=self._environment.state_space,
             initialisation_strategy=config.initialisation,
             behaviour=config.behaviour,
+            target=config.target,
             epsilon=config.epsilon,
             learning_rate=config.learning_rate,
             gamma=config.discount_factor,
