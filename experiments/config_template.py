@@ -31,11 +31,27 @@ class ConfigTemplate:
                 ],
             ),
             config_field.Field(
-                name=constants.Constants.REWARD_POSITION,
+                name=constants.Constants.NUM_REWARDS,
+                types=[int],
+                requirements=[lambda x: x > 0],
+            ),
+            config_field.Field(
+                name=constants.Constants.REWARD_POSITIONS,
                 types=[list, type(None)],
                 requirements=[
-                    lambda x: x is None or (len(x) == 2 and all(y >= 0 for y in x))
+                    lambda x: x is None or all(isinstance(y, list) for y in x),
+                    lambda x: x is None or all(len(y) == 2 for y in x),
+                    lambda x: x is None or all(all(z >= 0 for z in y) for y in x),
                 ],
+            ),
+            config_field.Field(
+                name=constants.Constants.REWARD_MAGNITUDES,
+                types=[list],
+                requirements=[lambda x: all(isinstance(r, float) for r in x)],
+            ),
+            config_field.Field(
+                name=constants.Constants.REPEAT_REWARDS,
+                types=[bool],
             ),
             config_field.Field(
                 name=constants.Constants.EPISODE_TIMEOUT,
@@ -103,7 +119,15 @@ class ConfigTemplate:
                 name=constants.Constants.TRACE_LAMBDA,
                 types=[int, float],
                 requirements=[lambda x: x >= 0 and x <= 1],
-            )
+            ),
+            config_field.Field(
+                name=constants.Constants.BEHAVIOUR,
+                types=[str],
+                requirements=[
+                    lambda x: x
+                    in [constants.Constants.GREEDY, constants.Constants.EPSILON_GREEDY]
+                ],
+            ),
         ],
         dependent_variables=[constants.Constants.TYPE],
         dependent_variables_required_values=[constants.Constants.SARSA_LAMBDA],
@@ -122,6 +146,16 @@ class ConfigTemplate:
                 types=[int],
                 requirements=[lambda x: x > 0],
             ),
+            config_field.Field(
+                name=constants.Constants.TRAIN_LOG_FREQUENCY,
+                types=[int],
+                requirements=[lambda x: x > 0],
+            ),
+            config_field.Field(
+                name=constants.Constants.FULL_TEST_LOG_FREQUENCY,
+                types=[int],
+                requirements=[lambda x: x > 0],
+            ),
         ],
         level=[constants.Constants.TRAINING],
     )
@@ -137,6 +171,20 @@ class ConfigTemplate:
                 name=constants.Constants.COLUMNS,
                 types=[list],
                 requirements=[lambda x: all(isinstance(y, str) for y in x)],
+            ),
+            config_field.Field(
+                name=constants.Constants.ARRAYS,
+                types=[list, type(None)],
+                requirements=[
+                    lambda x: x is None or all(isinstance(y, str) for y in x)
+                ],
+            ),
+            config_field.Field(
+                name=constants.Constants.PLOTS,
+                types=[list, type(None)],
+                requirements=[
+                    lambda x: x is None or all(isinstance(y, str) for y in x)
+                ],
             ),
         ],
         level=[constants.Constants.LOGGING],
