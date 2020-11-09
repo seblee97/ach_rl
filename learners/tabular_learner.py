@@ -3,6 +3,7 @@ from typing import List, Optional, Tuple
 
 import constants
 import numpy as np
+import random
 
 
 class TabularLearner(abc.ABC):
@@ -25,7 +26,6 @@ class TabularLearner(abc.ABC):
         self._state_action_values = self._initialise_values(
             initialisation_strategy=initialisation_strategy
         )
-        self._state_action_values[self._state_id_mapping[(18, 12)]][:] = 0.0
 
         self._learning_rate = learning_rate
         self._gamma = gamma
@@ -70,6 +70,23 @@ class TabularLearner(abc.ABC):
         """
         state_id = self._state_id_mapping[state]
         return np.argmax(self._state_action_values[state_id])
+
+    def _epsilon_greedy_action(self, state: Tuple[int, int], epsilon: float) -> int:
+        """Choose greedy policy with probability
+        (1 - epsilon) and a random action with probability epsilon.
+
+        Args:
+            state: state for which to find action.
+            epsilon: parameter controlling randomness.
+
+        Returns:
+            action: action chosen according to epsilon greedy.
+        """
+        if random.random() < self._epsilon:
+            action = random.choice(self._action_space)
+        else:
+            action = self._greedy_action(state=state)
+        return action
 
     @abc.abstractmethod
     def select_target_action(self, state: Tuple[int, int]) -> int:
