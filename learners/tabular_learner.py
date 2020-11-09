@@ -16,6 +16,8 @@ class TabularLearner(abc.ABC):
         learning_rate: float,
         gamma: float,
         initialisation_strategy: str,
+        behaviour: str,
+        target: str,
         visitation_penalty: Optional[float] = None,
     ):
         self._action_space = action_space
@@ -27,6 +29,8 @@ class TabularLearner(abc.ABC):
             initialisation_strategy=initialisation_strategy
         )
 
+        self._behaviour = behaviour
+        self._target = target
         self._learning_rate = learning_rate
         self._gamma = gamma
         self._visitation_penalty = visitation_penalty
@@ -71,6 +75,25 @@ class TabularLearner(abc.ABC):
         state_id = self._state_id_mapping[state]
         return np.argmax(self._state_action_values[state_id])
 
+    def non_repeat_greedy_action(
+        self, state: Tuple[int, int], excluded_actions: List[int]
+    ) -> int:
+        """Find action with highest value in given state not included set of excluded actions.
+
+        Args:
+            state: state for which to find action with (modified) highest value.
+            excluded_actions: set of actions to exclude from consideration.
+
+        Returns:
+            action: action with (modified) highest value in state given.
+        """
+        state_id = self._state_id_mapping[state]
+        actions_available = [
+            action if action not in excluded_actions else -np.inf
+            for action in self._state_action_values[state_id]
+        ]
+        return np.argmax(actions_available)
+
     def _epsilon_greedy_action(self, state: Tuple[int, int], epsilon: float) -> int:
         """Choose greedy policy with probability
         (1 - epsilon) and a random action with probability epsilon.
@@ -88,30 +111,38 @@ class TabularLearner(abc.ABC):
             action = self._greedy_action(state=state)
         return action
 
-    @abc.abstractmethod
     def select_target_action(self, state: Tuple[int, int]) -> int:
         """Select action according to target policy, i.e. policy being learned.
+        Here, action with highest value in given state is selected.
 
         Args:
             state: current state.
 
         Returns:
-            action: action chosen.
+            action: greedy action.
         """
-        pass
+        if self._target == constants.Constants.GREEDY:
+            action = self._greedy_action(state=state)
+        elif self._target == constants.Constants.EPSILON_GREEDY:
+            action = self._epsilon_greedy_action(state=state, epsilon=self._epsilon)
+        return action
 
-    @abc.abstractmethod
     def select_behaviour_action(self, state: Tuple[int, int]) -> Tuple[int, float]:
         """Select action with behaviour policy, i.e. policy collecting trajectory data
-        and generating behaviour.
+        and generating behaviour. Sarsa lambda is on-policy so this is the same as the
+        target policy, namely the greedy action.
 
         Args:
             state: current state.
 
         Returns:
-            action: selected action from behaviour policy.
+            action: greedy action.
         """
-        pass
+        if self._behaviour == constants.Constants.GREEDY:
+            action = self._greedy_action(state=state)
+        elif self._behaviour == constants.Constants.EPSILON_GREEDY:
+            action = self._epsilon_greedy_action(state=state, epsilon=self._epsilon)
+        return action
 
     @abc.abstractmethod
     def step(self, *args, **kwargs) -> None:
