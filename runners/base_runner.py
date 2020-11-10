@@ -198,12 +198,12 @@ class BaseRunner(abc.ABC):
 
         while self._environment.active:
             action = self._learner.non_repeat_greedy_action(
-                state, excluded_actions=states_visited[state]
+                state, excluded_actions=states_visited.get(state, [])
             )
-            reward, state = self._environment.step(action)
             if state not in states_visited:
                 states_visited[state] = []
             states_visited[state].append(action)
+            reward, state = self._environment.step(action)
             episode_reward += reward
 
         self._logger.write_scalar_df(
