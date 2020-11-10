@@ -32,7 +32,7 @@ q_learning:
     target: greedy
 
 training:
-    num_episodes: 100000
+    num_episodes: 10000
     test_frequency: 1
     full_test_log_frequency: 2500
     train_log_frequency: 2500
@@ -50,6 +50,8 @@ logging:
     plots:
         - plot_episode_lengths
         - plot_episode_rewards
+        - no_repeat_test_episode_length
+        - no_repeat_test_episode_reward
         - visitation_count_heatmap
         - individual_test_run
         - individual_train_run
