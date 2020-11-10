@@ -25,7 +25,7 @@ class MiniGrid(base_environment.BaseEnvironment):
     ):
         self._size = size
         self._num_rewards = num_rewards
-        self._starting_xy = starting_xy or self.random_coordinate()
+        self._starting_xy = starting_xy
 
         reward_xy = reward_xy or self._get_random_rewards()
         self._rewards = {
@@ -221,6 +221,9 @@ class MiniGrid(base_environment.BaseEnvironment):
         self._active = True
         self._episode_step_count = 0
         self._training = train
-        self._agent_position = list(self._starting_xy)
+        if self._starting_xy is not None:
+            self._agent_position = list(self._starting_xy)
+        else:
+            self._agent_position = self.random_coordinate()
         self._episode_history = [copy.deepcopy(self._agent_position)]
         self._rewards_received = []
