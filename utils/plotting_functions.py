@@ -97,7 +97,7 @@ def plot_multi_seed_multi_run(
         os.makedirs(os.path.join(folder_path, "figures"), exist_ok=True)
         fig.savefig(
             os.path.join(
-                folder_path, "figures", f"{tag}_plot_multi_seed_multi_run.png"
+                folder_path, "figures", f"{tag}_plot_multi_seed_multi_run.pdf"
             ),
             dpi=100,
         )
