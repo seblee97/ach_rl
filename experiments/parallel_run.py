@@ -85,11 +85,12 @@ def summary_plot(experiment_path: str):
 
     config = BASE_CONFIGURATION
 
+    if config.num_rewards == 1:
+        threshold = sum(config.reward_positions[0])
+    else:
+        threshold = None
+
     if constants.Constants.PLOT_EPISODE_LENGTHS in config.plots:
-        if config.num_rewards == 1:
-            threshold = sum(config.reward_positions[0])
-        else:
-            threshold = None
         plotting_functions.plot_multi_seed_multi_run(
             folder_path=experiment_path,
             tag=constants.Constants.TEST_EPISODE_LENGTH,
@@ -106,6 +107,7 @@ def summary_plot(experiment_path: str):
             xlabel=constants.Constants.EPISODE,
             ylabel=constants.Constants.TRAIN_EPISODE_LENGTH,
         )
+
     if constants.Constants.PLOT_EPISODE_REWARDS in config.plots:
         plotting_functions.plot_multi_seed_multi_run(
             folder_path=experiment_path,
@@ -122,6 +124,25 @@ def summary_plot(experiment_path: str):
             threshold_line=sum(config.reward_magnitudes),
             xlabel=constants.Constants.EPISODE,
             ylabel=constants.Constants.TRAIN_EPISODE_REWARD,
+        )
+
+    if constants.Constants.NO_REPEAT_TEST_EPISODE_LENGTH in config.plots:
+        plotting_functions.plot_multi_seed_multi_run(
+            folder_path=experiment_path,
+            tag=constants.Constants.NO_REPEAT_TEST_EPISODE_LENGTH,
+            window_width=40,
+            threshold_line=threshold,
+            xlabel=constants.Constants.EPISODE,
+            ylabel=constants.Constants.TEST_EPISODE_LENGTH,
+        )
+    if constants.Constants.NO_REPEAT_TEST_EPISODE_REWARD in config.plots:
+        plotting_functions.plot_multi_seed_multi_run(
+            folder_path=experiment_path,
+            tag=constants.Constants.NO_REPEAT_TEST_EPISODE_REWARD,
+            window_width=40,
+            threshold_line=threshold,
+            xlabel=constants.Constants.EPISODE,
+            ylabel=constants.Constants.TRAIN_EPISODE_LENGTH,
         )
 
 
