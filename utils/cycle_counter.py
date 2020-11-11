@@ -20,21 +20,24 @@ def loop_on_state(
             if current_state == state:
                 return True, len(state_history)
             else:
-                return False
+                return False, np.nan
         else:
             state_history.append(current_state)
 
 
 def evaluate_loops_on_value_function(
     size: Tuple[int, int], state_action_values: Dict[Tuple[int, int], np.ndarray]
-):
+) -> int:
+    num_loops = 0
     loops = {}
     for state in state_action_values.keys():
-        state_loop = loop_on_state(
+        is_loop, loop_length = loop_on_state(
             size=size, state_action_values=state_action_values, state=state
         )
-        loops[state] = state_loop
-    return loops
+        if is_loop:
+            num_loops += 1
+        loops[state] = (is_loop, loop_length)
+    return num_loops
 
 
 class Tabular:
