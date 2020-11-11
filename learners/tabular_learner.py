@@ -1,9 +1,13 @@
 import abc
-from typing import List, Optional, Tuple
+import random
+from typing import Dict
+from typing import List
+from typing import Optional
+from typing import Tuple
+
+import numpy as np
 
 import constants
-import numpy as np
-import random
 
 
 class TabularLearner(abc.ABC):
@@ -24,6 +28,7 @@ class TabularLearner(abc.ABC):
         self._state_space = state_space
 
         self._state_id_mapping = {state: i for i, state in enumerate(self._state_space)}
+        self._id_state_mapping = {i: state for i, state in enumerate(self._state_space)}
 
         self._state_action_values = self._initialise_values(
             initialisation_strategy=initialisation_strategy
@@ -34,6 +39,13 @@ class TabularLearner(abc.ABC):
         self._learning_rate = learning_rate
         self._gamma = gamma
         self._visitation_penalty = visitation_penalty
+
+    @property
+    def state_action_values(self) -> Dict[Tuple[int, int], np.ndarray]:
+        return {
+            self._id_state_mapping[i]: action_values
+            for i, action_values in enumerate(self._state_action_values)
+        }
 
     def _initialise_values(self, initialisation_strategy: str) -> np.ndarray:
         """Initialise values for each state, action pair in state-action space.
