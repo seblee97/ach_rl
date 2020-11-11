@@ -72,3 +72,6 @@ class Constants:
     QUIVER_VALUES_PDF = "quiver_values.pdf"
     QUIVER_MAX_VALUES_PDF = "quiver_max_values.pdf"
     VALUE_FUNCTION = "value_function"
+    CYCLE_COUNT = "cycle_count"
+    PARALLEL = "parallel"
+    SERIAL = "serial"
