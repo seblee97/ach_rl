@@ -12,12 +12,14 @@ import os
 
 import constants
 
+from utils import plotting_functions
+
 
 class Plotter:
     """Class for plotting scalar data."""
 
     def __init__(self, save_folder: str, logfile_path: str, plot_tags: List[str]):
-        self._save_path = os.path.join(save_folder, constants.Constants.PLOT_PDF)
+        self._save_folder = save_folder
         self._logfile_path = logfile_path
         self._plot_tags = plot_tags
 
@@ -51,7 +53,7 @@ class Plotter:
 
         return fig, spec
 
-    def make_plots(self) -> None:
+    def plot_learning_curves(self) -> None:
 
         graph_layout = (3, 3)
         num_graphs = len(self._plot_tags)
@@ -74,7 +76,8 @@ class Plotter:
                         row=row, col=col, data_tag=self._plot_tags[graph_index]
                     )
 
-        self.fig.savefig(self._save_path, dpi=100)
+        save_path = os.path.join(self._save_folder, constants.Constants.PLOT_PDF)
+        self.fig.savefig(save_path, dpi=100)
 
     def _plot_scalar(
         self,
@@ -100,4 +103,42 @@ class Plotter:
         )
         fig_sub.grid(
             which="minor", linestyle=":", linewidth="0.5", color="black", alpha=0.4
+        )
+
+    def plot_value_function(
+        self,
+        grid_size: Tuple[int, int],
+        state_action_values: np.ndarray,
+        extra_tag: Optional[str] = "",
+    ) -> None:
+        max_save_path = os.path.join(
+            self._save_folder, f"{extra_tag}{constants.Constants.MAX_VALUES_PDF}"
+        )
+        quiver_save_path = os.path.join(
+            self._save_folder, f"{extra_tag}{constants.Constants.QUIVER_VALUES_PDF}"
+        )
+        quiver_max_save_path = os.path.join(
+            self._save_folder,
+            f"{extra_tag}{constants.Constants.QUIVER_MAX_VALUES_PDF}",
+        )
+        plotting_functions.plot_value_function(
+            grid_size=grid_size,
+            state_action_values=state_action_values,
+            save_path=max_save_path,
+            plot_max_values=True,
+            quiver=False,
+        )
+        plotting_functions.plot_value_function(
+            grid_size=grid_size,
+            state_action_values=state_action_values,
+            save_path=quiver_save_path,
+            plot_max_values=False,
+            quiver=True,
+        )
+        plotting_functions.plot_value_function(
+            grid_size=grid_size,
+            state_action_values=state_action_values,
+            save_path=quiver_max_save_path,
+            plot_max_values=True,
+            quiver=True,
         )
