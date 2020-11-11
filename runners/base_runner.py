@@ -8,6 +8,7 @@ from environments import minigrid
 from experiments import ach_config
 from utils import logger
 from utils import plotter
+from utils import cycle_counter
 
 
 class BaseRunner(abc.ABC):
@@ -23,6 +24,7 @@ class BaseRunner(abc.ABC):
         self._test_frequency = config.test_frequency
         self._train_log_frequency = config.train_log_frequency
         self._full_test_log_frequency = config.full_test_log_frequency
+        self._scalar_logging = config.columns or []
         self._array_logging = config.arrays or []
         self._plot_logging = config.plots or []
         self._num_episodes = config.num_episodes
@@ -115,6 +117,17 @@ class BaseRunner(abc.ABC):
                 step=i,
                 scalar=train_reward,
             )
+
+            if constants.Constants.CYCLE_COUNT in self._scalar_logging:
+                num_cycles = cycle_counter.evaluate_loops_on_value_function(
+                    size=self._grid_size,
+                    state_action_values=self._learner.state_action_values,
+                )
+                self._logger.write_scalar_df(
+                    tag=constants.Constants.CYCLE_COUNT,
+                    step=i,
+                    scalar=num_cycles,
+                )
 
         if constants.Constants.VISITATION_COUNT_HEATMAP in self._plot_logging:
             self._logger.plot_array_data(
