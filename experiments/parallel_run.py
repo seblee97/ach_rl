@@ -1,3 +1,4 @@
+import argparse
 import copy
 import itertools
 import os
@@ -11,19 +12,36 @@ from runners import sarsa_lambda_runner
 from utils import experiment_utils
 from utils import plotting_functions
 
+from typing import List
+
 MAIN_FILE_PATH = os.path.dirname(os.path.realpath(__file__))
 
-EXPERIMENT_DESCRIPTION = ""
 
-BASE_CONFIGURATION = ach_config.AchConfig(
-    config="config.yaml", template=config_template.ConfigTemplate.base_template
+parser = argparse.ArgumentParser()
+
+# arg_parser.add_argument(name="--experiment_description", default="")
+parser.add_argument(
+    "--mode",
+    metavar="-M",
+    default="parallel",
+    help="run in 'parallel' or 'serial'",
 )
+parser.add_argument("--config", metavar="-C", default="config.yaml")
+parser.add_argument("--penalties", metavar="-P", default=[0, 0.001, 0.002])
+parser.add_argument("--seeds", metavar="-S", default=range(5))
 
-VISITATION_PENALTIES = [0, 0.001, 0.002]
+args = parser.parse_args()
 
 
-def run(experiment_path: str, results_folder: str, timestamp: str):
-    penalty_seed_tuples = itertools.product(*[VISITATION_PENALTIES, range(3)])
+def parallel_run(
+    base_configuration: ach_config.AchConfig,
+    visitation_penalties: List[float],
+    seeds: List[int],
+    experiment_path: str,
+    results_folder: str,
+    timestamp: str,
+):
+    penalty_seed_tuples = itertools.product(*[visitation_penalties, seeds])
 
     procs = []
 
@@ -31,6 +49,7 @@ def run(experiment_path: str, results_folder: str, timestamp: str):
         p = Process(
             target=single_run,
             args=(
+                base_configuration,
                 penalty_seed[1],
                 results_folder,
                 experiment_path,
@@ -45,14 +64,37 @@ def run(experiment_path: str, results_folder: str, timestamp: str):
         p.join()
 
 
+def serial_run(
+    base_configuration: ach_config.AchConfig,
+    visitation_penalties: List[float],
+    seeds: List[int],
+    experiment_path: str,
+    results_folder: str,
+    timestamp: str,
+):
+    for visitation_penalty in visitation_penalties:
+        print(f"Visitation Penalty: {visitation_penalty}")
+        for seed in seeds:
+            print(f"Seed: {seed}")
+            single_run(
+                base_configuration=base_configuration,
+                seed=seed,
+                results_folder=results_folder,
+                experiment_path=experiment_path,
+                timestamp=timestamp,
+                visitation_penalty=visitation_penalty,
+            )
+
+
 def single_run(
+    base_configuration: ach_config.AchConfig,
     seed: int,
     results_folder: str,
     experiment_path: str,
     timestamp: str,
     visitation_penalty: float,
 ):
-    config = copy.deepcopy(BASE_CONFIGURATION)
+    config = copy.deepcopy(base_configuration)
     experiment_utils.set_random_seeds(seed)
     checkpoint_path = experiment_utils.get_checkpoint_path(
         results_folder, timestamp, f"vp_{visitation_penalty}", str(seed)
@@ -81,9 +123,7 @@ def single_run(
     r.post_process()
 
 
-def summary_plot(experiment_path: str):
-
-    config = BASE_CONFIGURATION
+def summary_plot(config: ach_config.AchConfig, experiment_path: str):
 
     if config.num_rewards == 1:
         threshold = sum(config.reward_positions[0])
@@ -145,14 +185,42 @@ def summary_plot(experiment_path: str):
             ylabel=constants.Constants.TRAIN_EPISODE_LENGTH,
         )
 
+    if constants.Constants.CYCLE_COUNT in config.plots:
+        plotting_functions.plot_multi_seed_multi_run(
+            folder_path=experiment_path,
+            tag=constants.Constants.CYCLE_COUNT,
+            window_width=40,
+            xlabel=constants.Constants.EPISODE,
+            ylabel=constants.Constants.CYCE_COUNT,
+        )
+
 
 if __name__ == "__main__":
+
+    base_configuration = ach_config.AchConfig(
+        config=args.config, template=config_template.ConfigTemplate.base_template
+    )
+
     timestamp = experiment_utils.get_experiment_timestamp()
     results_folder = os.path.join(MAIN_FILE_PATH, constants.Constants.RESULTS)
     experiment_path = os.path.join(results_folder, timestamp)
-    run(
-        experiment_path=experiment_path,
-        results_folder=results_folder,
-        timestamp=timestamp,
-    )
-    summary_plot(experiment_path=experiment_path)
+
+    if args.mode == constants.Constants.PARALLEL:
+        parallel_run(
+            base_configuration=base_configuration,
+            visitation_penalties=args.penalties,
+            seeds=args.seeds,
+            experiment_path=experiment_path,
+            results_folder=results_folder,
+            timestamp=timestamp,
+        )
+    elif args.mode == constants.Constants.SERIAL:
+        serial_run(
+            base_configuration=base_configuration,
+            visitation_penalties=args.penalties,
+            seeds=args.seeds,
+            experiment_path=experiment_path,
+            results_folder=results_folder,
+            timestamp=timestamp,
+        )
+    summary_plot(config=base_configuration, experiment_path=experiment_path)
