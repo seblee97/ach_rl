@@ -68,3 +68,7 @@ class Constants:
     PLOT_PDF = "plot.pdf"
     NO_REPEAT_TEST_EPISODE_LENGTH = "no_repeat_test_episode_length"
     NO_REPEAT_TEST_EPISODE_REWARD = "no_repeat_test_episode_reward"
+    MAX_VALUES_PDF = "max_values.pdf"
+    QUIVER_VALUES_PDF = "quiver_values.pdf"
+    QUIVER_MAX_VALUES_PDF = "quiver_max_values.pdf"
+    VALUE_FUNCTION = "value_function"
