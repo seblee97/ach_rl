@@ -46,6 +46,7 @@ logging:
         - test_episode_length
         - no_repeat_test_episode_reward
         - no_repeat_test_episode_length
+        - cycle_count
     arrays:
     plots:
         - value_function
@@ -58,6 +59,7 @@ logging:
         - individual_train_run
         - individual_no_rep_test_run
         - individual_no_rep_train_run
+        - cycle_count
 
 post_processing:
     plot_tags:
