@@ -224,6 +224,6 @@ class MiniGrid(base_environment.BaseEnvironment):
         if self._starting_xy is not None:
             self._agent_position = list(self._starting_xy)
         else:
-            self._agent_position = self.random_coordinate()
+            self._agent_position = list(self.random_coordinate())
         self._episode_history = [copy.deepcopy(self._agent_position)]
         self._rewards_received = []
