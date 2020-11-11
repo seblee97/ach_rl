@@ -13,6 +13,13 @@ from environments import base_environment
 class MiniGrid(base_environment.BaseEnvironment):
     """Grid world environment. Single reward"""
 
+    ACTION_SPACE = [0, 1, 2, 3]
+
+    # 0: LEFT
+    # 1: UP
+    # 2: RIGHT
+    # 3: DOWN
+
     def __init__(
         self,
         size: Tuple[int, int],
@@ -37,7 +44,6 @@ class MiniGrid(base_environment.BaseEnvironment):
 
         self._episode_timeout = episode_timeout or np.inf
 
-        self._action_space = [0, 1, 2, 3]
         self._state_space = list(np.ndindex(size))
         self._visitation_counts = np.zeros(self._size)
 
@@ -57,7 +63,7 @@ class MiniGrid(base_environment.BaseEnvironment):
 
     @property
     def action_space(self) -> List[int]:
-        return self._action_space
+        return self.ACTION_SPACE
 
     @property
     def state_space(self) -> List[Tuple[int, int]]:
@@ -155,7 +161,7 @@ class MiniGrid(base_environment.BaseEnvironment):
             next_state: new coordinates of agent.
         """
         assert (
-            action in self._action_space
+            action in self.ACTION_SPACE
         ), f"Action given as {action}; must be 0: left, 1: up, 2: right or 3: down."
 
         if action == 0:
