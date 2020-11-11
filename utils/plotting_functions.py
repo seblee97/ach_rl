@@ -115,7 +115,9 @@ def plot_value_function(
     fig = plt.figure()
     if quiver:
         action_arrow_mapping = {0: [-1, 0], 1: [0, 1], 2: [1, 0], 3: [0, -1]}
-        X, Y = np.meshgrid(np.arange(grid_size[0]), np.arange(grid_size[1]))
+        X, Y = np.meshgrid(
+            np.arange(grid_size[0]), np.arange(grid_size[1]), indexing="ij"
+        )
         arrow_x_directions = np.zeros(grid_size)
         arrow_y_directions = np.zeros(grid_size)
         for state, action_values in state_action_values.items():
