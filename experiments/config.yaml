@@ -48,6 +48,7 @@ logging:
         - no_repeat_test_episode_length
     arrays:
     plots:
+        - value_function
         - plot_episode_lengths
         - plot_episode_rewards
         - no_repeat_test_episode_length
