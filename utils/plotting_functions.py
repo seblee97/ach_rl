@@ -1,11 +1,13 @@
 import os
+from typing import Dict
 from typing import List
-from typing import Union
 from typing import Optional
+from typing import Tuple
+from typing import Union
 
-import pandas as pd
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
 
 
 def smooth_data(data: List[float], window_width: int) -> List[float]:
@@ -101,3 +103,34 @@ def plot_multi_seed_multi_run(
             ),
             dpi=100,
         )
+
+
+def plot_value_function(
+    grid_size: Tuple[int, int],
+    state_action_values: Dict[Tuple[int, int], np.ndarray],
+    save_path: str,
+    plot_max_values: bool,
+    quiver: bool,
+) -> None:
+    fig = plt.figure()
+    if quiver:
+        action_arrow_mapping = {0: [-1, 0], 1: [0, 1], 2: [1, 0], 3: [0, -1]}
+        X, Y = np.meshgrid(np.arange(grid_size[0]), np.arange(grid_size[1]))
+        arrow_x_directions = np.zeros(grid_size)
+        arrow_y_directions = np.zeros(grid_size)
+        for state, action_values in state_action_values.items():
+            action_index = np.argmax(action_values)
+            arrow_x_directions[state] = action_arrow_mapping[action_index][0]
+            arrow_y_directions[state] = action_arrow_mapping[action_index][1]
+        plt.quiver(X, Y, arrow_x_directions, arrow_y_directions, color="red")
+    if plot_max_values:
+        max_values = np.zeros(grid_size)
+        for state, action_values in state_action_values.items():
+            max_value = max(action_values)
+            max_values[state] = max_value
+        plt.imshow(max_values)
+        plt.colorbar()
+    plt.xlim(-0.5, grid_size[0] - 0.5)
+    plt.ylim(-0.5, grid_size[1] - 0.5)
+    fig.savefig(save_path, dpi=100)
+    plt.close()
