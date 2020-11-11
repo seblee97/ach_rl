@@ -26,6 +26,7 @@ class BaseRunner(abc.ABC):
         self._array_logging = config.arrays or []
         self._plot_logging = config.plots or []
         self._num_episodes = config.num_episodes
+        self._grid_size = tuple(config.size)
 
         config.save_configuration(folder_path=config.checkpoint_path)
 
@@ -96,6 +97,12 @@ class BaseRunner(abc.ABC):
                     self._logger.plot_array_data(
                         name=f"{constants.Constants.INDIVIDUAL_TRAIN_RUN}_{i}",
                         data=self._environment.plot_episode_history(),
+                    )
+                if constants.Constants.VALUE_FUNCTION in self._plot_logging:
+                    self._plotter.plot_value_function(
+                        grid_size=self._grid_size,
+                        state_action_values=self._learner.state_action_values,
+                        extra_tag=f"{i}_",
                     )
 
             self._logger.write_scalar_df(
@@ -232,4 +239,8 @@ class BaseRunner(abc.ABC):
     def post_process(self) -> None:
         """Solidify any data and make plots."""
         self._plotter.load_data()
-        self._plotter.make_plots()
+        self._plotter.plot_learning_curves()
+        self._plotter.plot_value_function(
+            grid_size=self._grid_size,
+            state_action_values=self._learner.state_action_values,
+        )
