@@ -193,7 +193,7 @@ def summary_plot(config: ach_config.AchConfig, experiment_path: str):
             tag=constants.Constants.CYCLE_COUNT,
             window_width=40,
             xlabel=constants.Constants.EPISODE,
-            ylabel=constants.Constants.CYCE_COUNT,
+            ylabel=constants.Constants.CYCLE_COUNT,
         )
 
 
