@@ -126,11 +126,12 @@ def plot_value_function(
             arrow_y_directions[state] = action_arrow_mapping[action_index][1]
         plt.quiver(X, Y, arrow_x_directions, arrow_y_directions, color="red")
     if plot_max_values:
-        max_values = np.zeros(grid_size)
+        # flip size so indexing is consistent with axis dimensions
+        max_values = np.zeros(grid_size[::-1])
         for state, action_values in state_action_values.items():
             max_value = max(action_values)
-            max_values[state] = max_value
-        plt.imshow(max_values)
+            max_values[state[::-1]] = max_value
+        plt.imshow(max_values, origin="lower")
         plt.colorbar()
     plt.xlim(-0.5, grid_size[0] - 0.5)
     plt.ylim(-0.5, grid_size[1] - 0.5)
