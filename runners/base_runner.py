@@ -1,14 +1,19 @@
 import abc
+from typing import Any
+from typing import Dict
 from typing import List
 from typing import Tuple
+from typing import Union
 
 import constants
+from curricula import base_curriculum
+from curricula import minigrid_curriculum
 from environments import base_environment
 from environments import minigrid
 from experiments import ach_config
+from utils import cycle_counter
 from utils import logger
 from utils import plotter
-from utils import cycle_counter
 
 
 class BaseRunner(abc.ABC):
@@ -20,6 +25,7 @@ class BaseRunner(abc.ABC):
         self._logger = self._setup_logger(config=config)
         self._plotter = self._setup_plotter(config=config)
 
+        self._apply_curriculum = config.apply_curriculum
         self._checkpoint_frequency = config.checkpoint_frequency
         self._test_frequency = config.test_frequency
         self._train_log_frequency = config.train_log_frequency
@@ -34,8 +40,19 @@ class BaseRunner(abc.ABC):
 
     def _setup_environment(
         self, config: ach_config.AchConfig
-    ) -> base_environment.BaseEnvironment:
+    ) -> Union[base_curriculum.BaseCurriculum, base_environment.BaseEnvironment]:
         """Initialise environment specified in configuration."""
+        environment_args = self._get_environment_args(config=config)
+
+        if not config.apply_curriculum:
+            environment = minigrid.MiniGrid(**environment_args)
+        else:
+            curriculum_args = self._get_curriculum_args(config=config)
+            curriculum_wrapper = self.get_curriculum_wrapper(config.environment)
+            environment = curriculum_wrapper(**environment_args, **curriculum_args)
+        return environment
+
+    def _get_environment_args(self, config: ach_config.AchConfig) -> Dict[str, Any]:
         if config.environment == constants.Constants.MINIGRID:
             if config.reward_positions is not None:
                 reward_positions = [
@@ -47,17 +64,30 @@ class BaseRunner(abc.ABC):
                 agent_starting_position = tuple(config.starting_position)
             else:
                 agent_starting_position = None
-            environment = minigrid.MiniGrid(
-                size=tuple(config.size),
-                num_rewards=config.num_rewards,
-                reward_magnitudes=config.reward_magnitudes,
-                starting_xy=agent_starting_position,
-                reward_xy=reward_positions,
-                repeat_rewards=config.repeat_rewards,
-                episode_timeout=config.episode_timeout,
-            )
+            env_args = {
+                constants.Constants.SIZE: tuple(config.size),
+                constants.Constants.NUM_REWARDS: config.num_rewards,
+                constants.Constants.REWARD_MAGNITUDES: config.reward_magnitudes,
+                constants.Constants.STARTING_XY: agent_starting_position,
+                constants.Constants.REWARD_XY: reward_positions,
+                constants.Constants.REPEAT_REWARDS: config.repeat_rewards,
+                constants.Constants.EPISODE_TIMEOUT: config.episode_timeout,
+            }
+        return env_args
 
-        return environment
+    def _get_curriculum_args(self, config: ach_config.AchConfig) -> Dict[str, Any]:
+        if config.environment == constants.Constants.MINIGRID:
+            curriculum_args = {
+                constants.Constants.TRANSITION_EPISODES: config.transition_episodes,
+                constants.Constants.ENVIRONMENT_CHANGES: config.environment_changes,
+            }
+        return curriculum_args
+
+    @staticmethod
+    def get_curriculum_wrapper(environment: str) -> base_curriculum.BaseCurriculum:
+        """Get relevant wrapper for environment to add curriculum features."""
+        if environment == constants.Constants.MINIGRID:
+            return minigrid_curriculum.MinigridCurriculum
 
     def _setup_logger(self, config: ach_config.AchConfig) -> logger.Logger:
         """Initialise logger object to record data from experiment."""
@@ -128,6 +158,10 @@ class BaseRunner(abc.ABC):
                     step=i,
                     scalar=num_cycles,
                 )
+
+            if self._apply_curriculum:
+                if i == self._environment.next_transition_episode:
+                    next(self._environment)
 
         if constants.Constants.VISITATION_COUNT_HEATMAP in self._plot_logging:
             self._logger.plot_array_data(
