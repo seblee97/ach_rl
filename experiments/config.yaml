@@ -2,17 +2,23 @@ experiment_name:
 seed: 0
 
 environment: minigrid
+apply_curriculum: True
     
 minigrid:
-    size: [50, 50]
+    size: [40, 50]
     living_reward: 0
     no_op_penalty: 0
-    starting_position:  [0, 0] # random if not given
-    num_rewards: 3
-    reward_positions: [[38, 45], [5, 12], [48, 1]] # random if not given
-    reward_magnitudes: [1., 1., 2.]
+    starting_position: [0, 0] # random if not given
+    num_rewards: 1
+    reward_positions: [[38, 45]] # random if not given
+    reward_magnitudes: [1.]
     repeat_rewards: False
     episode_timeout: 400 # infinity if not given
+
+minigrid_curriculum:
+    transition_episodes: [100]
+    environment_changes: 
+        - [change_starting_position, [25, 2]]
 
 learner: 
     type: sarsa_lambda
