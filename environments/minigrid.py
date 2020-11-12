@@ -86,19 +86,21 @@ class MiniGrid(base_environment.BaseEnvironment):
         return np.array(self._episode_history)
 
     def plot_episode_history(self) -> np.ndarray:
-        heatmap = np.zeros(self._size)
+        # flip size so indexing is consistent with axis dimensions
+        heatmap = np.zeros(self._size[::-1])
         for reward in self._rewards.keys():
-            heatmap[reward[0]][reward[1]] = np.inf
+            heatmap[reward[::-1]] = np.inf
         for state in self._episode_history:
-            heatmap[state[0]][state[1]] += 1
+            heatmap[tuple(state[::-1])] += 1
         return heatmap
 
     def show_grid(self) -> np.ndarray:
         """Generate 2d array of current state of environment."""
-        grid_state = np.zeros(self._size)
+        # flip size so indexing is consistent with axis dimensions
+        grid_state = np.zeros(self._size[::-1])
         for reward in self._rewards.keys():
-            grid_state[reward[0]][reward[1]] = np.inf
-        grid_state[self._agent_position[0]][self._agent_position[1]] = -1
+            grid_state[reward[::-1]] = np.inf
+        grid_state[self._agent_position[::-1]] = -1
         return grid_state
 
     def random_coordinate(self) -> Tuple[int, int]:
