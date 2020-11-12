@@ -61,7 +61,7 @@ class Logger:
         """
         full_path = os.path.join(self._checkpoint_path, name)
         fig = plt.figure()
-        plt.imshow(data)
+        plt.imshow(data, origin="lower")
         plt.colorbar()
         fig.savefig(fname=full_path)
         plt.close(fig)
