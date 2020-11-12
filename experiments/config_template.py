@@ -64,6 +64,26 @@ class ConfigTemplate:
         level=[constants.Constants.MINIGRID],
     )
 
+    _minigrid_curriculum_template = config_template.Template(
+        fields=[
+            config_field.Field(
+                name=constants.Constants.TRANSITION_EPISODES,
+                types=[list],
+                requirements=[lambda x: all(isinstance(y, int) for y in x)],
+            ),
+            config_field.Field(
+                name=constants.Constants.ENVIRONMENT_CHANGES,
+                types=[list],
+            ),
+        ],
+        level=[constants.Constants.MINIGRID_CURRICULUM],
+        dependent_variables=[
+            constants.Constants.ENVIRONMENT,
+            constants.Constants.APPLY_CURRICULUM,
+        ],
+        dependent_variables_required_values=[[constants.Constants.MINIGRID], [True]],
+    )
+
     _learner_template = config_template.Template(
         fields=[
             config_field.Field(
@@ -249,9 +269,14 @@ class ConfigTemplate:
                 types=[str],
                 requirements=[lambda x: x in [constants.Constants.MINIGRID]],
             ),
+            config_field.Field(
+                name=constants.Constants.APPLY_CURRICULUM,
+                types=[bool],
+            ),
         ],
         nested_templates=[
             _minigrid_template,
+            _minigrid_curriculum_template,
             _learner_template,
             _sarsa_lambda_template,
             _q_learning_template,
