@@ -25,7 +25,7 @@ learner:
     learning_rate: 0.1
     discount_factor: 0.99 
     epsilon: 0.1
-    initialisation: 1.5
+    initialisation: random
     visitation_penalty_type: hard_coded # hard_coded, function
 
     hard_coded: 
