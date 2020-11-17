@@ -22,7 +22,6 @@ class TabularLearner(abc.ABC):
         initialisation_strategy: str,
         behaviour: str,
         target: str,
-        visitation_penalty: Optional[float] = None,
     ):
         self._action_space = action_space
         self._state_space = state_space
@@ -38,7 +37,6 @@ class TabularLearner(abc.ABC):
         self._target = target
         self._learning_rate = learning_rate
         self._gamma = gamma
-        self._visitation_penalty = visitation_penalty
 
     @property
     def state_action_values(self) -> Dict[Tuple[int, int], np.ndarray]:
