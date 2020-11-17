@@ -84,6 +84,21 @@ class ConfigTemplate:
         dependent_variables_required_values=[[constants.Constants.MINIGRID], [True]],
     )
 
+    _hard_coded_vp_template = config_template.Template(
+        fields=[
+            config_field.Field(
+                name=constants.Constants.SCHEDULE,
+                types=[list],
+                requirements=[
+                    lambda x: all(isinstance(y, list) and len(y) == 2 for y in x)
+                ],
+            )
+        ],
+        level=[constants.Constants.LEARNER, constants.Constants.HARD_CODED],
+        dependent_variables=[constants.Constants.VISITATION_PENALTY_TYPE],
+        dependent_variables_required_values=[[constants.Constants.HARD_CODED]],
+    )
+
     _learner_template = config_template.Template(
         fields=[
             config_field.Field(
@@ -113,11 +128,6 @@ class ConfigTemplate:
                 requirements=[lambda x: x >= 0 and x <= 1],
             ),
             config_field.Field(
-                name=constants.Constants.VISITATION_PENALTY,
-                types=[float, int, type(None)],
-                requirements=[lambda x: x is None or x >= 0],
-            ),
-            config_field.Field(
                 name=constants.Constants.INITIALISATION,
                 types=[str, float, int],
                 requirements=[
@@ -130,8 +140,14 @@ class ConfigTemplate:
                     or isinstance(x, (int, float))
                 ],
             ),
+            config_field.Field(
+                name=constants.Constants.VISITATION_PENALTY_TYPE,
+                types=[str],
+                requirements=[lambda x: x in [constants.Constants.HARD_CODED]],
+            ),
         ],
         level=[constants.Constants.LEARNER],
+        nested_templates=[_hard_coded_vp_template],
     )
 
     _sarsa_lambda_template = config_template.Template(
