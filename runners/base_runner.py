@@ -14,6 +14,8 @@ from experiments import ach_config
 from utils import cycle_counter
 from utils import logger
 from utils import plotter
+from visitation_penalties import base_visistation_penalty
+from visitation_penalties import hard_coded_visitation_penalty
 
 
 class BaseRunner(abc.ABC):
@@ -21,6 +23,7 @@ class BaseRunner(abc.ABC):
 
     def __init__(self, config: ach_config.AchConfig) -> None:
         self._environment = self._setup_environment(config=config)
+        self._visitation_penalty = self._setup_visitation_penalty(config=config)
         self._learner = self._setup_learner(config=config)
         self._logger = self._setup_logger(config=config)
         self._plotter = self._setup_plotter(config=config)
@@ -101,6 +104,20 @@ class BaseRunner(abc.ABC):
             plot_tags=config.plot_tags,
         )
 
+    def _setup_visitation_penalty(
+        self, config: ach_config.AchConfig
+    ) -> base_visistation_penalty.BaseVisitationPenalty:
+        """Initialise object to act as visitation penalty."""
+        if config.visitation_penalty_type == constants.Constants.HARD_CODED:
+            visitation_penalty = hard_coded_visitation_penalty.HardCodedPenalty(
+                config=config
+            )
+        else:
+            raise ValueError(
+                f"Visitation penalty type {config.visitation_penalty} not recognised"
+            )
+        return visitation_penalty
+
     @abc.abstractmethod
     def _setup_learner(self, config: ach_config.AchConfig):
         """Instantiate learner specified in configuration."""
@@ -122,7 +139,7 @@ class BaseRunner(abc.ABC):
             if i % self._test_frequency == 0:
                 self._test_episode(episode=i)
 
-            train_reward, train_step_count = self._train_episode()
+            train_reward, train_step_count = self._train_episode(episode=i)
 
             if i % self._train_log_frequency == 0:
                 if constants.Constants.INDIVIDUAL_TRAIN_RUN in self._plot_logging:
@@ -179,8 +196,16 @@ class BaseRunner(abc.ABC):
         )
 
     @abc.abstractmethod
-    def _train_episode(self):
-        """Perform single training loop."""
+    def _train_episode(self, episode: int) -> Tuple[float, int]:
+        """Perform single training loop.
+
+        Args:
+            episode: index of episode
+
+        Returns:
+            episode_reward: scalar reward accumulated over episode.
+            num_steps: number of steps taken for episode.
+        """
         pass
 
     def _test_episode(self, episode: int) -> Tuple[float, int]:
