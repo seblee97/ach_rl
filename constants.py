@@ -54,6 +54,7 @@ class Constants:
     RESULTS = "results"
     CHECKPOINT_PATH = "checkpoint_path"
     EXPERIMENT_TIMESTAMP = "experiment_timestamp"
+    VISITATION_PENALTY_TYPE = "visitation_penalty_type"
     VISITATION_PENALTY = "visitation_penalty"
     INITIALISATION = "initialisation"
     RANDOM = "random"
@@ -82,3 +83,5 @@ class Constants:
     APPLY_CURRICULUM = "apply_curriculum"
     CHANGE_STARTING_POSITION = "change_starting_position"
     MINIGRID_CURRICULUM = "minigrid_curriculum"
+    HARD_CODED = "hard_coded"
+    SCHEDULE = "schedule"
