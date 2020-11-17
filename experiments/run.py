@@ -106,8 +106,8 @@ def single_run(
         property_name=constants.Constants.SEED, new_property_value=seed
     )
     config.amend_property(
-        property_name=constants.Constants.VISITATION_PENALTY,
-        new_property_value=visitation_penalty,
+        property_name=constants.Constants.SCHEDULE,
+        new_property_value=[[0, visitation_penalty], [100, 0]],
     )
     config.add_property(constants.Constants.EXPERIMENT_TIMESTAMP, timestamp)
     config.add_property(constants.Constants.CHECKPOINT_PATH, checkpoint_path)
@@ -207,10 +207,13 @@ if __name__ == "__main__":
     results_folder = os.path.join(MAIN_FILE_PATH, constants.Constants.RESULTS)
     experiment_path = os.path.join(results_folder, timestamp)
 
+    penalties: str = args.penalties
+    parsed_penalties = [float(i) for i in penalties.strip("[").strip("]").split(",")]
+
     if args.mode == constants.Constants.PARALLEL:
         parallel_run(
             base_configuration=base_configuration,
-            visitation_penalties=args.penalties,
+            visitation_penalties=parsed_penalties,
             seeds=args.seeds,
             experiment_path=experiment_path,
             results_folder=results_folder,
@@ -219,7 +222,7 @@ if __name__ == "__main__":
     elif args.mode == constants.Constants.SERIAL:
         serial_run(
             base_configuration=base_configuration,
-            visitation_penalties=args.penalties,
+            visitation_penalties=parsed_penalties,
             seeds=args.seeds,
             experiment_path=experiment_path,
             results_folder=results_folder,
