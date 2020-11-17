@@ -21,12 +21,16 @@ minigrid_curriculum:
         - [change_starting_position, [25, 2]]
 
 learner: 
-    type: sarsa_lambda
+    type: q_learning
     learning_rate: 0.1
     discount_factor: 0.99 
     epsilon: 0.1
-    visitation_penalty: 0
-    initialisation: random
+    initialisation: 1.5
+    visitation_penalty_type: hard_coded # hard_coded, function
+
+    hard_coded: 
+        schedule:
+            - [0, 0] # from step 0, 0 penalty
 
 sarsa_lambda:
     trace_lambda: 0.05
