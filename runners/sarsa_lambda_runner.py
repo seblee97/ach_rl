@@ -23,19 +23,23 @@ class SARSALambdaRunner(base_runner.BaseRunner):
             epsilon=config.epsilon,
             learning_rate=config.learning_rate,
             gamma=config.discount_factor,
-            visitation_penalty=config.visitation_penalty,
             trace_lambda=config.trace_lambda,
         )
         return learner
 
-    def _train_episode(self) -> Tuple[float, int]:
+    def _train_episode(self, episode: int) -> Tuple[float, int]:
         """Perform single training loop.
+
+        Args:
+            episode: index of episode
 
         Returns:
             episode_reward: scalar reward accumulated over episode.
             num_steps: number of steps taken for episode.
         """
         episode_reward = 0
+
+        visitation_penalty = self._visitation_penalty(episode)
 
         self._environment.reset_environment(train=True)
         state = self._environment.agent_position
@@ -44,7 +48,9 @@ class SARSALambdaRunner(base_runner.BaseRunner):
         while self._environment.active:
             reward, next_state = self._environment.step(action)
             next_action = self._learner.select_behaviour_action(next_state)
-            self._learner.step(state, action, reward, next_state, next_action)
+            self._learner.step(
+                state, action, reward, next_state, next_action, visitation_penalty
+            )
             state = next_state
             action = next_action
             episode_reward += reward
