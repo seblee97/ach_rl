@@ -28,7 +28,7 @@ parser.add_argument(
 )
 parser.add_argument("--config", metavar="-C", default="config.yaml")
 parser.add_argument(
-    "--penalties", metavar="-P", default=[0, 0.001, 0.002, 0.003, 0.004, 0.005]
+    "--penalties", metavar="-P", default="[0, 0.001, 0.002, 0.003, 0.004, 0.005]"
 )
 parser.add_argument("--seeds", metavar="-S", default=range(5))
 
