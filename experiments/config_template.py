@@ -119,7 +119,7 @@ class ConfigTemplate:
             ),
             config_field.Field(
                 name=constants.Constants.INITIALISATION,
-                types=[str],
+                types=[str, float, int],
                 requirements=[
                     lambda x: x
                     in [
@@ -127,6 +127,7 @@ class ConfigTemplate:
                         constants.Constants.ZEROS,
                         constants.Constants.ONES,
                     ]
+                    or isinstance(x, (int, float))
                 ],
             ),
         ],
