@@ -18,7 +18,6 @@ class TabularSARSALambda(tabular_learner.TabularLearner):
         behaviour: str,
         target: str,
         trace_lambda: float,
-        visitation_penalty: Optional[float] = None,
         epsilon: Optional[float] = None,
     ):
         super().__init__(
@@ -29,7 +28,6 @@ class TabularSARSALambda(tabular_learner.TabularLearner):
             initialisation_strategy=initialisation_strategy,
             behaviour=behaviour,
             target=target,
-            visitation_penalty=visitation_penalty,
         )
         self._state_action_eligibility_traces = self._initialise_values(
             initialisation_strategy=constants.Constants.ZEROS
@@ -44,6 +42,7 @@ class TabularSARSALambda(tabular_learner.TabularLearner):
         reward: float,
         next_state: Tuple[int, int],
         next_action: int,
+        visitation_penalty: float,
     ) -> None:
         """Update state-action values.
 
@@ -88,4 +87,4 @@ class TabularSARSALambda(tabular_learner.TabularLearner):
         self._state_action_eligibility_traces *= self._gamma * self._trace_lambda
 
         # apply visitation penalty
-        self._state_action_values[state_id][action] -= self._visitation_penalty
+        self._state_action_values[state_id][action] -= visitation_penalty
