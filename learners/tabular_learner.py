@@ -56,7 +56,11 @@ class TabularLearner(abc.ABC):
         Returns:
             initial_values: matrix containing state-action id / value mapping.
         """
-        if initialisation_strategy == constants.Constants.RANDOM:
+        if isinstance(initialisation_strategy, (int, float)):
+            return initialisation_strategy * np.ones(
+                (len(self._state_space), len(self._action_space))
+            )
+        elif initialisation_strategy == constants.Constants.RANDOM:
             return np.random.rand(len(self._state_space), len(self._action_space))
         elif initialisation_strategy == constants.Constants.ZEROS:
             return np.zeros((len(self._state_space), len(self._action_space)))
