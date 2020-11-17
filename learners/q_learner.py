@@ -16,7 +16,6 @@ class TabularQLearner(tabular_learner.TabularLearner):
         initialisation_strategy: str,
         behaviour: str,
         target: str,
-        visitation_penalty: Optional[float] = None,
         epsilon: Optional[float] = None,
     ):
         super().__init__(
@@ -27,7 +26,6 @@ class TabularQLearner(tabular_learner.TabularLearner):
             initialisation_strategy=initialisation_strategy,
             behaviour=behaviour,
             target=target,
-            visitation_penalty=visitation_penalty,
         )
         self._epsilon = epsilon
 
@@ -37,6 +35,7 @@ class TabularQLearner(tabular_learner.TabularLearner):
         action: int,
         reward: float,
         new_state: Tuple[int, int],
+        visitation_penalty: float,
     ) -> None:
         """Update state-action values.
 
@@ -66,5 +65,5 @@ class TabularQLearner(tabular_learner.TabularLearner):
             )
         )
         self._state_action_values[state_id][action] = (
-            updated_state_action_value - self._visitation_penalty
+            updated_state_action_value - visitation_penalty
         )
