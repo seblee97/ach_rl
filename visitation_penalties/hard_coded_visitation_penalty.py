@@ -6,7 +6,7 @@ from visitation_penalties import base_visistation_penalty
 
 class HardCodedPenalty(base_visistation_penalty.BaseVisitationPenalty):
     def __init__(self, config: ach_config.AchConfig):
-        hard_coded_penalties = config.schedule
+        hard_coded_penalties = config.vp_schedule
 
         self._switch_episodes = iter([int(i[0]) for i in hard_coded_penalties])
         self._penalties = iter([float(i[1]) for i in hard_coded_penalties])
