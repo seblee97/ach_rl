@@ -29,7 +29,7 @@ learner:
     visitation_penalty_type: hard_coded # hard_coded, function
 
     hard_coded: 
-        schedule:
+        vp_schedule:
             - [0, 0] # from step 0, 0 penalty
 
 sarsa_lambda:
