@@ -87,7 +87,7 @@ class ConfigTemplate:
     _hard_coded_vp_template = config_template.Template(
         fields=[
             config_field.Field(
-                name=constants.Constants.SCHEDULE,
+                name=constants.Constants.VP_SCHEDULE,
                 types=[list],
                 requirements=[
                     lambda x: all(isinstance(y, list) and len(y) == 2 for y in x)
