@@ -62,6 +62,22 @@ def parallel_run(
         p.start()
         procs.append(p)
 
+    for s in range(seeds):
+        p = Process(
+            target=single_run,
+            args=(
+                base_configuration,
+                s,
+                results_folder,
+                experiment_path,
+                timestamp,
+                0.0,
+                True,
+            ),
+        )
+        p.start()
+        procs.append(p)
+
     for p in procs:
         p.join()
 
@@ -95,12 +111,22 @@ def single_run(
     experiment_path: str,
     timestamp: str,
     visitation_penalty: float,
+    optimistic: bool = False,
 ):
     config = copy.deepcopy(base_configuration)
     experiment_utils.set_random_seeds(seed)
-    checkpoint_path = experiment_utils.get_checkpoint_path(
-        results_folder, timestamp, f"vp_{visitation_penalty}", str(seed)
-    )
+
+    if not optimistic:
+        checkpoint_path = experiment_utils.get_checkpoint_path(
+            results_folder, timestamp, f"vp_{visitation_penalty}", str(seed)
+        )
+    else:
+        checkpoint_path = experiment_utils.get_checkpoint_path(
+            results_folder, timestamp, f"optimistic_initialisation_{1.5}", str(seed)
+        )
+        config.amend_property(
+            property_name=constants.Constants.INITIALISATION, new_property_value=1.5
+        )
 
     config.amend_property(
         property_name=constants.Constants.SEED, new_property_value=seed
