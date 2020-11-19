@@ -84,4 +84,4 @@ class Constants:
     CHANGE_STARTING_POSITION = "change_starting_position"
     MINIGRID_CURRICULUM = "minigrid_curriculum"
     HARD_CODED = "hard_coded"
-    SCHEDULE = "schedule"
+    VP_SCHEDULE = "vp_schedule"
