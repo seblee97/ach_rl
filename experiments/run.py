@@ -3,6 +3,9 @@ import copy
 import itertools
 import os
 from multiprocessing import Process
+from typing import Any
+from typing import List
+from typing import Tuple
 
 import constants
 from experiments import ach_config
@@ -11,8 +14,6 @@ from runners import q_learning_runner
 from runners import sarsa_lambda_runner
 from utils import experiment_utils
 from utils import plotting_functions
-
-from typing import List
 
 MAIN_FILE_PATH = os.path.dirname(os.path.realpath(__file__))
 
@@ -27,36 +28,79 @@ parser.add_argument(
     help="run in 'parallel' or 'serial'",
 )
 parser.add_argument("--config", metavar="-C", default="config.yaml")
+
 parser.add_argument(
-    "--penalties", metavar="-P", default="[0, 0.001, 0.002, 0.003, 0.004, 0.005]"
+    "--config_changes",
+    metavar="-CC",
+    default=(
+        "[(visitation_penalty, 0) | (visitation_penalty, 0.001) | "
+        "(visitation_penalty, 0.002) | (visitation_penalty, 0.003) | "
+        "(visitation_penalty, 0.004) | (visitation_penalty, 0.005)]"
+    ),
 )
 parser.add_argument("--seeds", metavar="-S", default=range(5))
 
 args = parser.parse_args()
 
 
+def parse_config_changes(config_changes: str) -> List[Tuple[str, Any]]:
+    """Parser takes strings. Split this string into config changes.
+
+    Format of string must be [X | Y | ...] where each X, Y etc. are tuples
+    with following format: (str, Any), where requirements for type of second element
+    in tuple is set by string in first.
+
+    Args:
+        config_changes: str encoding changes to be made to config for each run
+
+    Returns:
+        decoded_config_changes: interpretable config changes.
+    """
+    import pdb
+
+    pdb.set_trace()
+    split_by_element = config_changes.strip("[").strip("]").split(" | ")
+
+    decoded_config_changes = []
+
+    for element in split_by_element:
+        key, change = element.strip("(").strip(")").split(", ")
+        if key == constants.Constants.VISITATION_PENALTY:
+            # change must by float
+            decoded_change = float(change)
+        elif key == constants.Constants.INITIALISATION:
+            # change must either by str or float/int
+            if change.isdigit():
+                decoded_change = float(change)
+            else:
+                decoded_change = change
+        decoded_config_changes.append((key, decoded_change))
+
+    return decoded_config_changes
+
+
 def parallel_run(
     base_configuration: ach_config.AchConfig,
-    visitation_penalties: List[float],
+    config_changes: List[Tuple[str, Any]],
     seeds: List[int],
     experiment_path: str,
     results_folder: str,
     timestamp: str,
 ):
-    penalty_seed_tuples = itertools.product(*[visitation_penalties, seeds])
+    config_change_seed_tuples = itertools.product(*[config_changes, seeds])
 
     procs = []
 
-    for penalty_seed in penalty_seed_tuples:
+    for config_change_tuple in config_change_seed_tuples:
         p = Process(
             target=single_run,
             args=(
                 base_configuration,
-                penalty_seed[1],
+                config_change_tuple[1],
                 results_folder,
                 experiment_path,
                 timestamp,
-                penalty_seed[0],
+                config_change_tuple[0],
             ),
         )
         p.start()
@@ -68,14 +112,14 @@ def parallel_run(
 
 def serial_run(
     base_configuration: ach_config.AchConfig,
-    visitation_penalties: List[float],
+    config_changes: List[Tuple[str, Any]],
     seeds: List[int],
     experiment_path: str,
     results_folder: str,
     timestamp: str,
 ):
-    for visitation_penalty in visitation_penalties:
-        print(f"Visitation Penalty: {visitation_penalty}")
+    for change in config_changes:
+        print(f"{change[0]}: {change[1]}")
         for seed in seeds:
             print(f"Seed: {seed}")
             single_run(
@@ -84,7 +128,7 @@ def serial_run(
                 results_folder=results_folder,
                 experiment_path=experiment_path,
                 timestamp=timestamp,
-                visitation_penalty=visitation_penalty,
+                config_change=change,
             )
 
 
@@ -94,21 +138,23 @@ def single_run(
     results_folder: str,
     experiment_path: str,
     timestamp: str,
-    visitation_penalty: float,
+    config_change: Tuple[str, Any],
 ):
     config = copy.deepcopy(base_configuration)
     experiment_utils.set_random_seeds(seed)
     checkpoint_path = experiment_utils.get_checkpoint_path(
-        results_folder, timestamp, f"vp_{visitation_penalty}", str(seed)
+        results_folder, timestamp, f"{config_change[0]}_{config_change[1]}", str(seed)
     )
 
     config.amend_property(
         property_name=constants.Constants.SEED, new_property_value=seed
     )
+
     config.amend_property(
-        property_name=constants.Constants.SCHEDULE,
-        new_property_value=[[0, visitation_penalty], [100, 0]],
+        property_name=config_change[0],
+        new_property_value=config_change[1],
     )
+
     config.add_property(constants.Constants.EXPERIMENT_TIMESTAMP, timestamp)
     config.add_property(constants.Constants.CHECKPOINT_PATH, checkpoint_path)
     config.add_property(
@@ -207,13 +253,14 @@ if __name__ == "__main__":
     results_folder = os.path.join(MAIN_FILE_PATH, constants.Constants.RESULTS)
     experiment_path = os.path.join(results_folder, timestamp)
 
-    penalties: str = args.penalties
-    parsed_penalties = [float(i) for i in penalties.strip("[").strip("]").split(",")]
+    config_changes = parse_config_changes(args.config_changes)
+    # penalties: str = args.penalties
+    # parsed_penalties = [float(i) for i in penalties.strip("[").strip("]").split(",")]
 
     if args.mode == constants.Constants.PARALLEL:
         parallel_run(
             base_configuration=base_configuration,
-            visitation_penalties=parsed_penalties,
+            config_changes=config_changes,
             seeds=args.seeds,
             experiment_path=experiment_path,
             results_folder=results_folder,
@@ -222,7 +269,7 @@ if __name__ == "__main__":
     elif args.mode == constants.Constants.SERIAL:
         serial_run(
             base_configuration=base_configuration,
-            visitation_penalties=parsed_penalties,
+            config_changes=config_changes,
             seeds=args.seeds,
             experiment_path=experiment_path,
             results_folder=results_folder,
