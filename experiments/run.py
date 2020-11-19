@@ -33,9 +33,9 @@ parser.add_argument(
     "--config_changes",
     metavar="-CC",
     default=(
-        "[(visitation_penalty, 0) | (visitation_penalty, 0.001) | "
-        "(visitation_penalty, 0.002) | (visitation_penalty, 0.003) | "
-        "(visitation_penalty, 0.004) | (visitation_penalty, 0.005)]"
+        "[(vp_schedule, 0) | (vp_schedule, 0.001) | "
+        "(vp_schedule, 0.002) | (vp_schedule, 0.003) | "
+        "(vp_schedule, 0.004) | (vp_schedule, 0.005)]"
     ),
 )
 parser.add_argument("--seeds", metavar="-S", default=range(5))
@@ -65,7 +65,7 @@ def parse_config_changes(config_changes: str) -> List[Tuple[str, Any]]:
 
     for element in split_by_element:
         key, change = element.strip("(").strip(")").split(", ")
-        if key == constants.Constants.VISITATION_PENALTY:
+        if key == constants.Constants.VP_SCHEDULE:
             # change must by float
             decoded_change = float(change)
         elif key == constants.Constants.INITIALISATION:
