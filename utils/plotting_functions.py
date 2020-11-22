@@ -64,7 +64,10 @@ def plot_multi_seed_multi_run(
     exp_names = [
         f for f in os.listdir(folder_path) if (f != "figures" and not f.startswith("."))
     ]
-    sorted_exp_names = sorted(exp_names, key=lambda x: float(x.split("_")[1]))
+    sorted_exp_names = sorted(
+        exp_names,
+        key=lambda x: float(x.split("_")[1]) if x.split("_")[1].isdigit() else x,
+    )
     experiment_folders = [os.path.join(folder_path, f) for f in sorted_exp_names]
     fig = plt.figure()
     for i, exp in enumerate(experiment_folders):
