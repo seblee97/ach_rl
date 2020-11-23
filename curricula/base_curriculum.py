@@ -7,7 +7,8 @@ import numpy as np
 class BaseCurriculum(abc.ABC):
     def __init__(self, transition_episodes: List[int]):
         self._transition_episodes = iter(transition_episodes)
-        self._next_transition_episode = next(self._transition_episodes)
+        self._next_transition_episode: int
+        self._get_next_transition_episode()
 
     @property
     def next_transition_episode(self) -> int:
@@ -18,9 +19,12 @@ class BaseCurriculum(abc.ABC):
         """Transition environment to next phase."""
         pass
 
-    def __next__(self):
-        self._transition()
+    def _get_next_transition_episode(self) -> None:
         try:
             self._next_transition_episode = next(self._transition_episodes)
         except StopIteration:
             self._next_transition_episode = np.inf
+
+    def __next__(self):
+        self._transition()
+        self._get_next_transition_episode()
