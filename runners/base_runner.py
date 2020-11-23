@@ -139,8 +139,6 @@ class BaseRunner(abc.ABC):
             if i % self._test_frequency == 0:
                 self._test_episode(episode=i)
 
-            train_reward, train_step_count = self._train_episode(episode=i)
-
             if i % self._train_log_frequency == 0:
                 if constants.Constants.INDIVIDUAL_TRAIN_RUN in self._plot_logging:
                     self._logger.plot_array_data(
@@ -153,6 +151,8 @@ class BaseRunner(abc.ABC):
                         state_action_values=self._learner.state_action_values,
                         extra_tag=f"{i}_",
                     )
+
+            train_reward, train_step_count = self._train_episode(episode=i)
 
             self._logger.write_scalar_df(
                 tag=constants.Constants.TRAIN_EPISODE_LENGTH,
