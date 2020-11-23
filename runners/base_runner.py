@@ -152,19 +152,6 @@ class BaseRunner(abc.ABC):
                         extra_tag=f"{i}_",
                     )
 
-            train_reward, train_step_count = self._train_episode(episode=i)
-
-            self._logger.write_scalar_df(
-                tag=constants.Constants.TRAIN_EPISODE_LENGTH,
-                step=i,
-                scalar=train_step_count,
-            )
-            self._logger.write_scalar_df(
-                tag=constants.Constants.TRAIN_EPISODE_REWARD,
-                step=i,
-                scalar=train_reward,
-            )
-
             if constants.Constants.CYCLE_COUNT in self._scalar_logging:
                 num_cycles = cycle_counter.evaluate_loops_on_value_function(
                     size=self._grid_size,
@@ -179,6 +166,19 @@ class BaseRunner(abc.ABC):
             if self._apply_curriculum:
                 if i == self._environment.next_transition_episode:
                     next(self._environment)
+
+            train_reward, train_step_count = self._train_episode(episode=i)
+
+            self._logger.write_scalar_df(
+                tag=constants.Constants.TRAIN_EPISODE_LENGTH,
+                step=i,
+                scalar=train_step_count,
+            )
+            self._logger.write_scalar_df(
+                tag=constants.Constants.TRAIN_EPISODE_REWARD,
+                step=i,
+                scalar=train_reward,
+            )
 
         if constants.Constants.VISITATION_COUNT_HEATMAP in self._plot_logging:
             self._logger.plot_array_data(
