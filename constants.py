@@ -85,3 +85,5 @@ class Constants:
     MINIGRID_CURRICULUM = "minigrid_curriculum"
     HARD_CODED = "hard_coded"
     VP_SCHEDULE = "vp_schedule"
+    SINGLE = "single"
+    PRINT_FREQUENCY = "print_frequency"
