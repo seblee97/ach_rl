@@ -60,10 +60,9 @@ class TabularQLearner(tabular_learner.TabularLearner):
             + self._learning_rate
             * (
                 reward
+                - visitation_penalty
                 + self._gamma * self._max_state_action_value(state=new_state)
                 - initial_state_action_value
             )
         )
-        self._state_action_values[state_id][action] = (
-            updated_state_action_value - visitation_penalty
-        )
+        self._state_action_values[state_id][action] = updated_state_action_value
