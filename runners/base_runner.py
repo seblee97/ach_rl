@@ -5,6 +5,8 @@ from typing import List
 from typing import Tuple
 from typing import Union
 
+import numpy as np
+
 import constants
 from curricula import base_curriculum
 from curricula import minigrid_curriculum
@@ -29,6 +31,7 @@ class BaseRunner(abc.ABC):
         self._plotter = self._setup_plotter(config=config)
 
         self._apply_curriculum = config.apply_curriculum
+        self._print_frequency = config.print_frequency or np.inf
         self._checkpoint_frequency = config.checkpoint_frequency
         self._test_frequency = config.test_frequency
         self._train_log_frequency = config.train_log_frequency
@@ -123,15 +126,18 @@ class BaseRunner(abc.ABC):
         """Instantiate learner specified in configuration."""
         pass
 
-    def train(self) -> Tuple[List[float], List[int], List[float], List[int]]:
+    def train(self) -> None:
         """Perform training (and validation) on given number of episodes."""
-        train_episode_rewards = []
-        train_episode_lengths = []
-
-        test_episode_rewards = []
-        test_episode_lengths = []
+        train_reward: float
+        train_step_count: float
 
         for i in range(self._num_episodes):
+
+            if i % self._print_frequency == 0:
+                print(f"Episode {i}/{self._num_episodes}: ")
+                if i != 0:
+                    print(f"    Latest Train Reward: {train_reward}")
+                    print(f"    Latest Train Length: {train_step_count}")
 
             if i % self._checkpoint_frequency == 0:
                 self._logger.checkpoint_df()
@@ -188,13 +194,6 @@ class BaseRunner(abc.ABC):
 
         self._logger.checkpoint_df()
 
-        return (
-            train_episode_rewards,
-            train_episode_lengths,
-            test_episode_rewards,
-            test_episode_lengths,
-        )
-
     @abc.abstractmethod
     def _train_episode(self, episode: int) -> Tuple[float, int]:
         """Perform single training loop.
@@ -208,7 +207,7 @@ class BaseRunner(abc.ABC):
         """
         pass
 
-    def _test_episode(self, episode: int) -> Tuple[float, int]:
+    def _test_episode(self, episode: int) -> None:
         """Perform test rollouts, once with target policy,
         and---if specified---once with non-repeat target.
 
