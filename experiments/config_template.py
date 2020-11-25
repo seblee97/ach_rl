@@ -232,6 +232,11 @@ class ConfigTemplate:
     _logging_template = config_template.Template(
         fields=[
             config_field.Field(
+                name=constants.Constants.PRINT_FREQUENCY,
+                types=[int, type(None)],
+                requirements=[lambda x: x is None or x > 0],
+            ),
+            config_field.Field(
                 name=constants.Constants.CHECKPOINT_FREQUENCY,
                 types=[int],
                 requirements=[lambda x: x > 0],
