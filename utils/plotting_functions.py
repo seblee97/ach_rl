@@ -33,7 +33,10 @@ def smooth_data(data: List[float], window_width: int) -> List[float]:
         smoothed_data = []
         for dataset in data:
             smoothed_data.append(_smooth(dataset))
-    elif all(isinstance(d, float) or isinstance(d, int) for d in data):
+    elif all(
+        (isinstance(d, float) or isinstance(d, int) or isinstance(d, np.int64))
+        for d in data
+    ):
         smoothed_data = _smooth(data)
 
     return smoothed_data
