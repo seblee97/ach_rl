@@ -25,10 +25,10 @@ parser.add_argument(
     "--mode",
     metavar="-M",
     default="parallel",
-    help="run in 'parallel' or 'serial'",
+    help="run in 'parallel' or 'serial', or 'single' (no changes)",
 )
 parser.add_argument("--config", metavar="-C", default="config.yaml")
-parser.add_argument("--seeds", metavar="-S", default=range(5))
+parser.add_argument("--seeds", metavar="-S", default=range(1))
 parser.add_argument(
     "--config_changes", metavar="-CC", default=ConfigChange.config_changes
 )
@@ -223,6 +223,7 @@ if __name__ == "__main__":
             results_folder=results_folder,
             timestamp=timestamp,
         )
+        summary_plot(config=base_configuration, experiment_path=experiment_path)
     elif args.mode == constants.Constants.SERIAL:
         serial_run(
             base_configuration=base_configuration,
@@ -232,4 +233,14 @@ if __name__ == "__main__":
             results_folder=results_folder,
             timestamp=timestamp,
         )
-    summary_plot(config=base_configuration, experiment_path=experiment_path)
+        summary_plot(config=base_configuration, experiment_path=experiment_path)
+    elif args.mode == constants.Constants.SINGLE:
+        single_run(
+            base_configuration=base_configuration,
+            run_name=constants.Constants.SINGLE,
+            seed=base_configuration.seed,
+            results_folder=results_folder,
+            experiment_path=experiment_path,
+            timestamp=timestamp,
+            config_change=[],
+        )
