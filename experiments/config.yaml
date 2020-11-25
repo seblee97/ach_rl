@@ -48,6 +48,7 @@ training:
     train_log_frequency: 2500
 
 logging:
+    print_frequency: 500
     checkpoint_frequency: 100
     columns:
         - train_episode_reward
