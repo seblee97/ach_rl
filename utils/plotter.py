@@ -89,7 +89,10 @@ class Plotter:
 
         fig_sub = self.fig.add_subplot(self.spec[row, col])
 
-        fig_sub.plot(range(len(data)), data)
+        smoothed_data = plotting_functions.smooth_data(
+            data=data.to_numpy(), window_width=40
+        )
+        fig_sub.plot(range(len(smoothed_data)), smoothed_data)
 
         # labelling
         fig_sub.set_xlabel(constants.Constants.EPISODE)
