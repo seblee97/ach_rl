@@ -35,6 +35,7 @@ class TabularQLearner(tabular_learner.TabularLearner):
         action: int,
         reward: float,
         new_state: Tuple[int, int],
+        active: bool,
         visitation_penalty: float,
     ) -> None:
         """Update state-action values.
@@ -51,9 +52,15 @@ class TabularQLearner(tabular_learner.TabularLearner):
             action: action taken by agent.
             reward: scalar reward received from environment.
             new_state: next state.
+            active: whether episode is still ongoing.
         """
         state_id = self._state_id_mapping[state]
         initial_state_action_value = self._state_action_values[state_id][action]
+
+        if active:
+            discount = self._gamma
+        else:
+            discount = 0
 
         updated_state_action_value = (
             initial_state_action_value
@@ -61,7 +68,7 @@ class TabularQLearner(tabular_learner.TabularLearner):
             * (
                 reward
                 - visitation_penalty
-                + self._gamma * self._max_state_action_value(state=new_state)
+                + discount * self._max_state_action_value(state=new_state)
                 - initial_state_action_value
             )
         )
