@@ -42,6 +42,7 @@ class TabularSARSALambda(tabular_learner.TabularLearner):
         reward: float,
         next_state: Tuple[int, int],
         next_action: int,
+        active: bool,
         visitation_penalty: float,
     ) -> None:
         """Update state-action values.
@@ -59,6 +60,7 @@ class TabularSARSALambda(tabular_learner.TabularLearner):
             reward: scalar reward received from environment.
             next_state: next state.
             next_action: action taken by agent one step later.
+            active: whether episode is still ongoing.
         """
         state_id = self._state_id_mapping[state]
         next_state_id = self._state_id_mapping[next_state]
@@ -68,10 +70,15 @@ class TabularSARSALambda(tabular_learner.TabularLearner):
             next_action
         ]
 
+        if active:
+            discount = self._gamma
+        else:
+            discount = 0
+
         # bootstrapped error in one-step return
         delta = (
             reward
-            + self._gamma * current_next_state_action_value
+            + discount * current_next_state_action_value
             - current_state_action_value
         )
 
