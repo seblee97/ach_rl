@@ -46,7 +46,14 @@ class QLearningRunner(base_runner.BaseRunner):
         while self._environment.active:
             action = self._learner.select_behaviour_action(state)
             reward, new_state = self._environment.step(action)
-            self._learner.step(state, action, reward, new_state, visitation_penalty)
+            self._learner.step(
+                state,
+                action,
+                reward,
+                new_state,
+                self._environment.active,
+                visitation_penalty,
+            )
             state = new_state
             episode_reward += reward
 

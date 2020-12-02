@@ -49,7 +49,13 @@ class SARSALambdaRunner(base_runner.BaseRunner):
             reward, next_state = self._environment.step(action)
             next_action = self._learner.select_behaviour_action(next_state)
             self._learner.step(
-                state, action, reward, next_state, next_action, visitation_penalty
+                state,
+                action,
+                reward,
+                next_state,
+                next_action,
+                self._environment.active,
+                visitation_penalty,
             )
             state = next_state
             action = next_action
