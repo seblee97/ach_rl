@@ -1,5 +1,7 @@
 experiment_name:
 seed: 0
+use_gpu: True
+gpu_id: 0
 
 environment: minigrid
 apply_curriculum: True
