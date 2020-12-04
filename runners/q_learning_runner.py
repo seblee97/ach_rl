@@ -20,7 +20,7 @@ class QLearningRunner(base_runner.BaseRunner):
             behaviour=config.behaviour,
             target=config.target,
             initialisation_strategy=config.initialisation,
-            epsilon=config.epsilon,
+            epsilon=self._epsilon_function,
             learning_rate=config.learning_rate,
             gamma=config.discount_factor,
         )

@@ -20,7 +20,7 @@ class SARSALambdaRunner(base_runner.BaseRunner):
             initialisation_strategy=config.initialisation,
             behaviour=config.behaviour,
             target=config.target,
-            epsilon=config.epsilon,
+            epsilon=self._epsilon_function,
             learning_rate=config.learning_rate,
             gamma=config.discount_factor,
             trace_lambda=config.trace_lambda,
