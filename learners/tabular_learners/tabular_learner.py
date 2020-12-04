@@ -5,6 +5,8 @@ from typing import List
 from typing import Optional
 from typing import Tuple
 
+from utils import epsilon_schedules
+
 import numpy as np
 
 import constants
@@ -19,6 +21,7 @@ class TabularLearner(abc.ABC):
         state_space: List[Tuple[int, int]],
         learning_rate: float,
         gamma: float,
+        epsilon: epsilon_schedules.EpsilonSchedule,
         initialisation_strategy: str,
         behaviour: str,
         target: str,
@@ -37,6 +40,7 @@ class TabularLearner(abc.ABC):
         self._target = target
         self._learning_rate = learning_rate
         self._gamma = gamma
+        self._epsilon = epsilon
 
     @property
     def state_action_values(self) -> Dict[Tuple[int, int], np.ndarray]:
@@ -119,7 +123,7 @@ class TabularLearner(abc.ABC):
         Returns:
             action: action chosen according to epsilon greedy.
         """
-        if random.random() < self._epsilon:
+        if random.random() < epsilon:
             action = random.choice(self._action_space)
         else:
             action = self._greedy_action(state=state)
@@ -138,7 +142,9 @@ class TabularLearner(abc.ABC):
         if self._target == constants.Constants.GREEDY:
             action = self._greedy_action(state=state)
         elif self._target == constants.Constants.EPSILON_GREEDY:
-            action = self._epsilon_greedy_action(state=state, epsilon=self._epsilon)
+            action = self._epsilon_greedy_action(
+                state=state, epsilon=self._epsilon.value
+            )
         return action
 
     def select_behaviour_action(self, state: Tuple[int, int]) -> Tuple[int, float]:
@@ -155,7 +161,9 @@ class TabularLearner(abc.ABC):
         if self._behaviour == constants.Constants.GREEDY:
             action = self._greedy_action(state=state)
         elif self._behaviour == constants.Constants.EPSILON_GREEDY:
-            action = self._epsilon_greedy_action(state=state, epsilon=self._epsilon)
+            action = self._epsilon_greedy_action(
+                state=state, epsilon=self._epsilon.value
+            )
         return action
 
     @abc.abstractmethod
