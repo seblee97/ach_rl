@@ -42,7 +42,17 @@ learner:
     type: q_learning
     learning_rate: 0.1
     discount_factor: 0.99 
-    epsilon: 0.1
+    epsilon:
+        schedule: linear_decay
+
+        constant:
+            value: 0.1
+        
+        linear_decay:
+            initial_value: 1
+            final_value: 0.1
+            anneal_duration: 1000000
+
     initialisation: random
     visitation_penalty_type: hard_coded # hard_coded, function
 
