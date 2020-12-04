@@ -25,10 +25,11 @@ class DQNRunner(base_runner.BaseRunner):
             state_dimensions=tuple(config.encoded_state_dimensions),
             layer_specifications=config.layer_specifications,
             optimiser_type=config.optimiser,
-            epsilon=config.epsilon,
+            epsilon=self._epsilon_function,
             learning_rate=config.learning_rate,
             gamma=config.discount_factor,
             target_network_update_period=config.target_network_update_period,
+            device=config.experiment_device,
         )
         return learner
 
@@ -38,6 +39,9 @@ class DQNRunner(base_runner.BaseRunner):
         return replay_buffer.ReplayBuffer(replay_size=replay_size, state_dim=state_dim)
 
     def _fill_replay_buffer(self, num_trajectories: int):
+
+        print("Filling replay buffer...")
+
         state = self._environment.reset_environment(train=True)
         for _ in range(num_trajectories):
             action = random.choice(self._environment.action_space)
