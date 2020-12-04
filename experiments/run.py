@@ -11,6 +11,7 @@ import constants
 from experiments import ach_config
 from experiments import config_template
 from experiments.config_changes import ConfigChange
+from runners import dqn_runner
 from runners import q_learning_runner
 from runners import sarsa_lambda_runner
 from utils import experiment_utils
@@ -127,6 +128,10 @@ def single_run(
         r = sarsa_lambda_runner.SARSALambdaRunner(config=config)
     elif config.type == constants.Constants.Q_LEARNING:
         r = q_learning_runner.QLearningRunner(config=config)
+    elif config.type == constants.Constants.DQN:
+        r = dqn_runner.DQNRunner(config=config)
+    else:
+        raise ValueError(f"Learner type {type} not recognised.")
 
     r.train()
     r.post_process()
