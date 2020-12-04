@@ -137,6 +137,65 @@ class ConfigTemplate:
         dependent_variables_required_values=[[constants.Constants.HARD_CODED]],
     )
 
+    _constant_epsilon_template = config_template.Template(
+        fields=[
+            config_field.Field(
+                name=constants.Constants.VALUE,
+                types=[int, float],
+                requirements=[lambda x: x >= 0 and x <= 1],
+            )
+        ],
+        level=[
+            constants.Constants.LEARNER,
+            constants.Constants.EPSILON,
+            constants.Constants.CONSTANT,
+        ],
+        dependent_variables=[constants.Constants.SCHEDULE],
+        dependent_variables_required_values=[[constants.Constants.CONSTANT]],
+    )
+
+    _linear_decay_epsilon_template = config_template.Template(
+        fields=[
+            config_field.Field(
+                name=constants.Constants.INITIAL_VALUE,
+                types=[int, float],
+                requirements=[lambda x: x >= 0 and x <= 1],
+            ),
+            config_field.Field(
+                name=constants.Constants.FINAL_VALUE,
+                types=[int, float],
+                requirements=[lambda x: x >= 0 and x <= 1],
+            ),
+            config_field.Field(
+                name=constants.Constants.ANNEAL_DURATION,
+                types=[int],
+                requirements=[lambda x: x > 0],
+            ),
+        ],
+        level=[
+            constants.Constants.LEARNER,
+            constants.Constants.EPSILON,
+            constants.Constants.LINEAR_DECAY,
+        ],
+        dependent_variables=[constants.Constants.SCHEDULE],
+        dependent_variables_required_values=[[constants.Constants.LINEAR_DECAY]],
+    )
+
+    _epsilon_template = config_template.Template(
+        fields=[
+            config_field.Field(
+                name=constants.Constants.SCHEDULE,
+                types=[str],
+                requirements=[
+                    lambda x: x
+                    in [constants.Constants.CONSTANT, constants.Constants.LINEAR_DECAY]
+                ],
+            ),
+        ],
+        level=[constants.Constants.LEARNER, constants.Constants.EPSILON],
+        nested_templates=[_constant_epsilon_template, _linear_decay_epsilon_template],
+    )
+
     _learner_template = config_template.Template(
         fields=[
             config_field.Field(
@@ -162,11 +221,6 @@ class ConfigTemplate:
                 requirements=[lambda x: x <= 1 and x >= 0],
             ),
             config_field.Field(
-                name=constants.Constants.EPSILON,
-                types=[int, float],
-                requirements=[lambda x: x >= 0 and x <= 1],
-            ),
-            config_field.Field(
                 name=constants.Constants.INITIALISATION,
                 types=[str, float, int],
                 requirements=[
@@ -186,7 +240,7 @@ class ConfigTemplate:
             ),
         ],
         level=[constants.Constants.LEARNER],
-        nested_templates=[_hard_coded_vp_template],
+        nested_templates=[_epsilon_template, _hard_coded_vp_template],
     )
 
     _sarsa_lambda_template = config_template.Template(
@@ -361,6 +415,12 @@ class ConfigTemplate:
             config_field.Field(
                 name=constants.Constants.EXPERIMENT_NAME,
                 types=[str, type(None)],
+            ),
+            config_field.Field(name=constants.Constants.USE_GPU, types=[bool]),
+            config_field.Field(
+                name=constants.Constants.GPU_ID,
+                types=[int],
+                requirements=[lambda x: x >= 0],
             ),
             config_field.Field(
                 name=constants.Constants.SEED,
