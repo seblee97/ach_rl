@@ -3,6 +3,7 @@ from typing import List, Optional, Tuple
 import constants
 
 from learners.tabular_learners import tabular_learner
+from utils import epsilon_schedules
 
 
 class TabularSARSALambda(tabular_learner.TabularLearner):
@@ -18,13 +19,14 @@ class TabularSARSALambda(tabular_learner.TabularLearner):
         behaviour: str,
         target: str,
         trace_lambda: float,
-        epsilon: Optional[float] = None,
+        epsilon: epsilon_schedules.EpsilonSchedule,
     ):
         super().__init__(
             action_space=action_space,
             state_space=state_space,
             learning_rate=learning_rate,
             gamma=gamma,
+            epsilon=epsilon,
             initialisation_strategy=initialisation_strategy,
             behaviour=behaviour,
             target=target,
@@ -33,7 +35,6 @@ class TabularSARSALambda(tabular_learner.TabularLearner):
             initialisation_strategy=constants.Constants.ZEROS
         )
         self._trace_lambda = trace_lambda
-        self._epsilon = epsilon
 
     def step(
         self,
@@ -95,3 +96,6 @@ class TabularSARSALambda(tabular_learner.TabularLearner):
 
         # apply visitation penalty
         self._state_action_values[state_id][action] -= visitation_penalty
+
+        # step epsilon
+        next(self._epsilon)
