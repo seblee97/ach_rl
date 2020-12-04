@@ -1,6 +1,6 @@
 from experiments import ach_config
 
-from learners import q_learner
+from learners.tabular_learners import q_learner
 from runners import base_runner
 
 from typing import Tuple
@@ -10,7 +10,7 @@ class QLearningRunner(base_runner.BaseRunner):
     def __init__(self, config: ach_config.AchConfig):
         super().__init__(config=config)
 
-        self._discount_factor = config.discount_factor
+        self._grid_size = tuple(config.size)
 
     def _setup_learner(self, config: ach_config.AchConfig):  # TODO: similar to envs
         """Initialise learner specified in configuration."""
