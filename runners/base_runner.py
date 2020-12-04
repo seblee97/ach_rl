@@ -15,6 +15,7 @@ from environments import minigrid
 from environments import atari
 from experiments import ach_config
 from utils import cycle_counter
+from utils import epsilon_schedules
 from utils import logger
 from utils import plotter
 from visitation_penalties import base_visistation_penalty
@@ -27,6 +28,7 @@ class BaseRunner(abc.ABC):
     def __init__(self, config: ach_config.AchConfig) -> None:
         self._environment = self._setup_environment(config=config)
         self._visitation_penalty = self._setup_visitation_penalty(config=config)
+        self._epsilon_function = self._setup_epsilon_function(config=config)
         self._learner = self._setup_learner(config=config)
         self._logger = self._setup_logger(config=config)
         self._plotter = self._setup_plotter(config=config)
@@ -133,6 +135,17 @@ class BaseRunner(abc.ABC):
             )
         return visitation_penalty
 
+    def _setup_epsilon_function(self, config: ach_config.AchConfig):
+        if config.schedule == constants.Constants.CONSTANT:
+            epsilon_function = epsilon_schedules.ConstantEpsilon(value=config.value)
+        elif config.schedule == constants.Constants.LINEAR_DECAY:
+            epsilon_function = epsilon_schedules.LinearDecayEpsilon(
+                initial_value=config.initial_value,
+                final_value=config.final_value,
+                anneal_duration=config.anneal_duration,
+            )
+        return epsilon_function
+
     @abc.abstractmethod
     def _setup_learner(self, config: ach_config.AchConfig):
         """Instantiate learner specified in configuration."""
@@ -142,6 +155,8 @@ class BaseRunner(abc.ABC):
         """Perform training (and validation) on given number of episodes."""
         train_reward: float
         train_step_count: float
+
+        print("Starting Training...")
 
         for i in range(self._num_episodes):
 
