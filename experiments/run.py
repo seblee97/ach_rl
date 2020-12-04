@@ -4,8 +4,11 @@ import itertools
 import os
 from multiprocessing import Process
 from typing import Any
+from typing import Dict
 from typing import List
-from typing import Tuple, Dict
+from typing import Tuple
+
+import torch
 
 import constants
 from experiments import ach_config
@@ -101,6 +104,8 @@ def single_run(
     config_change: List[Tuple[str, Any]],
 ):
     config = copy.deepcopy(base_configuration)
+
+    config = set_device(config)
 
     experiment_utils.set_random_seeds(seed)
     checkpoint_path = experiment_utils.get_checkpoint_path(
@@ -207,6 +212,29 @@ def summary_plot(config: ach_config.AchConfig, experiment_path: str):
             xlabel=constants.Constants.EPISODE,
             ylabel=constants.Constants.CYCLE_COUNT,
         )
+
+
+def set_device(
+    config: ach_config.AchConfig,
+) -> ach_config.AchConfig:
+    """Establish availability of GPU."""
+    if config.use_gpu:
+        print("Attempting to find GPU...")
+        if torch.cuda.is_available():
+            print("GPU found, using the GPU...")
+            torch.backends.cudnn.deterministic = True
+            torch.backends.cudnn.benchmark = False
+            config.add_property(constants.Constants.USING_GPU, True)
+            experiment_device = torch.device("cuda:{}".format(config.gpu_id))
+        else:
+            print("GPU not found, reverting to CPU")
+            config.add_property(constants.Constants.USING_GPU, False)
+            experiment_device = torch.device("cpu")
+    else:
+        print("Using the CPU")
+        experiment_device = torch.device("cpu")
+    config.add_property(constants.Constants.EXPERIMENT_DEVICE, experiment_device)
+    return config
 
 
 if __name__ == "__main__":
