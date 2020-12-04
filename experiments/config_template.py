@@ -84,6 +84,44 @@ class ConfigTemplate:
         dependent_variables_required_values=[[constants.Constants.MINIGRID], [True]],
     )
 
+    _atari_template = config_template.Template(
+        fields=[
+            config_field.Field(
+                name=constants.Constants.ATARI_ENV_NAME,
+                types=[str],
+                requirements=[lambda x: x in constants.Constants.ATARI_ENVS],
+            ),
+            config_field.Field(
+                name=constants.Constants.PRE_PROCESSING,
+                types=[list],
+                requirements=[lambda x: all(isinstance(y, dict) for y in x)],
+            ),
+            config_field.Field(
+                name=constants.Constants.FRAME_STACK,
+                types=[int],
+                requirements=[lambda x: x > 0],
+            ),
+            config_field.Field(
+                name=constants.Constants.FRAME_SKIP,
+                types=[int],
+                requirements=[lambda x: x >= 0],
+            ),
+            config_field.Field(
+                name=constants.Constants.EPISODE_TIMEOUT,
+                types=[int, type(None)],
+                requirements=[lambda x: x is None or x > 0],
+            ),
+            config_field.Field(
+                name=constants.Constants.ENCODED_STATE_DIMENSIONS,
+                types=[list],
+                requirements=[lambda x: all(isinstance(y, int) and y > 0 for y in x)],
+            ),
+        ],
+        dependent_variables=[constants.Constants.ENVIRONMENT],
+        dependent_variables_required_values=[[constants.Constants.ATARI]],
+        level=[constants.Constants.ATARI],
+    )
+
     _hard_coded_vp_template = config_template.Template(
         fields=[
             config_field.Field(
@@ -109,6 +147,7 @@ class ConfigTemplate:
                     in [
                         constants.Constants.SARSA_LAMBDA,
                         constants.Constants.Q_LEARNING,
+                        constants.Constants.DQN,
                     ]
                 ],
             ),
@@ -203,6 +242,43 @@ class ConfigTemplate:
         level=[constants.Constants.Q_LEARNING],
     )
 
+    _dqn_template = config_template.Template(
+        fields=[
+            config_field.Field(
+                name=constants.Constants.BATCH_SIZE,
+                types=[int],
+                requirements=[lambda x: x > 0],
+            ),
+            config_field.Field(
+                name=constants.Constants.NUM_REPLAY_FILL_TRAJECTORIES,
+                types=[int],
+                requirements=[lambda x: x > 0],
+            ),
+            config_field.Field(
+                name=constants.Constants.REPLAY_BUFFER_SIZE,
+                types=[int],
+                requirements=[lambda x: x > 0],
+            ),
+            config_field.Field(
+                name=constants.Constants.TARGET_NETWORK_UPDATE_PERIOD,
+                types=[int],
+                requirements=[lambda x: x >= 0],
+            ),
+            config_field.Field(
+                name=constants.Constants.OPTIMISER,
+                types=[str],
+                requirements=[lambda x: x in [constants.Constants.ADAM]],
+            ),
+            config_field.Field(
+                name=constants.Constants.LAYER_SPECIFICATIONS,
+                types=[list],
+            ),
+        ],
+        dependent_variables=[constants.Constants.TYPE],
+        dependent_variables_required_values=[constants.Constants.DQN],
+        level=[constants.Constants.DQN],
+    )
+
     _training_template = config_template.Template(
         fields=[
             config_field.Field(
@@ -214,6 +290,11 @@ class ConfigTemplate:
                 name=constants.Constants.TEST_FREQUENCY,
                 types=[int],
                 requirements=[lambda x: x > 0],
+            ),
+            config_field.Field(
+                name=constants.Constants.TESTING,
+                types=[list],
+                requirements=[lambda x: all(isinstance(y, str) for y in x)],
             ),
             config_field.Field(
                 name=constants.Constants.TRAIN_LOG_FREQUENCY,
@@ -289,7 +370,10 @@ class ConfigTemplate:
             config_field.Field(
                 name=constants.Constants.ENVIRONMENT,
                 types=[str],
-                requirements=[lambda x: x in [constants.Constants.MINIGRID]],
+                requirements=[
+                    lambda x: x
+                    in [constants.Constants.MINIGRID, constants.Constants.ATARI]
+                ],
             ),
             config_field.Field(
                 name=constants.Constants.APPLY_CURRICULUM,
@@ -299,9 +383,11 @@ class ConfigTemplate:
         nested_templates=[
             _minigrid_template,
             _minigrid_curriculum_template,
+            _atari_template,
             _learner_template,
             _sarsa_lambda_template,
             _q_learning_template,
+            _dqn_template,
             _training_template,
             _logging_template,
             _post_processing_template,
