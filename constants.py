@@ -131,5 +131,16 @@ class Constants:
     ACTIVE = "active"
     BATCH_SIZE = "batch_size"
     NUM_REPLAY_FILL_TRAJECTORIES = "num_replay_fill_trajectories"
+    VALUE = "value"
+    SCHEDULE = "schedule"
+    LINEAR_DECAY = "linear_decay"
+    ANNEAL_DURATION = "anneal_duration"
+    INITIAL_VALUE = "initial_value"
+    FINAL_VALUE = "final_value"
+    CONSTANT = "constant"
+    USE_GPU = "use_gpu"
+    GPU_ID = "gpu_id"
+    USING_GPU = "using_gpu"
+    EXPERIMENT_DEVICE = "experiment_device"
 
     ATARI_ENVS = ["Pong-v0"]
