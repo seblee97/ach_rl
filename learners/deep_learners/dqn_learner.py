@@ -13,6 +13,8 @@ import torch.nn as nn
 from learners import base_learner
 from learners.deep_learners.components import q_network
 
+from utils import epsilon_schedules
+
 
 class DQNLearner(base_learner.BaseLearner):
     """
@@ -27,8 +29,9 @@ class DQNLearner(base_learner.BaseLearner):
         optimiser_type: str,
         learning_rate: float,
         gamma: float,
-        epsilon: float,
+        epsilon: epsilon_schedules.EpsilonSchedule,
         target_network_update_period: int,
+        device: torch.device,
     ):
 
         self._state_dimensions = state_dimensions
@@ -39,9 +42,10 @@ class DQNLearner(base_learner.BaseLearner):
         self._gamma = gamma
         self._epsilon = epsilon
         self._target_network_update_period = target_network_update_period
+        self._device = device
 
-        self._q_network = self._initialise_q_network()
-        self._target_q_network = self._initialise_q_network()
+        self._q_network = self._initialise_q_network().to(self._device)
+        self._target_q_network = self._initialise_q_network().to(self._device)
 
         self._loss_module = nn.MSELoss()
 
@@ -69,9 +73,9 @@ class DQNLearner(base_learner.BaseLearner):
     def select_behaviour_action(self, state: np.ndarray):
 
         # cast state to tensor
-        state = torch.from_numpy(state).to(torch.float)
+        state = torch.from_numpy(state).to(torch.float).to(self._device)
 
-        if random.random() < self._epsilon:
+        if random.random() < self._epsilon.value:
             action = random.choice(self._action_space)
         else:
             state_action_values = self._q_network(state)
@@ -81,7 +85,7 @@ class DQNLearner(base_learner.BaseLearner):
     def select_target_action(self, state: np.ndarray):
 
         # cast state to tensor
-        state = torch.from_numpy(state).to(torch.float)
+        state = torch.from_numpy(state).to(torch.float).to(self._device)
 
         state_action_values = self._q_network(state)
         action = torch.argmax(state_action_values)
@@ -112,3 +116,6 @@ class DQNLearner(base_learner.BaseLearner):
             self._update_target_network()
 
         self._num_training_steps += 1
+
+        # step epsilon
+        next(self._epsilon)
