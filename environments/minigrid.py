@@ -48,9 +48,6 @@ class MiniGrid(base_environment.BaseEnvironment):
         self._visitation_counts = np.zeros(self._size)
 
         self._agent_position: List[int]
-        self._training: bool
-        self._active: bool
-        self._episode_step_count: int
         self._rewards_received: List[float]
 
     @property
@@ -68,10 +65,6 @@ class MiniGrid(base_environment.BaseEnvironment):
     @property
     def state_space(self) -> List[Tuple[int, int]]:
         return self._state_space
-
-    @property
-    def active(self) -> bool:
-        return self._active
 
     @property
     def episode_step_count(self) -> int:
@@ -218,7 +211,7 @@ class MiniGrid(base_environment.BaseEnvironment):
         ]
         return not any(conditions)
 
-    def reset_environment(self, train: bool) -> None:
+    def reset_environment(self, train: bool) -> Tuple[int, int]:
         """Reset environment.
 
         Bring agent back to starting position.
@@ -235,3 +228,4 @@ class MiniGrid(base_environment.BaseEnvironment):
             self._agent_position = list(self.random_coordinate())
         self._episode_history = [copy.deepcopy(self._agent_position)]
         self._rewards_received = []
+        return self._agent_position
