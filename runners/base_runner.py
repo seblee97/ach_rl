@@ -12,6 +12,7 @@ from curricula import base_curriculum
 from curricula import minigrid_curriculum
 from environments import base_environment
 from environments import minigrid
+from environments import atari
 from experiments import ach_config
 from utils import cycle_counter
 from utils import logger
@@ -36,11 +37,11 @@ class BaseRunner(abc.ABC):
         self._test_frequency = config.test_frequency
         self._train_log_frequency = config.train_log_frequency
         self._full_test_log_frequency = config.full_test_log_frequency
+        self._test_types = config.testing
         self._scalar_logging = config.columns or []
         self._array_logging = config.arrays or []
         self._plot_logging = config.plots or []
         self._num_episodes = config.num_episodes
-        self._grid_size = tuple(config.size)
 
         config.save_configuration(folder_path=config.checkpoint_path)
 
@@ -50,12 +51,15 @@ class BaseRunner(abc.ABC):
         """Initialise environment specified in configuration."""
         environment_args = self._get_environment_args(config=config)
 
-        if not config.apply_curriculum:
-            environment = minigrid.MiniGrid(**environment_args)
-        else:
+        if config.apply_curriculum:
             curriculum_args = self._get_curriculum_args(config=config)
             curriculum_wrapper = self.get_curriculum_wrapper(config.environment)
             environment = curriculum_wrapper(**environment_args, **curriculum_args)
+        else:
+            if config.environment == constants.Constants.MINIGRID:
+                environment = minigrid.MiniGrid(**environment_args)
+            elif config.environment == constants.Constants.ATARI:
+                environment = atari.AtariEnv(**environment_args)
         return environment
 
     def _get_environment_args(self, config: ach_config.AchConfig) -> Dict[str, Any]:
@@ -78,6 +82,14 @@ class BaseRunner(abc.ABC):
                 constants.Constants.REWARD_XY: reward_positions,
                 constants.Constants.REPEAT_REWARDS: config.repeat_rewards,
                 constants.Constants.EPISODE_TIMEOUT: config.episode_timeout,
+            }
+        elif config.environment == constants.Constants.ATARI:
+            env_args = {
+                constants.Constants.ATARI_ENV_NAME: config.atari_env_name,
+                constants.Constants.EPISODE_TIMEOUT: config.episode_timeout,
+                constants.Constants.PRE_PROCESSING: config.pre_processing,
+                constants.Constants.FRAME_STACK: config.frame_stack,
+                constants.Constants.FRAME_SKIP: config.frame_skip,
             }
         return env_args
 
@@ -214,8 +226,10 @@ class BaseRunner(abc.ABC):
         Args:
             episode: current episode number.
         """
-        self._greedy_test_episode(episode=episode)
-        self._non_repeat_test_episode(episode=episode)
+        if constants.Constants.GREEDY in self._test_types:
+            self._greedy_test_episode(episode=episode)
+        if constants.Constants.NO_REP in self._test_types:
+            self._non_repeat_test_episode(episode=episode)
 
     def _greedy_test_episode(self, episode: int) -> None:
         """Perform 'test' rollout with target policy
@@ -226,8 +240,7 @@ class BaseRunner(abc.ABC):
         """
         episode_reward = 0
 
-        self._environment.reset_environment(train=False)
-        state = self._environment.agent_position
+        state = self._environment.reset_environment(train=False)
 
         while self._environment.active:
             action = self._learner.select_target_action(state)
@@ -270,8 +283,7 @@ class BaseRunner(abc.ABC):
 
         states_visited = {}
 
-        self._environment.reset_environment(train=False)
-        state = self._environment.agent_position
+        state = self._environment.reset_environment(train=False)
         states_visited[state] = []
 
         while self._environment.active:
