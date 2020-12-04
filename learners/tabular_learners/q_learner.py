@@ -2,6 +2,7 @@ import random
 from typing import List, Optional, Tuple
 
 from learners.tabular_learners import tabular_learner
+from utils import epsilon_schedules
 
 
 class TabularQLearner(tabular_learner.TabularLearner):
@@ -16,13 +17,14 @@ class TabularQLearner(tabular_learner.TabularLearner):
         initialisation_strategy: str,
         behaviour: str,
         target: str,
-        epsilon: Optional[float] = None,
+        epsilon: epsilon_schedules.EpsilonSchedule,
     ):
         super().__init__(
             action_space=action_space,
             state_space=state_space,
             learning_rate=learning_rate,
             gamma=gamma,
+            epsilon=epsilon,
             initialisation_strategy=initialisation_strategy,
             behaviour=behaviour,
             target=target,
@@ -73,3 +75,6 @@ class TabularQLearner(tabular_learner.TabularLearner):
             )
         )
         self._state_action_values[state_id][action] = updated_state_action_value
+
+        # step epsilon
+        next(self._epsilon)
