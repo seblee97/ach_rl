@@ -2,7 +2,7 @@ from typing import List, Optional, Tuple
 
 import constants
 
-from learners import tabular_learner
+from learners.tabular_learners import tabular_learner
 
 
 class TabularSARSALambda(tabular_learner.TabularLearner):

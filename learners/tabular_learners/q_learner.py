@@ -1,7 +1,7 @@
 import random
 from typing import List, Optional, Tuple
 
-from learners import tabular_learner
+from learners.tabular_learners import tabular_learner
 
 
 class TabularQLearner(tabular_learner.TabularLearner):
