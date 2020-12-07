@@ -6,13 +6,14 @@ from typing import Tuple
 from typing import Union
 
 import numpy as np
+import torch
 
 import constants
 from curricula import base_curriculum
 from curricula import minigrid_curriculum
+from environments import atari
 from environments import base_environment
 from environments import minigrid
-from environments import atari
 from experiments import ach_config
 from utils import cycle_counter
 from utils import epsilon_schedules
@@ -241,10 +242,16 @@ class BaseRunner(abc.ABC):
         Args:
             episode: current episode number.
         """
-        if constants.Constants.GREEDY in self._test_types:
-            self._greedy_test_episode(episode=episode)
-        if constants.Constants.NO_REP in self._test_types:
-            self._non_repeat_test_episode(episode=episode)
+
+        self._learner.eval()
+
+        with torch.no_grad():
+            if constants.Constants.GREEDY in self._test_types:
+                self._greedy_test_episode(episode=episode)
+            if constants.Constants.NO_REP in self._test_types:
+                self._non_repeat_test_episode(episode=episode)
+
+        self._learner.train()
 
     def _greedy_test_episode(self, episode: int) -> None:
         """Perform 'test' rollout with target policy
