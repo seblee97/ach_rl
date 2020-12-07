@@ -13,6 +13,9 @@ class EpsilonSchedule(abc.ABC):
 
     @property
     def value(self):
+        assert (
+            self._value <= 1 and self._value >= 0
+        ), f"Epsilon must be between 0 and 1, currently is {self._value}"
         return self._value
 
 
@@ -32,7 +35,7 @@ class LinearDecayEpsilon(EpsilonSchedule):
         anneal_duration: int,
     ):
 
-        self._step_size = (final_value - initial_value) / anneal_duration
+        self._step_size = (initial_value - final_value) / anneal_duration
 
         super().__init__(value=initial_value)
 
