@@ -1,18 +1,17 @@
+import copy
 import random
 from typing import Any
 from typing import Dict
 from typing import List
 from typing import Tuple
 
-import constants
-
 import numpy as np
 import torch
 import torch.nn as nn
 
+import constants
 from learners import base_learner
 from learners.deep_learners.components import q_network
-
 from utils import epsilon_schedules
 
 
@@ -53,6 +52,10 @@ class DQNLearner(base_learner.BaseLearner):
 
         self._num_training_steps = 0
 
+    @property
+    def q_network(self) -> nn.Module:
+        return self._q_network
+
     def _initialise_q_network(self):
         return q_network.QNetwork(
             state_dim=self._state_dimensions,
@@ -67,8 +70,17 @@ class DQNLearner(base_learner.BaseLearner):
             )
         return optimiser
 
+    def train(self) -> None:
+        self._q_network.train()
+        self._target_q_network.train()
+
+    def eval(self) -> None:
+        self._q_network.eval()
+        self._target_q_network.eval()
+
     def _update_target_network(self):
-        pass
+        q_network_state_dict = copy.deepcopy(self._q_network.state_dict())
+        self._target_q_network.load_state_dict(q_network_state_dict)
 
     def select_behaviour_action(self, state: np.ndarray):
 
