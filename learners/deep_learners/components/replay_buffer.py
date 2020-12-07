@@ -19,6 +19,10 @@ class ReplayBuffer:
         self._insertion_index = 0
         self._replay_size = replay_size
 
+    @property
+    def states(self) -> np.ndarray:
+        return self._states_buffer
+
     def add(
         self,
         state: np.ndarray,
