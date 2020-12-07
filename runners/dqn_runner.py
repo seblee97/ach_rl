@@ -13,6 +13,8 @@ class DQNRunner(base_runner.BaseRunner):
     def __init__(self, config: ach_config.AchConfig):
         super().__init__(config=config)
 
+        self._device = config.experiment_device
+
         self._batch_size = config.batch_size
         self._replay_buffer = self._setup_replay_buffer(config=config)
 
@@ -90,11 +92,21 @@ class DQNRunner(base_runner.BaseRunner):
             experience_sample = self._replay_buffer.sample(self._batch_size)
 
             self._learner.step(
-                state=torch.from_numpy(experience_sample[0]).to(torch.float),
-                action=torch.from_numpy(experience_sample[1]).to(torch.int),
-                reward=torch.from_numpy(experience_sample[2]).to(torch.float),
-                next_state=torch.from_numpy(experience_sample[3]).to(torch.float),
-                active=torch.from_numpy(experience_sample[4]).to(torch.int),
+                state=torch.from_numpy(experience_sample[0]).to(
+                    device=self._device, dtype=torch.float
+                ),
+                action=torch.from_numpy(experience_sample[1]).to(
+                    device=self._device, dtype=torch.int
+                ),
+                reward=torch.from_numpy(experience_sample[2]).to(
+                    device=self._device, dtype=torch.float
+                ),
+                next_state=torch.from_numpy(experience_sample[3]).to(
+                    device=self._device, dtype=torch.float
+                ),
+                active=torch.from_numpy(experience_sample[4]).to(
+                    device=self._device, dtype=torch.int
+                ),
                 visitation_penalty=visitation_penalty,
             )
 
