@@ -142,5 +142,6 @@ class Constants:
     GPU_ID = "gpu_id"
     USING_GPU = "using_gpu"
     EXPERIMENT_DEVICE = "experiment_device"
+    AVERAGE_ACTION_VALUE = "average_action_value"
 
     ATARI_ENVS = ["Pong-v0"]
