@@ -3,6 +3,7 @@ from typing import Tuple
 
 import torch
 
+import constants
 from experiments import ach_config
 from learners.deep_learners import dqn_learner
 from learners.deep_learners.components import replay_buffer
@@ -113,4 +114,24 @@ class DQNRunner(base_runner.BaseRunner):
             state = next_state
             episode_reward += reward
 
+        if constants.Constants.AVERAGE_ACTION_VALUE in self._scalar_logging:
+            average_action_value = self._compute_average_action_value()
+            self._logger.write_scalar_df(
+                tag=constants.Constants.AVERAGE_ACTION_VALUE,
+                step=episode,
+                scalar=average_action_value,
+            )
+
         return episode_reward, self._environment.episode_step_count
+
+    def _compute_average_action_value(self):
+        self._learner.eval()
+
+        with torch.no_grad():
+            states = torch.from_numpy(self._replay_buffer.states).to(
+                dtype=torch.float, device=self._device
+            )
+            action_values_over_states = self._learner.q_network(states)
+            average_value = torch.mean(action_values_over_states).item()
+
+        return average_value
