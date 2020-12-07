@@ -338,7 +338,8 @@ class BaseRunner(abc.ABC):
         """Solidify any data and make plots."""
         self._plotter.load_data()
         self._plotter.plot_learning_curves()
-        self._plotter.plot_value_function(
-            grid_size=self._grid_size,
-            state_action_values=self._learner.state_action_values,
-        )
+        if constants.Constants.VALUE_FUNCTION in self._plot_logging:
+            self._plotter.plot_value_function(
+                grid_size=self._grid_size,
+                state_action_values=self._learner.state_action_values,
+            )
