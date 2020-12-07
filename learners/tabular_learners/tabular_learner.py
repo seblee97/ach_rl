@@ -42,6 +42,12 @@ class TabularLearner(abc.ABC):
         self._gamma = gamma
         self._epsilon = epsilon
 
+    def train(self):
+        pass
+
+    def eval(self):
+        pass
+
     @property
     def state_action_values(self) -> Dict[Tuple[int, int], np.ndarray]:
         return {
