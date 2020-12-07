@@ -128,7 +128,7 @@ class DQNRunner(base_runner.BaseRunner):
         self._learner.eval()
 
         with torch.no_grad():
-            states = torch.from_numpy(self._replay_buffer.states).to(
+            states = torch.from_numpy(self._replay_buffer.states)[:256].to(
                 dtype=torch.float, device=self._device
             )
             action_values_over_states = self._learner.q_network(states)
