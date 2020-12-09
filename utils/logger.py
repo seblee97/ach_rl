@@ -1,12 +1,14 @@
 import os
 from typing import List
+from typing import Union
 
-import pandas as pd
-import numpy as np
 import matplotlib.pyplot as plt
-from experiments import ach_config
+import numpy as np
+import pandas as pd
 
+from experiments import ach_config
 from utils import decorators
+from utils import animator
 
 
 class Logger:
@@ -52,7 +54,9 @@ class Logger:
         full_path = os.path.join(self._checkpoint_path, name)
         np.save(file=full_path, arr=data)
 
-    def plot_array_data(self, name: str, data: np.ndarray) -> None:
+    def plot_array_data(
+        self, name: str, data: Union[List[np.ndarray], np.ndarray]
+    ) -> None:
         """Plot array data to image file.
 
         Args:
@@ -60,11 +64,15 @@ class Logger:
             data: data to save.
         """
         full_path = os.path.join(self._checkpoint_path, name)
-        fig = plt.figure()
-        plt.imshow(data, origin="lower")
-        plt.colorbar()
-        fig.savefig(fname=full_path)
-        plt.close(fig)
+
+        if isinstance(data, list):
+            animator.animate(images=data, file_name=full_path)
+        elif isinstance(data, np.ndarray):
+            fig = plt.figure()
+            plt.imshow(data, origin="lower")
+            plt.colorbar()
+            fig.savefig(fname=full_path)
+            plt.close(fig)
 
     def checkpoint_df(self) -> None:
         """Merge dataframe with previously saved checkpoint.
