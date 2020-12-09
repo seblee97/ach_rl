@@ -1,19 +1,20 @@
-import constants
-from collections import deque
 import copy
 import random
-import gym
+from collections import deque
+from typing import Any
 from typing import List
 from typing import Optional
 from typing import Tuple
-from typing import Union, Any
-from utils import pre_processing_functions
+from typing import Union
 
-import numpy as np
 import cv2
+import gym
+import numpy as np
 import torch
 
+import constants
 from environments import base_environment
+from utils import pre_processing_functions
 
 
 class PreProcessor:
@@ -87,6 +88,7 @@ class AtariEnv(base_environment.BaseEnvironment):
     ):
         # frame skip set to 1 here, dealt with later.
         self._env = gym.make(atari_env_name, frameskip=1)
+        self._action_space = list(range(self._env.action_space.n))
 
         self._frame_skip = frame_skip
         self._frame_stack = frame_stack
@@ -97,9 +99,11 @@ class AtariEnv(base_environment.BaseEnvironment):
         self._frame_set = deque(maxlen=self._frame_stack)
         self._reward_set = deque(maxlen=self._frame_stack)
 
+        self._episode_history: List[np.ndarray]
+
     @property
     def action_space(self) -> List[int]:
-        return list(range(self._env.action_space.n))
+        return self._action_space
 
     @property
     def state_dimension(self) -> Tuple[int, int, int]:
@@ -107,10 +111,10 @@ class AtariEnv(base_environment.BaseEnvironment):
 
     @property
     def episode_history(self) -> np.ndarray:
-        raise NotImplementedError
+        return self._episode_history
 
     def plot_episode_history(self) -> np.ndarray:
-        raise NotImplementedError
+        return self._episode_history
 
     def step(self, action: int) -> Tuple[float, np.ndarray]:
         """Take step in environment according to action of agent.
@@ -124,6 +128,7 @@ class AtariEnv(base_environment.BaseEnvironment):
         """
         frames, rewards = self._frame_skip_wrap(action=action)
         processed_frames = self._preprocessor(frames)
+        self._episode_history.append(processed_frames)
         self._frame_set.append(processed_frames)
         self._reward_set.append(np.sum(rewards))
 
@@ -178,11 +183,13 @@ class AtariEnv(base_environment.BaseEnvironment):
         self._episode_step_count = 0
         self._rewards_received = []
         self._training = train
+        self._episode_history = []
 
         # frame stack and frame-skip with no-op
         for _ in range(self._frame_stack):
             frames, rewards = self._frame_skip_wrap(action=0)
             processed_frames = self._preprocessor(frames)
+            self._episode_history.append(processed_frames)
             self._frame_set.append(processed_frames)
             self._reward_set.append(np.sum(rewards))
 
