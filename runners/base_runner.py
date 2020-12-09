@@ -170,21 +170,22 @@ class BaseRunner(abc.ABC):
             if i % self._checkpoint_frequency == 0:
                 self._logger.checkpoint_df()
 
-            if i % self._test_frequency == 0:
-                self._test_episode(episode=i)
-
             if i % self._train_log_frequency == 0:
-                if constants.Constants.INDIVIDUAL_TRAIN_RUN in self._plot_logging:
-                    self._logger.plot_array_data(
-                        name=f"{constants.Constants.INDIVIDUAL_TRAIN_RUN}_{i}",
-                        data=self._environment.plot_episode_history(),
-                    )
                 if constants.Constants.VALUE_FUNCTION in self._plot_logging:
                     self._plotter.plot_value_function(
                         grid_size=self._grid_size,
                         state_action_values=self._learner.state_action_values,
                         extra_tag=f"{i}_",
                     )
+                if i != 0:
+                    if constants.Constants.INDIVIDUAL_TRAIN_RUN in self._plot_logging:
+                        self._logger.plot_array_data(
+                            name=f"{constants.Constants.INDIVIDUAL_TRAIN_RUN}_{i}",
+                            data=self._environment.plot_episode_history(),
+                        )
+
+            if i % self._test_frequency == 0:
+                self._test_episode(episode=i)
 
             if constants.Constants.CYCLE_COUNT in self._scalar_logging:
                 num_cycles = cycle_counter.evaluate_loops_on_value_function(
