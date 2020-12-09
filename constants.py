@@ -143,5 +143,6 @@ class Constants:
     USING_GPU = "using_gpu"
     EXPERIMENT_DEVICE = "experiment_device"
     AVERAGE_ACTION_VALUE = "average_action_value"
+    ANIMATION_FILE_FORMAT = "gif"
 
     ATARI_ENVS = ["Pong-v0"]
