@@ -36,8 +36,10 @@ class LinearDecayEpsilon(EpsilonSchedule):
     ):
 
         self._step_size = (initial_value - final_value) / anneal_duration
+        self._final_value = final_value
 
         super().__init__(value=initial_value)
 
     def __next__(self):
-        self._value -= self._step_size
+        if self._value < self._final_value:
+            self._value -= self._step_size
