@@ -47,6 +47,7 @@ class MiniGrid(base_environment.BaseEnvironment):
         self._state_space = list(np.ndindex(size))
         self._visitation_counts = np.zeros(self._size)
 
+        self._episode_history: List[List[int]]
         self._agent_position: List[int]
         self._rewards_received: List[float]
 
