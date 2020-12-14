@@ -58,6 +58,14 @@ class ConfigTemplate:
                 types=[int, type(None)],
                 requirements=[lambda x: x is None or x > 0],
             ),
+            config_field.Field(
+                name=constants.Constants.PLOT_ORIGIN,
+                types=[str],
+                requirements=[
+                    lambda x: x
+                    in [constants.Constants.UPPER, constants.Constants.LOWER]
+                ],
+            ),
         ],
         dependent_variables=[constants.Constants.ENVIRONMENT],
         dependent_variables_required_values=[[constants.Constants.MINIGRID]],
@@ -82,6 +90,30 @@ class ConfigTemplate:
             constants.Constants.APPLY_CURRICULUM,
         ],
         dependent_variables_required_values=[[constants.Constants.MINIGRID], [True]],
+    )
+
+    _multiroom_template = config_template.Template(
+        fields=[
+            config_field.Field(name=constants.Constants.ASCII_MAP_PATH, types=[str]),
+            config_field.Field(
+                name=constants.Constants.EPISODE_TIMEOUT,
+                types=[type(None), int],
+                requirements=[lambda x: x is None or x > 0],
+            ),
+            config_field.Field(
+                name=constants.Constants.PLOT_ORIGIN,
+                types=[str],
+                requirements=[
+                    lambda x: x
+                    in [constants.Constants.UPPER, constants.Constants.LOWER]
+                ],
+            ),
+        ],
+        level=[constants.Constants.MULTIROOM],
+        dependent_variables=[
+            constants.Constants.ENVIRONMENT,
+        ],
+        dependent_variables_required_values=[[constants.Constants.MULTIROOM]],
     )
 
     _atari_template = config_template.Template(
@@ -115,6 +147,14 @@ class ConfigTemplate:
                 name=constants.Constants.ENCODED_STATE_DIMENSIONS,
                 types=[list],
                 requirements=[lambda x: all(isinstance(y, int) and y > 0 for y in x)],
+            ),
+            config_field.Field(
+                name=constants.Constants.PLOT_ORIGIN,
+                types=[str],
+                requirements=[
+                    lambda x: x
+                    in [constants.Constants.UPPER, constants.Constants.LOWER]
+                ],
             ),
         ],
         dependent_variables=[constants.Constants.ENVIRONMENT],
@@ -214,6 +254,21 @@ class ConfigTemplate:
                 name=constants.Constants.LEARNING_RATE,
                 types=[float],
                 requirements=[lambda x: x > 0],
+            ),
+            config_field.Field(
+                name=constants.Constants.GRADIENT_MOMENTUM,
+                types=[float],
+                requirements=[lambda x: x >= 0],
+            ),
+            config_field.Field(
+                name=constants.Constants.SQUARED_GRADIENT_MOMENTUM,
+                types=[float],
+                requirements=[lambda x: x >= 0],
+            ),
+            config_field.Field(
+                name=constants.Constants.MIN_SQUARED_GRADIENT,
+                types=[float],
+                requirements=[lambda x: x >= 0],
             ),
             config_field.Field(
                 name=constants.Constants.DISCOUNT_FACTOR,
@@ -321,7 +376,23 @@ class ConfigTemplate:
             config_field.Field(
                 name=constants.Constants.OPTIMISER,
                 types=[str],
-                requirements=[lambda x: x in [constants.Constants.ADAM]],
+                requirements=[
+                    lambda x: x
+                    in [constants.Constants.ADAM, constants.Constants.RMS_PROP]
+                ],
+            ),
+            config_field.Field(
+                name=constants.Constants.NETWORK_INITIALISATION,
+                types=[str],
+                requirements=[
+                    lambda x: x
+                    in [
+                        constants.Constants.NORMAL,
+                        constants.Constants.ZEROS,
+                        constants.Constants.XAVIER_NORMAL,
+                        constants.Constants.XAVIER_UNIFORM,
+                    ]
+                ],
             ),
             config_field.Field(
                 name=constants.Constants.LAYER_SPECIFICATIONS,
@@ -432,7 +503,11 @@ class ConfigTemplate:
                 types=[str],
                 requirements=[
                     lambda x: x
-                    in [constants.Constants.MINIGRID, constants.Constants.ATARI]
+                    in [
+                        constants.Constants.MINIGRID,
+                        constants.Constants.ATARI,
+                        constants.Constants.MULTIROOM,
+                    ]
                 ],
             ),
             config_field.Field(
@@ -443,6 +518,7 @@ class ConfigTemplate:
         nested_templates=[
             _minigrid_template,
             _minigrid_curriculum_template,
+            _multiroom_template,
             _atari_template,
             _learner_template,
             _sarsa_lambda_template,
