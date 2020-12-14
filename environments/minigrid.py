@@ -229,4 +229,4 @@ class MiniGrid(base_environment.BaseEnvironment):
             self._agent_position = list(self.random_coordinate())
         self._episode_history = [copy.deepcopy(self._agent_position)]
         self._rewards_received = []
-        return self._agent_position
+        return tuple(self._agent_position)
