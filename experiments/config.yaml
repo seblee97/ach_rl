@@ -15,12 +15,18 @@ minigrid:
     reward_positions: [[38, 45]] # random if not given
     reward_magnitudes: [1.]
     repeat_rewards: False
-    episode_timeout: 400 # infinity if not given
+    episode_timeout: 200 # infinity if not given
+    plot_origin: lower
 
 minigrid_curriculum:
     transition_episodes: [100]
     environment_changes: 
         - []
+
+multiroom:
+    ascii_map_path: simple_map.txt
+    episode_timeout: 200 # infinity if not given
+    plot_origin: lower
 
 atari:
     atari_env_name: "Pong-v0"
@@ -36,11 +42,15 @@ atari:
     frame_skip: 4
     episode_timeout: 200 # infinity if not given
     encoded_state_dimensions: [4, 84, 84]
+    plot_origin: upper
 
 
 learner: 
     type: q_learning
-    learning_rate: 0.1
+    learning_rate: 0.0005
+    gradient_momentum: 0.95
+    squared_gradient_momentum: 0.95
+    min_squared_gradient: 0.1
     discount_factor: 0.99 
     epsilon:
         schedule: linear_decay
@@ -71,11 +81,13 @@ q_learning:
 
 dqn:
     batch_size: 32
-    num_replay_fill_trajectories: 10000
+    num_replay_fill_trajectories: 50
     replay_buffer_size: 100000
-    target_network_update_period: 50
+    target_network_update_period: 10000
 
     optimiser: adam
+
+    network_initialisation: normal
 
     layer_specifications:
         - conv:
@@ -122,9 +134,10 @@ logging:
         - train_episode_length
         - test_episode_reward
         - test_episode_length
-        - no_repeat_test_episode_reward
-        - no_repeat_test_episode_length
-        - cycle_count
+        - average_action_value
+        # - no_repeat_test_episode_reward
+        # - no_repeat_test_episode_length
+        # - cycle_count
     arrays:
     plots:
         - value_function
@@ -135,8 +148,9 @@ logging:
         - visitation_count_heatmap
         - individual_test_run
         - individual_train_run
-        - individual_no_rep_test_run
-        - individual_no_rep_train_run
+        # - individual_no_rep_test_run
+        # - individual_no_rep_train_run
+        - average_action_value
         - cycle_count
 
 post_processing:
