@@ -96,8 +96,8 @@ class AtariEnv(base_environment.BaseEnvironment):
 
         self._preprocessor = PreProcessor(pre_processing=pre_processing)
 
-        self._frame_set = deque(maxlen=self._frame_stack)
-        self._reward_set = deque(maxlen=self._frame_stack)
+        self._frame_set: deque
+        self._reward_set: deque
 
         self._episode_history: List[np.ndarray]
 
@@ -184,6 +184,9 @@ class AtariEnv(base_environment.BaseEnvironment):
         self._rewards_received = []
         self._training = train
         self._episode_history = []
+
+        self._frame_set = deque(maxlen=self._frame_stack)
+        self._reward_set = deque(maxlen=self._frame_stack)
 
         # frame stack and frame-skip with no-op
         for _ in range(self._frame_stack):
