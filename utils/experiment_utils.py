@@ -2,6 +2,7 @@ import datetime
 import os
 import time
 from typing import Optional
+import torch
 
 
 def set_random_seeds(seed: int) -> None:
@@ -13,6 +14,7 @@ def set_random_seeds(seed: int) -> None:
     # set random seeds for these packages
     random.seed(seed)
     np.random.seed(seed)
+    torch.manual_seed(seed)
 
 
 def get_experiment_timestamp() -> str:
