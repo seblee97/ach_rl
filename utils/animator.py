@@ -7,7 +7,7 @@ from matplotlib.animation import FuncAnimation
 import constants
 
 
-def animate(images: List[np.ndarray], file_name: str):
+def animate(images: List[np.ndarray], file_name: str, plot_origin: str):
 
     # add extension to file_name
     file_name = f"{file_name}.{constants.Constants.ANIMATION_FILE_FORMAT}"
@@ -15,7 +15,7 @@ def animate(images: List[np.ndarray], file_name: str):
     fig, ax = plt.subplots(figsize=(5, 5))
 
     def update(image):
-        ax.imshow(image)
+        ax.imshow(image, origin=plot_origin)
 
     anim = FuncAnimation(fig, update, frames=images, interval=200)
     anim.save(
