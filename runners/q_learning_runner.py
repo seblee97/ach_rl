@@ -10,8 +10,6 @@ class QLearningRunner(base_runner.BaseRunner):
     def __init__(self, config: ach_config.AchConfig):
         super().__init__(config=config)
 
-        self._grid_size = tuple(config.size)
-
     def _setup_learner(self, config: ach_config.AchConfig):  # TODO: similar to envs
         """Initialise learner specified in configuration."""
         learner = q_learner.TabularQLearner(
