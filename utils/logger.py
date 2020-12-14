@@ -23,6 +23,7 @@ class Logger:
         self._logfile_path = config.logfile_path
         self._df_columns = self._get_df_columns(config)
         self._logger_df = pd.DataFrame(columns=self._df_columns)
+        self._plot_origin = config.plot_origin
 
     def _get_df_columns(self, config: ach_config.AchConfig) -> List[str]:
         return config.columns
@@ -66,10 +67,12 @@ class Logger:
         full_path = os.path.join(self._checkpoint_path, name)
 
         if isinstance(data, list):
-            animator.animate(images=data, file_name=full_path)
+            animator.animate(
+                images=data, file_name=full_path, plot_origin=self._plot_origin
+            )
         elif isinstance(data, np.ndarray):
             fig = plt.figure()
-            plt.imshow(data, origin="lower")
+            plt.imshow(data, plot_origin=self._plot_origin)
             plt.colorbar()
             fig.savefig(fname=full_path)
             plt.close(fig)
