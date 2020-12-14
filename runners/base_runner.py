@@ -12,6 +12,7 @@ import constants
 from curricula import base_curriculum
 from curricula import minigrid_curriculum
 from environments import atari
+from environments import multi_room
 from environments import base_environment
 from environments import minigrid
 from experiments import ach_config
@@ -63,6 +64,8 @@ class BaseRunner(abc.ABC):
                 environment = minigrid.MiniGrid(**environment_args)
             elif config.environment == constants.Constants.ATARI:
                 environment = atari.AtariEnv(**environment_args)
+            elif config.environment == constants.Constants.MULTIROOM:
+                environment = multi_room.MultiRoom(**environment_args)
         return environment
 
     def _get_environment_args(self, config: ach_config.AchConfig) -> Dict[str, Any]:
@@ -93,6 +96,11 @@ class BaseRunner(abc.ABC):
                 constants.Constants.PRE_PROCESSING: config.pre_processing,
                 constants.Constants.FRAME_STACK: config.frame_stack,
                 constants.Constants.FRAME_SKIP: config.frame_skip,
+            }
+        elif config.environment == constants.Constants.MULTIROOM:
+            env_args = {
+                constants.Constants.ASCII_MAP_PATH: config.ascii_map_path,
+                constants.Constants.EPISODE_TIMEOUT: config.episode_timeout,
             }
         return env_args
 
@@ -281,7 +289,7 @@ class BaseRunner(abc.ABC):
             scalar=episode_reward,
         )
 
-        if episode % self._full_test_log_frequency == 0:
+        if episode % self._full_test_log_frequency == 0 and episode != 0:
             if constants.Constants.INDIVIDUAL_TEST_RUN in self._array_logging:
                 self._logger.write_array_data(
                     name=f"{constants.Constants.INDIVIDUAL_TEST_RUN}_{episode}",
