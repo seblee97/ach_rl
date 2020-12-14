@@ -17,10 +17,12 @@ class QNetwork(nn.Module):
         state_dim: Tuple[int, int, int],
         num_actions: int,
         layer_specifications: List[Dict[str, Any]],
+        initialisation: str,
     ):
         self._state_dim = state_dim
         self._num_actions = num_actions
         self._layer_specifications = layer_specifications
+        self._initialisation = initialisation
 
         super().__init__()
 
@@ -62,6 +64,16 @@ class QNetwork(nn.Module):
                 nonlinearity = nn.Identity()
             else:
                 raise ValueError(f"Non-linearity {layer_nonlinearity} not recognised")
+
+            # initialise weights
+            if self._initialisation == constants.Constants.ZEROS:
+                nn.init.zeros_(layer.weight)
+            elif self._initialisation == constants.Constants.NORMAL:
+                nn.init.normal(layer.weight)
+            elif self._initialisation == constants.Constants.XAVIER_NORMAL:
+                nn.init.xavier_normal_(layer.weight)
+            elif self._initialisation == constants.Constants.XAVIER_UNIFORM:
+                nn.init.xavier_uniform_(layer.weight)
 
             self._layers.append(layer)
             self._layers.append(nonlinearity)
