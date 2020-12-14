@@ -26,18 +26,24 @@ class DQNLearner(base_learner.BaseLearner):
         state_dimensions: Tuple[int, int, int],
         layer_specifications: List[Dict[str, Any]],
         optimiser_type: str,
+        network_initialisation: str,
         learning_rate: float,
         gamma: float,
         epsilon: epsilon_schedules.EpsilonSchedule,
         target_network_update_period: int,
         device: torch.device,
+        momentum: float = 0,
+        eps: float = 1e-8,
     ):
 
         self._state_dimensions = state_dimensions
         self._action_space = action_space
         self._layer_specifications = layer_specifications
         self._optimiser_type = optimiser_type
+        self._network_initialisation = network_initialisation
         self._learning_rate = learning_rate
+        self._momentum = momentum
+        self._eps = eps
         self._gamma = gamma
         self._epsilon = epsilon
         self._target_network_update_period = target_network_update_period
@@ -61,12 +67,20 @@ class DQNLearner(base_learner.BaseLearner):
             state_dim=self._state_dimensions,
             num_actions=len(self._action_space),
             layer_specifications=self._layer_specifications,
+            initialisation=self._network_initialisation,
         )
 
     def _setup_optimiser(self):
         if self._optimiser_type == constants.Constants.ADAM:
             optimiser = torch.optim.Adam(
                 self._q_network.parameters(), lr=self._learning_rate
+            )
+        elif self._optimiser_type == constants.Constants.RMS_PROP:
+            optimiser = torch.optim.RMSprop(
+                self._q_network.parameters(),
+                lr=self._learning_rate,
+                momentum=self._momentum,
+                eps=self._min_squared_gradient,
             )
         return optimiser
 
@@ -100,7 +114,7 @@ class DQNLearner(base_learner.BaseLearner):
         state = torch.from_numpy(state).to(torch.float).to(self._device)
 
         state_action_values = self._q_network(state)
-        action = torch.argmax(state_action_values)
+        action = torch.argmax(state_action_values).item()
         return action
 
     def step(
