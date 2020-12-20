@@ -150,6 +150,10 @@ class MultiRoom(base_environment.BaseEnvironment):
         return self._state_space
 
     @property
+    def walls(self) -> List[Tuple]:
+        return self._walls
+
+    @property
     def episode_step_count(self) -> int:
         return self._episode_step_count
 
