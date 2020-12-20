@@ -247,6 +247,7 @@ class ConfigTemplate:
                         constants.Constants.SARSA_LAMBDA,
                         constants.Constants.Q_LEARNING,
                         constants.Constants.DQN,
+                        constants.Constants.ENSEMBLE_Q_LEARNING,
                     ]
                 ],
             ),
@@ -323,7 +324,7 @@ class ConfigTemplate:
             ),
         ],
         dependent_variables=[constants.Constants.TYPE],
-        dependent_variables_required_values=[constants.Constants.SARSA_LAMBDA],
+        dependent_variables_required_values=[[constants.Constants.SARSA_LAMBDA]],
         level=[constants.Constants.SARSA_LAMBDA],
     )
 
@@ -347,8 +348,37 @@ class ConfigTemplate:
             ),
         ],
         dependent_variables=[constants.Constants.TYPE],
-        dependent_variables_required_values=[constants.Constants.Q_LEARNING],
+        dependent_variables_required_values=[[constants.Constants.Q_LEARNING]],
         level=[constants.Constants.Q_LEARNING],
+    )
+
+    _ensemble_q_learning_template = config_template.Template(
+        fields=[
+            config_field.Field(
+                name=constants.Constants.NUM_LEARNERS,
+                types=[int],
+                requirements=[lambda x: x > 1],
+            ),
+            config_field.Field(
+                name=constants.Constants.BEHAVIOUR,
+                types=[str],
+                requirements=[
+                    lambda x: x
+                    in [constants.Constants.GREEDY, constants.Constants.EPSILON_GREEDY]
+                ],
+            ),
+            config_field.Field(
+                name=constants.Constants.TARGET,
+                types=[str],
+                requirements=[
+                    lambda x: x
+                    in [constants.Constants.GREEDY, constants.Constants.EPSILON_GREEDY]
+                ],
+            ),
+        ],
+        dependent_variables=[constants.Constants.TYPE],
+        dependent_variables_required_values=[[constants.Constants.ENSEMBLE_Q_LEARNING]],
+        level=[constants.Constants.ENSEMBLE_Q_LEARNING],
     )
 
     _dqn_template = config_template.Template(
@@ -400,7 +430,7 @@ class ConfigTemplate:
             ),
         ],
         dependent_variables=[constants.Constants.TYPE],
-        dependent_variables_required_values=[constants.Constants.DQN],
+        dependent_variables_required_values=[[constants.Constants.DQN]],
         level=[constants.Constants.DQN],
     )
 
@@ -523,6 +553,7 @@ class ConfigTemplate:
             _learner_template,
             _sarsa_lambda_template,
             _q_learning_template,
+            _ensemble_q_learning_template,
             _dqn_template,
             _training_template,
             _logging_template,
