@@ -68,6 +68,10 @@ class MiniGrid(base_environment.BaseEnvironment):
         return self._state_space
 
     @property
+    def walls(self) -> List[Tuple]:
+        return None
+
+    @property
     def episode_step_count(self) -> int:
         return self._episode_step_count
 
