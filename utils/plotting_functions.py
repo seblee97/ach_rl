@@ -123,11 +123,11 @@ def plot_multi_seed_multi_run(
 
 
 def plot_value_function(
-    grid_size: Tuple[int, int],
     state_action_values: Dict[Tuple[int, int], np.ndarray],
     save_path: str,
     plot_max_values: bool,
     quiver: bool,
+    walls: Optional[Tuple] = None,
 ) -> None:
     fig = plt.figure()
     if quiver:
