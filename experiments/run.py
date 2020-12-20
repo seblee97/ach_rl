@@ -15,6 +15,7 @@ from experiments import ach_config
 from experiments import config_template
 from experiments.config_changes import ConfigChange
 from runners import dqn_runner
+from runners import q_learning_ensemble_runner
 from runners import q_learning_runner
 from runners import sarsa_lambda_runner
 from utils import experiment_utils
@@ -135,6 +136,8 @@ def single_run(
         r = q_learning_runner.QLearningRunner(config=config)
     elif config.type == constants.Constants.DQN:
         r = dqn_runner.DQNRunner(config=config)
+    elif config.type == constants.Constants.ENSEMBLE_Q_LEARNING:
+        r = q_learning_ensemble_runner.EnsembleQLearningRunner(config=config)
     else:
         raise ValueError(f"Learner type {type} not recognised.")
 
