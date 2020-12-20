@@ -110,9 +110,9 @@ class Plotter:
 
     def plot_value_function(
         self,
-        grid_size: Tuple[int, int],
-        state_action_values: np.ndarray,
+        state_action_values: Dict[Tuple, np.ndarray],
         extra_tag: Optional[str] = "",
+        walls: Optional[Tuple] = None,
     ) -> None:
         max_save_path = os.path.join(
             self._save_folder, f"{extra_tag}{constants.Constants.MAX_VALUES_PDF}"
@@ -124,22 +124,23 @@ class Plotter:
             self._save_folder,
             f"{extra_tag}{constants.Constants.QUIVER_MAX_VALUES_PDF}",
         )
+
         plotting_functions.plot_value_function(
-            grid_size=grid_size,
+            walls=walls,
             state_action_values=state_action_values,
             save_path=max_save_path,
             plot_max_values=True,
             quiver=False,
         )
         plotting_functions.plot_value_function(
-            grid_size=grid_size,
+            walls=walls,
             state_action_values=state_action_values,
             save_path=quiver_save_path,
             plot_max_values=False,
             quiver=True,
         )
         plotting_functions.plot_value_function(
-            grid_size=grid_size,
+            walls=walls,
             state_action_values=state_action_values,
             save_path=quiver_max_save_path,
             plot_max_values=True,
