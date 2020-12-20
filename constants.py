@@ -163,5 +163,7 @@ class Constants:
     PLOT_ORIGIN = "plot_origin"
     UPPER = "upper"
     LOWER = "lower"
+    ENSEMBLE_Q_LEARNING = "ensemble_q_learning"
+    NUM_LEARNERS = "num_learners"
 
     ATARI_ENVS = ["Pong-v0"]
