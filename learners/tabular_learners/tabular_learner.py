@@ -9,10 +9,12 @@ from utils import epsilon_schedules
 
 import numpy as np
 
+from learners import base_learner
+
 import constants
 
 
-class TabularLearner(abc.ABC):
+class TabularLearner(base_learner.BaseLearner):
     """Base class for learners in tabular settings."""
 
     def __init__(
