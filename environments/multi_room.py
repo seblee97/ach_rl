@@ -1,4 +1,5 @@
 import copy
+import itertools
 import random
 from typing import List
 from typing import Optional
@@ -45,7 +46,17 @@ class MultiRoom(base_environment.BaseEnvironment):
 
         state_indices = np.where(self._map == 0)
         wall_indices = np.where(self._map == 1)
-        self._state_space = list(zip(state_indices[1], state_indices[0]))
+        positional_state_space = list(zip(state_indices[1], state_indices[0]))
+        key_possession_state_space = list(
+            itertools.product([0, 1], repeat=len(self._key_positions))
+        )
+        self._state_space = [
+            i[0] + i[1]
+            for i in itertools.product(
+                positional_state_space, key_possession_state_space
+            )
+        ]
+
         self._walls = list(zip(wall_indices[1], wall_indices[0]))
 
         self._rewards = {
@@ -59,7 +70,7 @@ class MultiRoom(base_environment.BaseEnvironment):
         self._episode_history: List[List[int]]
         self._agent_position: np.ndarray
         self._rewards_received: List[float]
-        self._keys_collected: List
+        self._keys_state: Tuple
 
     def _parse_map(
         self, map_file_path: str
@@ -89,19 +100,19 @@ class MultiRoom(base_environment.BaseEnvironment):
                 map_rows.append(map_row)
                 if constants.Constants.REWARD_CHARACTER in line:
                     reward_positions.append(
-                        [line.index(constants.Constants.REWARD_CHARACTER), i]
+                        (line.index(constants.Constants.REWARD_CHARACTER), i)
                     )
                 if constants.Constants.KEY_CHARACTER in line:
                     key_positions.append(
-                        [line.index(constants.Constants.KEY_CHARACTER), i]
+                        (line.index(constants.Constants.KEY_CHARACTER), i)
                     )
                 if constants.Constants.START_CHARACTER in line:
                     start_positions.append(
-                        [line.index(constants.Constants.START_CHARACTER), i]
+                        (line.index(constants.Constants.START_CHARACTER), i)
                     )
                 if constants.Constants.DOOR_CHARACTER in line:
                     door_positions.append(
-                        [line.index(constants.Constants.DOOR_CHARACTER), i]
+                        (line.index(constants.Constants.DOOR_CHARACTER), i)
                     )
 
         assert all(
@@ -166,9 +177,9 @@ class MultiRoom(base_environment.BaseEnvironment):
             heatmap[tuple(door[::-1])] = [0.5, 0.0, 0.0]
 
         # show key in yellow
-        for key in self._key_positions:
-            if key not in self._keys_collected:
-                heatmap[tuple(key[::-1])] = [1.0, 1.0, 0.0]
+        for key_index, key_position in enumerate(self._key_positions):
+            if not self._keys_state[key_index]:
+                heatmap[tuple(key_position[::-1])] = [1.0, 1.0, 0.0]
 
         state_rgb_images = []
 
@@ -197,11 +208,15 @@ class MultiRoom(base_environment.BaseEnvironment):
 
         if locked_door:
             door_index = self._door_positions.index(tuple(provisional_new_position))
-            if self._key_positions[door_index] in self._keys_collected:
+            if self._keys_state[door_index]:
                 locked_door = False
 
         if not moving_into_wall and not locked_door:
             self._agent_position = provisional_new_position
+
+        if tuple(self._agent_position) in self._key_positions:
+            key_index = self._key_positions.index(self._agent_position)
+            self._keys_state[key_index] = 1
 
     def step(self, action: int) -> Tuple[float, Tuple[int, int]]:
         """Take step in environment according to action of agent.
@@ -231,7 +246,9 @@ class MultiRoom(base_environment.BaseEnvironment):
 
         self._episode_history.append(copy.deepcopy(tuple(self._agent_position)))
 
-        return reward, tuple(self._agent_position)
+        new_state = tuple(self._agent_position) + self._keys_state
+
+        return reward, new_state
 
     def _compute_reward(self) -> float:
         """Check for reward, i.e. whether agent position is equal to a reward position.
@@ -262,7 +279,7 @@ class MultiRoom(base_environment.BaseEnvironment):
         ]
         return not any(conditions)
 
-    def reset_environment(self, train: bool) -> Tuple[int, int]:
+    def reset_environment(self, train: bool) -> Tuple[int, int, int]:
         """Reset environment.
 
         Bring agent back to starting position.
@@ -276,5 +293,8 @@ class MultiRoom(base_environment.BaseEnvironment):
         self._agent_position = np.array(self._starting_xy)
         self._episode_history = [copy.deepcopy(tuple(self._agent_position))]
         self._rewards_received = []
-        self._keys_collected = []
-        return tuple(self._agent_position)
+        self._keys_state = tuple(np.zeros(len(self._key_positions)))
+
+        initial_state = tuple(self._agent_position) + self._keys_state
+
+        return initial_state
