@@ -181,9 +181,9 @@ class BaseRunner(abc.ABC):
             if i % self._train_log_frequency == 0:
                 if constants.Constants.VALUE_FUNCTION in self._plot_logging:
                     self._plotter.plot_value_function(
-                        grid_size=self._grid_size,
                         state_action_values=self._learner.state_action_values,
                         extra_tag=f"{i}_",
+                        walls=self._environment.walls,
                     )
                 if i != 0:
                     if constants.Constants.INDIVIDUAL_TRAIN_RUN in self._plot_logging:
