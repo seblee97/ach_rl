@@ -38,8 +38,7 @@ class QLearningRunner(base_runner.BaseRunner):
 
         visitation_penalty = self._visitation_penalty(episode)
 
-        self._environment.reset_environment(train=True)
-        state = self._environment.agent_position
+        state = self._environment.reset_environment(train=True)
 
         while self._environment.active:
             action = self._learner.select_behaviour_action(state)
