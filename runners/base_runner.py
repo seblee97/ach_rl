@@ -22,6 +22,7 @@ from utils import logger
 from utils import plotter
 from visitation_penalties import base_visistation_penalty
 from visitation_penalties import hard_coded_visitation_penalty
+from visitation_penalties import adaptive_uncertainty_visitation_penalty
 
 
 class BaseRunner(abc.ABC):
@@ -137,6 +138,12 @@ class BaseRunner(abc.ABC):
         if config.visitation_penalty_type == constants.Constants.HARD_CODED:
             visitation_penalty = hard_coded_visitation_penalty.HardCodedPenalty(
                 config=config
+            )
+        elif config.visitation_penalty_type == constants.Constants.ADAPTIVE_UNCERTAINTY:
+            visitation_penalty = (
+                adaptive_uncertainty_visitation_penalty.AdaptiveUncertaintyPenalty(
+                    config=config
+                )
             )
         else:
             raise ValueError(
