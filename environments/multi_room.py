@@ -297,7 +297,7 @@ class MultiRoom(base_environment.BaseEnvironment):
         self._agent_position = np.array(self._starting_xy)
         self._episode_history = [copy.deepcopy(tuple(self._agent_position))]
         self._rewards_received = []
-        self._keys_state = tuple(np.zeros(len(self._key_positions)))
+        self._keys_state = tuple(np.zeros(len(self._key_positions), dtype=int))
 
         initial_state = tuple(self._agent_position) + self._keys_state
 
