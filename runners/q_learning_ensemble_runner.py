@@ -164,7 +164,6 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
             environment: environment in which to rollout episode.
             learner: learner to place in environment.
             episode: index of episode.
-            multi_process_log: index and return dictionary for multiprocessing use.
 
         Returns:
             episode_reward: single episode, single learner episode reward
