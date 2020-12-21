@@ -165,5 +165,10 @@ class Constants:
     LOWER = "lower"
     ENSEMBLE_Q_LEARNING = "ensemble_q_learning"
     NUM_LEARNERS = "num_learners"
+    GREEDY_SAMPLE = "greedy_sample"
+    GREEDY_MEAN = "greedy_mean"
+    GREEDY_VOTE = "greedy_vote"
+    PARALLELISE_ENSEMBLE = "parallelise_ensemble"
+    ADAPTIVE_UNCERTAINTY = "adaptive_uncertainty"
 
     ATARI_ENVS = ["Pong-v0"]
