@@ -292,7 +292,13 @@ class ConfigTemplate:
             config_field.Field(
                 name=constants.Constants.VISITATION_PENALTY_TYPE,
                 types=[str],
-                requirements=[lambda x: x in [constants.Constants.HARD_CODED]],
+                requirements=[
+                    lambda x: x
+                    in [
+                        constants.Constants.HARD_CODED,
+                        constants.Constants.ADAPTIVE_UNCERTAINTY,
+                    ]
+                ],
             ),
         ],
         level=[constants.Constants.LEARNER],
@@ -357,7 +363,7 @@ class ConfigTemplate:
             config_field.Field(
                 name=constants.Constants.NUM_LEARNERS,
                 types=[int],
-                requirements=[lambda x: x > 1],
+                requirements=[lambda x: x >= 1],
             ),
             config_field.Field(
                 name=constants.Constants.BEHAVIOUR,
@@ -372,8 +378,15 @@ class ConfigTemplate:
                 types=[str],
                 requirements=[
                     lambda x: x
-                    in [constants.Constants.GREEDY, constants.Constants.EPSILON_GREEDY]
+                    in [
+                        constants.Constants.GREEDY_SAMPLE,
+                        constants.Constants.GREEDY_MEAN,
+                        constants.Constants.GREEDY_VOTE,
+                    ]
                 ],
+            ),
+            config_field.Field(
+                name=constants.Constants.PARALLELISE_ENSEMBLE, types=[bool]
             ),
         ],
         dependent_variables=[constants.Constants.TYPE],
