@@ -175,5 +175,6 @@ class Constants:
     ENSEMBLE_EPISODE_LENGTH_STD = "ensemble_episode_length_std"
     MEAN_VISITATION_PENALTY = "mean_visitation_penalty"
     SMOOTHING = "smoothing"
+    MULTIPLICATIVE_FACTOR = "multiplicative_factor"
 
     ATARI_ENVS = ["Pong-v0"]
