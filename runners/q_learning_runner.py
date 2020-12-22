@@ -5,6 +5,8 @@ from runners import base_runner
 
 from typing import Tuple
 
+import constants
+
 
 class QLearningRunner(base_runner.BaseRunner):
     def __init__(self, config: ach_config.AchConfig):
@@ -23,6 +25,31 @@ class QLearningRunner(base_runner.BaseRunner):
             gamma=config.discount_factor,
         )
         return learner
+
+    def _pre_episode_log(self, episode: int):
+        if constants.Constants.VALUE_FUNCTION in self._plot_logging:
+            self._plotter.plot_value_function(
+                state_action_values=self._learner.state_action_values,
+                extra_tag=f"{episode}_",
+                walls=self._environment.walls,
+            )
+        if episode != 0:
+            if constants.Constants.INDIVIDUAL_TRAIN_RUN in self._plot_logging:
+                self._logger.plot_array_data(
+                    name=f"{constants.Constants.INDIVIDUAL_TRAIN_RUN}_{episode}",
+                    data=self._environment.plot_episode_history(),
+                )
+
+        if constants.Constants.CYCLE_COUNT in self._scalar_logging:
+            num_cycles = cycle_counter.evaluate_loops_on_value_function(
+                size=self._grid_size,
+                state_action_values=self._learner.state_action_values,
+            )
+            self._logger.write_scalar_df(
+                tag=constants.Constants.CYCLE_COUNT,
+                step=episode,
+                scalar=num_cycles,
+            )
 
     def _train_episode(self, episode: int) -> Tuple[float, int]:
         """Perform single training loop.
