@@ -129,6 +129,7 @@ class BaseRunner(abc.ABC):
             save_folder=config.checkpoint_path,
             logfile_path=config.logfile_path,
             plot_tags=config.plot_tags,
+            smoothing=config.smoothing,
         )
 
     def _setup_visitation_penalty(
@@ -167,6 +168,10 @@ class BaseRunner(abc.ABC):
         """Instantiate learner specified in configuration."""
         pass
 
+    @abc.abstractmethod
+    def _pre_episode_log(self, episode: int):
+        pass
+
     def train(self) -> None:
         """Perform training (and validation) on given number of episodes."""
         train_reward: float
@@ -186,32 +191,10 @@ class BaseRunner(abc.ABC):
                 self._logger.checkpoint_df()
 
             if i % self._train_log_frequency == 0:
-                if constants.Constants.VALUE_FUNCTION in self._plot_logging:
-                    self._plotter.plot_value_function(
-                        state_action_values=self._learner.state_action_values,
-                        extra_tag=f"{i}_",
-                        walls=self._environment.walls,
-                    )
-                if i != 0:
-                    if constants.Constants.INDIVIDUAL_TRAIN_RUN in self._plot_logging:
-                        self._logger.plot_array_data(
-                            name=f"{constants.Constants.INDIVIDUAL_TRAIN_RUN}_{i}",
-                            data=self._environment.plot_episode_history(),
-                        )
+                self._pre_episode_log(i)
 
             if i % self._test_frequency == 0:
                 self._test_episode(episode=i)
-
-            if constants.Constants.CYCLE_COUNT in self._scalar_logging:
-                num_cycles = cycle_counter.evaluate_loops_on_value_function(
-                    size=self._grid_size,
-                    state_action_values=self._learner.state_action_values,
-                )
-                self._logger.write_scalar_df(
-                    tag=constants.Constants.CYCLE_COUNT,
-                    step=i,
-                    scalar=num_cycles,
-                )
 
             if self._apply_curriculum:
                 if i == self._environment.next_transition_episode:
