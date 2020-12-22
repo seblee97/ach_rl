@@ -493,7 +493,17 @@ class ConfigTemplate:
             config_field.Field(
                 name=constants.Constants.COLUMNS,
                 types=[list],
-                requirements=[lambda x: all(isinstance(y, str) for y in x)],
+                requirements=[
+                    lambda x: all(
+                        (isinstance(y, str))
+                        or (
+                            isinstance(y, list)
+                            and isinstance(y[0], str)
+                            and isinstance(y[1], int)
+                        )
+                        for y in x
+                    )
+                ],
             ),
             config_field.Field(
                 name=constants.Constants.ARRAYS,
@@ -519,7 +529,12 @@ class ConfigTemplate:
                 name=constants.Constants.PLOT_TAGS,
                 types=[list],
                 requirements=[lambda x: all(isinstance(y, str) for y in x)],
-            )
+            ),
+            config_field.Field(
+                name=constants.Constants.SMOOTHING,
+                types=[int],
+                requirements=[lambda x: x > 0],
+            ),
         ],
         level=[constants.Constants.POST_PROCESSING],
     )
