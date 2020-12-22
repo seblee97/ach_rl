@@ -1,3 +1,4 @@
+import os
 import copy
 import multiprocessing
 from multiprocessing import managers
@@ -68,12 +69,53 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
         )
 
     def _pre_episode_log(self, episode: int):
+        if constants.Constants.VALUE_FUNCTION in self._plot_logging:
+            max_save_path = os.path.join(
+                self._checkpoint_path, f"{episode}_{constants.Constants.MAX_VALUES_PDF}"
+            )
+            quiver_save_path = os.path.join(
+                self._checkpoint_path,
+                f"{episode}_{constants.Constants.QUIVER_VALUES_PDF}",
+            )
+            quiver_max_save_path = os.path.join(
+                self._checkpoint_path,
+                f"{episode}_{constants.Constants.QUIVER_MAX_VALUES_PDF}",
+            )
+            self._environment.plot_value_function(
+                values=self._learner.state_action_values,
+                save_path=max_save_path,
+                plot_max_values=True,
+                quiver=False,
+            )
+            self._environment.plot_value_function(
+                values=self._learner.state_action_values,
+                save_path=quiver_save_path,
+                plot_max_values=False,
+                quiver=True,
+            )
+            self._environment.plot_value_function(
+                values=self._learner.state_action_values,
+                save_path=quiver_max_save_path,
+                plot_max_values=True,
+                quiver=True,
+            )
         if episode != 0:
             if constants.Constants.INDIVIDUAL_TRAIN_RUN in self._plot_logging:
                 self._logger.plot_array_data(
                     name=f"{constants.Constants.INDIVIDUAL_TRAIN_RUN}_{episode}",
                     data=self._environment.plot_episode_history(),
                 )
+
+        if constants.Constants.CYCLE_COUNT in self._scalar_logging:
+            num_cycles = cycle_counter.evaluate_loops_on_value_function(
+                size=self._grid_size,
+                state_action_values=self._learner.state_action_values,
+            )
+            self._logger.write_scalar_df(
+                tag=constants.Constants.CYCLE_COUNT,
+                step=episode,
+                scalar=num_cycles,
+            )
 
     def _train_episode(self, episode: int) -> Tuple[float, int]:
         """Perform single training loop (per learner in ensemble).
