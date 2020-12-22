@@ -51,6 +51,14 @@ class TabularLearner(base_learner.BaseLearner):
         pass
 
     @property
+    def state_id_mapping(self) -> Dict:
+        return self._state_id_mapping
+
+    @property
+    def id_state_mapping(self) -> Dict:
+        return self._id_state_mapping
+
+    @property
     def state_action_values(self) -> Dict[Tuple[int, int], np.ndarray]:
         return {
             self._id_state_mapping[i]: action_values
