@@ -26,7 +26,15 @@ class Logger:
         self._plot_origin = config.plot_origin
 
     def _get_df_columns(self, config: ach_config.AchConfig) -> List[str]:
-        return config.columns
+        columns = []
+        for column_title in config.columns:
+            if isinstance(column_title, str):
+                columns.append(column_title)
+            elif isinstance(column_title, list):
+                columns.extend(
+                    [f"{column_title[0]}_{i}" for i in range(column_title[1])]
+                )
+        return columns
 
     def write_scalar_df(self, tag: str, step: int, scalar: float) -> None:
         """Write (scalar) data to dataframe.
