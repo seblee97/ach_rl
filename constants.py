@@ -170,5 +170,10 @@ class Constants:
     GREEDY_VOTE = "greedy_vote"
     PARALLELISE_ENSEMBLE = "parallelise_ensemble"
     ADAPTIVE_UNCERTAINTY = "adaptive_uncertainty"
+    ENSEMBLE_RUNNER = "ensemble_runner"
+    ENSEMBLE_EPISODE_REWARD_STD = "ensemble_episode_reward_std"
+    ENSEMBLE_EPISODE_LENGTH_STD = "ensemble_episode_length_std"
+    MEAN_VISITATION_PENALTY = "mean_visitation_penalty"
+    SMOOTHING = "smoothing"
 
     ATARI_ENVS = ["Pong-v0"]
