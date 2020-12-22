@@ -177,6 +177,20 @@ class ConfigTemplate:
         dependent_variables_required_values=[[constants.Constants.HARD_CODED]],
     )
 
+    _adaptive_uncertainty_template = config_template.Template(
+        fields=[
+            config_field.Field(
+                name=constants.Constants.MULTIPLICATIVE_FACTOR,
+                types=[float, int],
+            )
+        ],
+        level=[constants.Constants.LEARNER, constants.Constants.ADAPTIVE_UNCERTAINTY],
+        dependent_variables=[constants.Constants.VISITATION_PENALTY_TYPE],
+        dependent_variables_required_values=[
+            [constants.Constants.ADAPTIVE_UNCERTAINTY]
+        ],
+    )
+
     _constant_epsilon_template = config_template.Template(
         fields=[
             config_field.Field(
@@ -302,7 +316,11 @@ class ConfigTemplate:
             ),
         ],
         level=[constants.Constants.LEARNER],
-        nested_templates=[_epsilon_template, _hard_coded_vp_template],
+        nested_templates=[
+            _epsilon_template,
+            _hard_coded_vp_template,
+            _adaptive_uncertainty_template,
+        ],
     )
 
     _sarsa_lambda_template = config_template.Template(
