@@ -157,7 +157,6 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
         for learner in self._learner.ensemble:
             episode_reward, episode_count, mean_penalty = self._single_train_episode(
                 environment=self._environment,
-                visitation_penalty=self._visitation_penalty,
                 learner=learner,
                 episode=episode,
             )
@@ -181,7 +180,6 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
             (
                 copy.deepcopy(self._environment),
                 learner,
-                self._visitation_penalty,
                 episode,
             )
             for learner in self._learner.ensemble
@@ -195,11 +193,10 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
 
         return ensemble_episode_rewards, ensemble_episode_step_counts, mean_penalties
 
-    @staticmethod
     def _single_train_episode(
+        self,
         environment: base_environment.BaseEnvironment,
         learner: base_learner.BaseLearner,
-        visitation_penalty: base_visistation_penalty.BaseVisitationPenalty,
         episode: int,
     ) -> Union[None, Tuple[float, int]]:
         """Single learner train episode.
@@ -222,7 +219,7 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
         while environment.active:
             action = learner.select_behaviour_action(state)
             reward, new_state = environment.step(action)
-            penalty = self._multiplicative_factor * visitation_penalty(
+            penalty = self._multiplicative_factor * self._visitation_penalty(
                 state=state, action=action
             )
             penalties.append(penalty)
