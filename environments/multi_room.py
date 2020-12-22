@@ -1,15 +1,21 @@
+import collections
 import copy
 import itertools
 import random
+from typing import Dict
 from typing import List
 from typing import Optional
 from typing import Tuple
 from typing import Union
 
-import numpy as np
-import constants
-import collections
+import matplotlib as mpl
+from matplotlib import cm
+from matplotlib import pyplot as plt
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 
+import numpy as np
+
+import constants
 from environments import base_environment
 
 
@@ -35,6 +41,8 @@ class MultiRoom(base_environment.BaseEnvironment):
         ascii_map_path: str,
         episode_timeout: Optional[int] = None,
     ):
+        self._color_spectrum = "plasma"
+        self._colormap = cm.get_cmap(self._color_spectrum)
 
         (
             self._map,
@@ -46,14 +54,14 @@ class MultiRoom(base_environment.BaseEnvironment):
 
         state_indices = np.where(self._map == 0)
         wall_indices = np.where(self._map == 1)
-        positional_state_space = list(zip(state_indices[1], state_indices[0]))
-        key_possession_state_space = list(
+        self._positional_state_space = list(zip(state_indices[1], state_indices[0]))
+        self._key_possession_state_space = list(
             itertools.product([0, 1], repeat=len(self._key_positions))
         )
         self._state_space = [
             i[0] + i[1]
             for i in itertools.product(
-                positional_state_space, key_possession_state_space
+                self._positional_state_space, self._key_possession_state_space
             )
         ]
 
@@ -166,24 +174,34 @@ class MultiRoom(base_environment.BaseEnvironment):
     def episode_history(self) -> np.ndarray:
         return np.array(self._episode_history)
 
-    def plot_episode_history(self) -> np.ndarray:
+    def _env_skeleton(
+        self, show_rewards: bool = True, show_doors: bool = True, show_keys: bool = True
+    ) -> np.ndarray:
         # flip size so indexing is consistent with axis dimensions
-        heatmap = np.ones(self._map.shape + (3,))
+        skeleton = np.ones(self._map.shape + (3,))
 
         # make walls black
-        heatmap[self._map == 1] = np.zeros(3)
+        skeleton[self._map == 1] = np.zeros(3)
 
-        # show reward in red
-        for reward in self._rewards.keys():
-            heatmap[reward[::-1]] = [1.0, 0.0, 0.0]
+        if show_rewards:
+            # show reward in red
+            for reward in self._rewards.keys():
+                skeleton[reward[::-1]] = [1.0, 0.0, 0.0]
 
-        # show door in maroon
-        for door in self._door_positions:
-            heatmap[tuple(door[::-1])] = [0.5, 0.0, 0.0]
+        if show_doors:
+            # show door in maroon
+            for door in self._door_positions:
+                skeleton[tuple(door[::-1])] = [0.5, 0.0, 0.0]
 
-        # show key in yellow
-        for key_index, key_position in enumerate(self._key_positions):
-            heatmap[tuple(key_position[::-1])] = [1.0, 1.0, 0.0]
+        if show_keys:
+            # show key in yellow
+            for key_index, key_position in enumerate(self._key_positions):
+                skeleton[tuple(key_position[::-1])] = [1.0, 1.0, 0.0]
+
+        return skeleton
+
+    def plot_episode_history(self) -> np.ndarray:
+        heatmap = self._env_skeleton()
 
         state_rgb_images = []
 
@@ -198,6 +216,81 @@ class MultiRoom(base_environment.BaseEnvironment):
             state_rgb_images.append(state_image)
 
         return state_rgb_images
+
+    def _average_values_over_key_states(
+        self, values: Dict[Tuple[int], float]
+    ) -> Dict[Tuple[int], float]:
+        """For certain analyses (e.g. plotting value functions) we want to
+        average the values for each position over all non-positional state information--
+        in this case the key posessions.
+
+        Args:
+            values: full state-action value information
+
+        Returns:
+            averaged_values: (positional-state)-action values.
+        """
+        averaged_values = {}
+        for state in self._positional_state_space:
+            non_positional_set = [
+                values[state + key_state]
+                for key_state in self._key_possession_state_space
+            ]
+            non_positional_mean = np.mean(non_positional_set, axis=0)
+            averaged_values[state] = non_positional_mean
+        return averaged_values
+
+    def plot_value_function(
+        self, values: Dict, plot_max_values: bool, quiver: bool, save_path: str
+    ) -> None:
+        environment_map = self._env_skeleton(
+            show_rewards=False, show_doors=False, show_keys=False
+        )
+
+        averaged_values = self._average_values_over_key_states(values=values)
+        current_max_value = 1  # np.max(np.concatenate(list(averaged_values.values())))
+
+        for state, value in averaged_values.items():
+            max_action_value = max(value)
+
+            # remove alpha from rgba in colormap return
+            # normalise value for color mapping
+            environment_map[state[::-1]] = self._colormap(
+                max_action_value / current_max_value
+            )[:-1]
+
+        fig = plt.figure()
+        if plot_max_values:
+            plt.imshow(environment_map, origin="lower", cmap=self._colormap)
+            plt.colorbar()
+        if quiver:
+            action_arrow_mapping = {0: [-1, 0], 1: [0, 1], 2: [1, 0], 3: [0, -1]}
+            X, Y = np.meshgrid(
+                np.arange(environment_map.shape[1]),
+                np.arange(environment_map.shape[0]),
+                indexing="ij",
+            )
+            # x, y size of map (discard rgb from environment_map)
+            arrow_x_directions = np.zeros(environment_map.shape[:-1][::-1])
+            arrow_y_directions = np.zeros(environment_map.shape[:-1][::-1])
+
+            for state, action_values in averaged_values.items():
+                action_index = np.argmax(action_values)
+                action = action_arrow_mapping[action_index]
+                arrow_x_directions[state] = action[0]
+                arrow_y_directions[state] = action[1]
+            plt.quiver(
+                X,
+                Y,
+                arrow_x_directions,
+                arrow_y_directions,
+                color="red",
+            )
+
+        plt.xlim(-0.5, environment_map.shape[1] - 0.5)
+        plt.ylim(-0.5, environment_map.shape[0] - 0.5)
+        fig.savefig(save_path, dpi=100)
+        plt.close()
 
     def show_grid(self) -> np.ndarray:
         """Generate 2d array of current state of environment."""
