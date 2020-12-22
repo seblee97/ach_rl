@@ -36,6 +36,7 @@ class BaseRunner(abc.ABC):
         self._logger = self._setup_logger(config=config)
         self._plotter = self._setup_plotter(config=config)
 
+        self._checkpoint_path = config.checkpoint_path
         self._apply_curriculum = config.apply_curriculum
         self._print_frequency = config.print_frequency or np.inf
         self._checkpoint_frequency = config.checkpoint_frequency
@@ -344,8 +345,8 @@ class BaseRunner(abc.ABC):
         """Solidify any data and make plots."""
         self._plotter.load_data()
         self._plotter.plot_learning_curves()
-        if constants.Constants.VALUE_FUNCTION in self._plot_logging:
-            self._plotter.plot_value_function(
-                grid_size=self._grid_size,
-                state_action_values=self._learner.state_action_values,
-            )
+        # if constants.Constants.VALUE_FUNCTION in self._plot_logging:
+        #     self._plotter.plot_value_function(
+        #         grid_size=self._grid_size,
+        #         state_action_values=self._learner.state_action_values,
+        #     )
