@@ -18,16 +18,21 @@ from utils import plotting_functions
 class Plotter:
     """Class for plotting scalar data."""
 
-    def __init__(self, save_folder: str, logfile_path: str, plot_tags: List[str]):
+    def __init__(
+        self, save_folder: str, logfile_path: str, plot_tags: List[str], smoothing: int
+    ):
         self._save_folder = save_folder
         self._logfile_path = logfile_path
         self._plot_tags = plot_tags
+        self._smoothing = smoothing
 
         self._log_df: pd.DataFrame
+        self._scaling: int
 
     def load_data(self) -> None:
         """Read in data logged to path."""
         self._log_df = pd.read_csv(self._logfile_path)
+        self._scaling = len(self._log_df)
 
     @staticmethod
     def get_figure_skeleton(
@@ -85,14 +90,16 @@ class Plotter:
         col: int,
         data_tag: str,
     ):
-        data = self._log_df[data_tag]
+        data = self._log_df[data_tag].dropna()
 
         fig_sub = self.fig.add_subplot(self.spec[row, col])
 
         smoothed_data = plotting_functions.smooth_data(
-            data=data.to_numpy(), window_width=40
+            data=data.to_numpy(), window_width=min(len(data), self._smoothing)
         )
-        fig_sub.plot(range(len(smoothed_data)), smoothed_data)
+
+        x_data = (self._scaling / len(smoothed_data)) * np.arange(len(smoothed_data))
+        fig_sub.plot(x_data, smoothed_data)
 
         # labelling
         fig_sub.set_xlabel(constants.Constants.EPISODE)
