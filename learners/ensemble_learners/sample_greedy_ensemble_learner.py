@@ -1,6 +1,8 @@
+from typing import List
 from typing import Tuple
 
 import numpy as np
+import copy
 
 from learners.ensemble_learners import ensemble_learner
 
@@ -9,15 +11,22 @@ class SampleGreedyEnsemble(ensemble_learner.EnsembleLearner):
     @property
     def state_action_values(self):
         all_state_action_values = [
-            learner._state_action_values for learner in self._learner_ensemble
+            learner.state_action_values for learner in self._learner_ensemble
         ]
-        mean_values = np.mean(all_state_action_values, axis=0)
 
-        # mappings for all learners are identical
-        return {
-            self._learner_ensemble[0].id_state_mapping[i]: value
-            for i, value in enumerate(mean_values)
-        }
+        weighted_values = {}
+        for state in all_state_action_values[0].keys():
+            state_values = [values[state] for values in all_state_action_values]
+            max_indices = np.argmax(state_values, axis=0)
+            max_index_counts = np.bincount(
+                max_indices, minlength=len(max_indices)
+            ) / len(max_indices)
+
+            weighted_values[state] = np.average(
+                state_values, axis=0, weights=max_index_counts
+            )
+
+        return weighted_values
 
     def select_target_action(self, state: Tuple[int, int]) -> int:
         all_state_action_values = [
@@ -32,4 +41,35 @@ class SampleGreedyEnsemble(ensemble_learner.EnsembleLearner):
         action = np.random.choice(
             range(len(action_probabilities)), p=action_probabilities
         )
+        return action
+
+    def non_repeat_greedy_action(
+        self, state: Tuple[int, int], excluded_actions: List[int]
+    ) -> int:
+        """Find action with highest value in given state not included set of excluded actions.
+
+        Args:
+            state: state for which to find action with (modified) highest value.
+            excluded_actions: set of actions to exclude from consideration.
+
+        Returns:
+            action: action with (modified) highest value in state given.
+        """
+        all_state_action_values = [
+            learner.state_action_values for learner in self._learner_ensemble
+        ]
+
+        max_action_values = []
+        for state_action_values in all_state_action_values:
+            values_copy = copy.deepcopy(state_action_values[state])
+            for action in excluded_actions:
+                values_copy[action] = -np.inf
+            max_action_values.append(np.argmax(values_copy))
+
+        action_probabilities = np.bincount(max_action_values) / len(max_action_values)
+
+        action = np.random.choice(
+            range(len(action_probabilities)), p=action_probabilities
+        )
+
         return action
