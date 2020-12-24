@@ -240,57 +240,129 @@ class MultiRoom(base_environment.BaseEnvironment):
             averaged_values[state] = non_positional_mean
         return averaged_values
 
+    def _get_value_combinations(
+        self, values: Dict[Tuple[int], float]
+    ) -> Dict[Tuple[int], Dict[Tuple[int], float]]:
+        value_combinations = {}
+        for key_state in self._key_possession_state_space:
+            value_combination = {}
+            for state in self._positional_state_space:
+                value_combination[state] = values[state + key_state]
+            value_combinations[key_state] = value_combination
+
+        return value_combinations
+
     def plot_value_function(
         self, values: Dict, plot_max_values: bool, quiver: bool, save_path: str
     ) -> None:
+        """
+        Plot value function over environment.
+
+        The multiroom states include non-positional state information (key posession),
+        so plots can be constructed with this information averaged over. Alternatively
+        multiple plots for each combination can be made. For cases with up to 2 keys,
+        we construct the combinations. Beyond this only the average is plotted.
+
+        Args:
+            values: state-action values.
+            plot_max_values: whether or not to plot colormap of values.
+            quiver: whether or not to plot arrows with implied best action.
+            save_path: path to save graphs.
+        """
+        if len(self._key_positions) <= 2:
+            value_combinations = self._get_value_combinations(values=values)
+            fig, axes = plt.subplots(nrows=1 + 2 * len(self._key_positions), ncols=1)
+        else:
+            value_combinations = []
+            fig, axes = plt.subplot(nrows=1, ncols=1)
+
+        fig.subplots_adjust(hspace=0.5)
+
+        averaged_values = self._average_values_over_key_states(values=values)
+
+        self._value_plot(
+            fig=fig,
+            ax=axes[0],
+            values=averaged_values,
+            plot_max_values=plot_max_values,
+            quiver=quiver,
+            subtitle="Positional Average",
+        )
+
+        for i, (key_state, value_combination) in enumerate(value_combinations.items()):
+            self._value_plot(
+                fig=fig,
+                ax=axes[i + 1],
+                values=value_combination,
+                plot_max_values=plot_max_values,
+                quiver=quiver,
+                subtitle=f"Key State: {key_state}",
+            )
+
+        fig.savefig(save_path, dpi=100)
+        plt.close()
+
+    def _value_plot(
+        self, fig, ax, values: Dict, plot_max_values: bool, quiver: bool, subtitle: str
+    ):
+        if plot_max_values:
+            image = self._get_value_heatmap(values=values)
+            im = ax.imshow(image, origin="lower", cmap=self._colormap)
+            fig.colorbar(im, ax=ax)
+        if quiver:
+            map_shape = self._env_skeleton().shape
+            X, Y, arrow_x, arrow_y = self._get_quiver_data(
+                map_shape=map_shape, values=values
+            )
+            ax.quiver(
+                X,
+                Y,
+                arrow_x,
+                arrow_y,
+                color="red",
+            )
+        ax.title.set_text(subtitle)
+        return ax
+
+    def _get_value_heatmap(self, values: Dict) -> np.ndarray:
         environment_map = self._env_skeleton(
             show_rewards=False, show_doors=False, show_keys=False
         )
 
-        averaged_values = self._average_values_over_key_states(values=values)
-        current_max_value = 1  # np.max(np.concatenate(list(averaged_values.values())))
+        all_values = np.concatenate(list(values.values()))
+        current_max_value = np.max(all_values)
+        current_min_value = np.min(all_values)
 
-        for state, value in averaged_values.items():
+        for state, value in values.items():
             max_action_value = max(value)
 
             # remove alpha from rgba in colormap return
             # normalise value for color mapping
             environment_map[state[::-1]] = self._colormap(
-                max_action_value / current_max_value
+                max_action_value
+                - current_min_value / (current_max_value - current_min_value)
             )[:-1]
 
-        fig = plt.figure()
-        if plot_max_values:
-            plt.imshow(environment_map, origin="lower", cmap=self._colormap)
-            plt.colorbar()
-        if quiver:
-            action_arrow_mapping = {0: [-1, 0], 1: [0, 1], 2: [1, 0], 3: [0, -1]}
-            X, Y = np.meshgrid(
-                np.arange(environment_map.shape[1]),
-                np.arange(environment_map.shape[0]),
-                indexing="ij",
-            )
-            # x, y size of map (discard rgb from environment_map)
-            arrow_x_directions = np.zeros(environment_map.shape[:-1][::-1])
-            arrow_y_directions = np.zeros(environment_map.shape[:-1][::-1])
+        return environment_map
 
-            for state, action_values in averaged_values.items():
-                action_index = np.argmax(action_values)
-                action = action_arrow_mapping[action_index]
-                arrow_x_directions[state] = action[0]
-                arrow_y_directions[state] = action[1]
-            plt.quiver(
-                X,
-                Y,
-                arrow_x_directions,
-                arrow_y_directions,
-                color="red",
-            )
+    def _get_quiver_data(self, map_shape: Tuple[int], values: Dict) -> Tuple:
+        action_arrow_mapping = {0: [-1, 0], 1: [0, 1], 2: [1, 0], 3: [0, -1]}
+        X, Y = np.meshgrid(
+            np.arange(map_shape[1]),
+            np.arange(map_shape[0]),
+            indexing="ij",
+        )
+        # x, y size of map (discard rgb from environment_map)
+        arrow_x_directions = np.zeros(map_shape[:-1][::-1])
+        arrow_y_directions = np.zeros(map_shape[:-1][::-1])
 
-        plt.xlim(-0.5, environment_map.shape[1] - 0.5)
-        plt.ylim(-0.5, environment_map.shape[0] - 0.5)
-        fig.savefig(save_path, dpi=100)
-        plt.close()
+        for state, action_values in values.items():
+            action_index = np.argmax(action_values)
+            action = action_arrow_mapping[action_index]
+            arrow_x_directions[state] = action[0]
+            arrow_y_directions[state] = action[1]
+
+        return X, Y, arrow_x_directions, arrow_y_directions
 
     def show_grid(self) -> np.ndarray:
         """Generate 2d array of current state of environment."""
