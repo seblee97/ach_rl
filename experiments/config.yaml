@@ -3,29 +3,29 @@ seed: 0
 use_gpu: True
 gpu_id: 0
 
-environment: minigrid
-apply_curriculum: True
+environment: multiroom
+apply_curriculum: False
     
 minigrid:
-    size: [40, 50]
+    size: [20, 20]
     living_reward: 0
     no_op_penalty: 0
     starting_position: [0, 0] # random if not given
     num_rewards: 1
-    reward_positions: [[38, 45]] # random if not given
+    reward_positions: [[10, 10]] # random if not given
     reward_magnitudes: [1.]
     repeat_rewards: False
     episode_timeout: 200 # infinity if not given
     plot_origin: lower
 
 minigrid_curriculum:
-    transition_episodes: [100]
+    transition_episodes: []
     environment_changes: 
         - []
 
 multiroom:
-    ascii_map_path: simple_map.txt
-    episode_timeout: 200 # infinity if not given
+    ascii_map_path: simple_map_1.txt
+    episode_timeout: 400 # infinity if not given
     plot_origin: lower
 
 atari:
@@ -46,14 +46,14 @@ atari:
 
 
 learner: 
-    type: q_learning
-    learning_rate: 0.0005
+    type: ensemble_q_learning
+    learning_rate: 0.01
     gradient_momentum: 0.95
     squared_gradient_momentum: 0.95
     min_squared_gradient: 0.1
     discount_factor: 0.99 
     epsilon:
-        schedule: linear_decay
+        schedule: constant
 
         constant:
             value: 0.1
@@ -64,11 +64,14 @@ learner:
             anneal_duration: 1000000
 
     initialisation: random
-    visitation_penalty_type: hard_coded # hard_coded, function
+    visitation_penalty_type: adaptive_uncertainty # hard_coded, adaptive_uncertainty
 
     hard_coded: 
         vp_schedule:
-            - [0, 0] # from step 0, 0 penalty
+            - [0, 0.5] # from step 0, 0 penalty
+
+    adaptive_uncertainty:
+        multiplicative_factor: 0.5
 
 sarsa_lambda:
     trace_lambda: 0.05
@@ -78,6 +81,12 @@ sarsa_lambda:
 q_learning:
     behaviour: epsilon_greedy
     target: greedy
+
+ensemble_q_learning:
+    num_learners: 4
+    behaviour: epsilon_greedy
+    target: greedy_sample # greedy_sample, greedy_mean, greedy_vote
+    parallelise_ensemble: False
 
 dqn:
     batch_size: 32
@@ -119,24 +128,30 @@ dqn:
             nonlinearity: identity
 
 training:
-    num_episodes: 100000
+    num_episodes: 5000
     test_frequency: 1
     testing: 
         - greedy
-    full_test_log_frequency: 2500
-    train_log_frequency: 2500
+        - no_rep
+    full_test_log_frequency: 500
+    train_log_frequency: 50
 
 logging:
-    print_frequency: 500
-    checkpoint_frequency: 100
+    print_frequency: 5
+    checkpoint_frequency: 500
     columns:
         - train_episode_reward
         - train_episode_length
         - test_episode_reward
         - test_episode_length
         - average_action_value
-        # - no_repeat_test_episode_reward
-        # - no_repeat_test_episode_length
+        - [train_episode_reward_ensemble_runner, 10]
+        - [train_episode_length_ensemble_runner, 10]
+        - ensemble_episode_reward_std
+        - ensemble_episode_length_std
+        - mean_visitation_penalty
+        - no_repeat_test_episode_reward
+        - no_repeat_test_episode_length
         # - cycle_count
     arrays:
     plots:
@@ -145,11 +160,11 @@ logging:
         - plot_episode_rewards
         - no_repeat_test_episode_length
         - no_repeat_test_episode_reward
-        - visitation_count_heatmap
+        # - visitation_count_heatmap
         - individual_test_run
         - individual_train_run
-        # - individual_no_rep_test_run
-        # - individual_no_rep_train_run
+        - individual_no_rep_test_run
+        - individual_no_rep_train_run
         - average_action_value
         - cycle_count
 
@@ -159,4 +174,8 @@ post_processing:
         - train_episode_length
         - test_episode_reward
         - test_episode_length
+        - no_repeat_test_episode_reward
+        - no_repeat_test_episode_length
+        - mean_visitation_penalty
+    smoothing: 40
         
