@@ -1,6 +1,7 @@
-import os
 import copy
 import multiprocessing
+import os
+import time
 from multiprocessing import managers
 from typing import Optional
 from typing import Tuple
@@ -17,11 +18,9 @@ from learners.ensemble_learners import mean_greedy_ensemble_learner
 from learners.ensemble_learners import sample_greedy_ensemble_learner
 from learners.tabular_learners import q_learner
 from runners import base_runner
-from visitation_penalties import base_visistation_penalty
-
+from utils import cycle_counter
 from utils import decorators
-
-import time
+from visitation_penalties import base_visistation_penalty
 
 
 class EnsembleQLearningRunner(base_runner.BaseRunner):
@@ -69,9 +68,10 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
         )
 
     def _pre_episode_log(self, episode: int):
-        if constants.Constants.VALUE_FUNCTION in self._plot_logging:
+        if self._visualisation_iteration(constants.Constants.VALUE_FUNCTION, episode):
             max_save_path = os.path.join(
-                self._checkpoint_path, f"{episode}_{constants.Constants.MAX_VALUES_PDF}"
+                self._checkpoint_path,
+                f"{episode}_{constants.Constants.MAX_VALUES_PDF}",
             )
             quiver_save_path = os.path.join(
                 self._checkpoint_path,
@@ -100,13 +100,15 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
                 quiver=True,
             )
         if episode != 0:
-            if constants.Constants.INDIVIDUAL_TRAIN_RUN in self._plot_logging:
+            if self._visualisation_iteration(
+                constants.Constants.INDIVIDUAL_TRAIN_RUN, episode
+            ):
                 self._logger.plot_array_data(
                     name=f"{constants.Constants.INDIVIDUAL_TRAIN_RUN}_{episode}",
                     data=self._environment.plot_episode_history(),
                 )
 
-        if constants.Constants.CYCLE_COUNT in self._scalar_logging:
+        if self._scalar_log_iteration(constants.Constants.CYCLE_COUNT, episode):
             num_cycles = cycle_counter.evaluate_loops_on_value_function(
                 size=self._grid_size,
                 state_action_values=self._learner.state_action_values,
@@ -152,32 +154,35 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
                 self._pool.close()
                 self._pool.join()
 
-        if episode % self._train_log_frequency == 0:
-            # log data from individual runners in ensemble
-            for i in range(len(self._learner.ensemble)):
-                self._logger.write_scalar_df(
-                    tag=f"{constants.Constants.TRAIN_EPISODE_REWARD}_{constants.Constants.ENSEMBLE_RUNNER}_{i}",
-                    step=episode,
-                    scalar=ensemble_rewards[i],
-                )
-                self._logger.write_scalar_df(
-                    tag=f"{constants.Constants.TRAIN_EPISODE_LENGTH}_{constants.Constants.ENSEMBLE_RUNNER}_{i}",
-                    step=episode,
-                    scalar=ensemble_step_counts[i],
-                )
-            self._logger.write_scalar_df(
-                tag=constants.Constants.ENSEMBLE_EPISODE_REWARD_STD,
-                step=episode,
-                scalar=std_reward,
+        # log data from individual runners in ensemble
+        for i in range(len(self._learner.ensemble)):
+            self._write_scalar(
+                tag=f"{constants.Constants.TRAIN_EPISODE_REWARD}_{constants.Constants.ENSEMBLE_RUNNER}",
+                episode=episode,
+                scalar=ensemble_rewards[i],
+                df_tag=f"{constants.Constants.TRAIN_EPISODE_REWARD}_{constants.Constants.ENSEMBLE_RUNNER}_{i}",
             )
-            self._logger.write_scalar_df(
-                tag=constants.Constants.ENSEMBLE_EPISODE_LENGTH_STD,
-                step=episode,
-                scalar=std_step_count,
+            self._write_scalar(
+                tag=f"{constants.Constants.TRAIN_EPISODE_LENGTH}_{constants.Constants.ENSEMBLE_RUNNER}",
+                episode=episode,
+                scalar=ensemble_step_counts[i],
+                df_tag=f"{constants.Constants.TRAIN_EPISODE_LENGTH}_{constants.Constants.ENSEMBLE_RUNNER}_{i}",
             )
-        self._logger.write_scalar_df(
+
+        # averages over ensemble
+        self._write_scalar(
+            tag=constants.Constants.ENSEMBLE_EPISODE_REWARD_STD,
+            episode=episode,
+            scalar=std_reward,
+        )
+        self._write_scalar(
+            tag=constants.Constants.ENSEMBLE_EPISODE_LENGTH_STD,
+            episode=episode,
+            scalar=std_step_count,
+        )
+        self._write_scalar(
             tag=constants.Constants.MEAN_VISITATION_PENALTY,
-            step=episode,
+            episode=episode,
             scalar=np.mean(ensemble_mean_penalties),
         )
 
