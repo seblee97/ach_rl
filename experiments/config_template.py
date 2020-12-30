@@ -508,21 +508,21 @@ class ConfigTemplate:
                 types=[int],
                 requirements=[lambda x: x > 0],
             ),
-            config_field.Field(
-                name=constants.Constants.COLUMNS,
-                types=[list],
-                requirements=[
-                    lambda x: all(
-                        (isinstance(y, str))
-                        or (
-                            isinstance(y, list)
-                            and isinstance(y[0], str)
-                            and isinstance(y[1], int)
-                        )
-                        for y in x
-                    )
-                ],
-            ),
+            # config_field.Field(
+            #     name=constants.Constants.COLUMNS,
+            #     types=[list],
+            #     requirements=[
+            #         lambda x: all(
+            #             (isinstance(y, str))
+            #             or (
+            #                 isinstance(y, list)
+            #                 and isinstance(y[0], str)
+            #                 and isinstance(y[1], int)
+            #             )
+            #             for y in x
+            #         )
+            #     ],
+            # ),
             config_field.Field(
                 name=constants.Constants.ARRAYS,
                 types=[list, type(None)],
@@ -531,10 +531,45 @@ class ConfigTemplate:
                 ],
             ),
             config_field.Field(
-                name=constants.Constants.PLOTS,
-                types=[list, type(None)],
+                name=constants.Constants.SCALARS,
+                types=[list],
                 requirements=[
-                    lambda x: x is None or all(isinstance(y, str) for y in x)
+                    lambda x: all(
+                        isinstance(y, list) and isinstance(y[1], int) for y in x
+                    ),
+                    lambda x: all(
+                        (
+                            isinstance(z, str)
+                            or (
+                                isinstance(z, list)
+                                and isinstance(z[0], str)
+                                and isinstance(z[1], int)
+                            )
+                            for z in y[0]
+                        )
+                        for y in x
+                    ),
+                ],
+            ),
+            config_field.Field(
+                name=constants.Constants.VISUALISATIONS,
+                types=[list],
+                requirements=[
+                    lambda x: all(
+                        isinstance(y, list) and isinstance(y[1], int) for y in x
+                    ),
+                    lambda x: all(
+                        (
+                            isinstance(z, str)
+                            or (
+                                isinstance(z, list)
+                                and isinstance(z[0], str)
+                                and isinstance(z[1], int)
+                            )
+                            for z in y[0]
+                        )
+                        for y in x
+                    ),
                 ],
             ),
         ],
@@ -543,11 +578,11 @@ class ConfigTemplate:
 
     _post_processing_template = config_template.Template(
         fields=[
-            config_field.Field(
-                name=constants.Constants.PLOT_TAGS,
-                types=[list],
-                requirements=[lambda x: all(isinstance(y, str) for y in x)],
-            ),
+            # config_field.Field(
+            #     name=constants.Constants.PLOT_TAGS,
+            #     types=[list],
+            #     requirements=[lambda x: all(isinstance(y, str) for y in x)],
+            # ),
             config_field.Field(
                 name=constants.Constants.SMOOTHING,
                 types=[int],
