@@ -11,6 +11,8 @@ from runners import base_runner
 
 
 class DQNRunner(base_runner.BaseRunner):
+    """Runner for DQN model."""
+
     def __init__(self, config: ach_config.AchConfig):
         super().__init__(config=config)
 
@@ -40,12 +42,17 @@ class DQNRunner(base_runner.BaseRunner):
         return learner
 
     def _setup_replay_buffer(self, config: ach_config.AchConfig):
+        """Instantiate replay buffer object to store experiences."""
         state_dim = tuple(config.encoded_state_dimensions)
         replay_size = config.replay_buffer_size
         return replay_buffer.ReplayBuffer(replay_size=replay_size, state_dim=state_dim)
 
     def _fill_replay_buffer(self, num_trajectories: int):
+        """Build up store of experiences before training begins.
 
+        Args:
+            num_trajectories: number of experience tuples to collect before training.
+        """
         print("Filling replay buffer...")
 
         state = self._environment.reset_environment(train=True)
@@ -127,7 +134,12 @@ class DQNRunner(base_runner.BaseRunner):
 
         return episode_reward, self._environment.episode_step_count
 
-    def _compute_average_action_value(self):
+    def _compute_average_action_value(self) -> float:
+        """Compute average value of action implied by learned state-action values.
+
+        Returns:
+            average_value: average_value.
+        """
         self._learner.eval()
 
         with torch.no_grad():

@@ -1,15 +1,20 @@
 import numpy as np
-import random
-import constants
-from collections import deque
 from typing import Tuple
 from collections import namedtuple
 from utils import custom_objects
 
 
 class ReplayBuffer:
-    def __init__(self, replay_size: int, state_dim: Tuple):
+    """Object for experience replay,
+    used to store experience tuples for off-policy learning."""
 
+    def __init__(self, replay_size: int, state_dim: Tuple) -> None:
+        """Class constructor.
+
+        Args:
+            replay_size: size of buffer.
+            state_dim: dimension of state.
+        """
         self._states_buffer = np.zeros((replay_size,) + state_dim, dtype=np.int32)
         self._actions_buffer = np.zeros(replay_size, dtype=np.int32)
         self._rewards_buffer = np.zeros(replay_size)
@@ -30,8 +35,16 @@ class ReplayBuffer:
         reward: float,
         next_state: np.ndarray,
         active: bool,
-    ):
+    ) -> None:
+        """Add tuple to buffer.
 
+        Args:
+            state: pre-state.
+            action: action.
+            reward: reward.
+            next_state: post-state.
+            active: whether episode is over.
+        """
         insertion_index = self._insertion_index % self._replay_size
 
         self._states_buffer[insertion_index] = state
@@ -43,7 +56,14 @@ class ReplayBuffer:
         self._insertion_index += 1
 
     def sample(self, batch_size: int) -> namedtuple:
+        """Sample experience from buffer.
 
+        Args:
+            batch_size: size of sample.
+
+        Return:
+            sample: experience sample.
+        """
         current_num_entries = min(self._insertion_index, self._replay_size)
         sample_indices = np.random.choice(current_num_entries, size=batch_size)
 

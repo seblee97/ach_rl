@@ -45,8 +45,6 @@ class BaseRunner(abc.ABC):
         self._print_frequency = config.print_frequency or np.inf
         self._checkpoint_frequency = config.checkpoint_frequency
         self._test_frequency = config.test_frequency
-        # self._train_log_frequency = config.train_log_frequency
-        # self._full_test_log_frequency = config.full_test_log_frequency
         self._test_types = config.testing
 
         self._num_episodes = config.num_episodes
@@ -56,6 +54,16 @@ class BaseRunner(abc.ABC):
     def _setup_logging_frequencies(
         self, logging_list: List[Tuple[Union[List, str], int]]
     ) -> Dict[str, int]:
+        """Parse logging list from config into mapping from
+        tag to log to frequency with which it should be logged.
+
+        Args:
+            logging_list: un-parsed list of lists consisting of attributes
+                to log and how frequently they should be logged.
+
+        Returns:
+            logging_frequencies: mapping from tags to log frequencies.
+        """
         logging_frequencies = {}
         if logging_list is not None:
             for i in logging_list:
@@ -70,7 +78,9 @@ class BaseRunner(abc.ABC):
     def _setup_environment(
         self, config: ach_config.AchConfig
     ) -> Union[base_curriculum.BaseCurriculum, base_environment.BaseEnvironment]:
-        """Initialise environment specified in configuration."""
+        """Initialise environment specified in configuration.
+        Applies curriculum wrapper where specified.
+        """
         environment_args = self._get_environment_args(config=config)
 
         if config.apply_curriculum:
@@ -87,6 +97,7 @@ class BaseRunner(abc.ABC):
         return environment
 
     def _get_environment_args(self, config: ach_config.AchConfig) -> Dict[str, Any]:
+        """Get arguments needed to pass to environment."""
         if config.environment == constants.Constants.MINIGRID:
             if config.reward_positions is not None:
                 reward_positions = [
@@ -123,6 +134,7 @@ class BaseRunner(abc.ABC):
         return env_args
 
     def _get_curriculum_args(self, config: ach_config.AchConfig) -> Dict[str, Any]:
+        """Get arguments needed to pass to environment curriculum wrapper."""
         if config.environment == constants.Constants.MINIGRID:
             curriculum_args = {
                 constants.Constants.TRANSITION_EPISODES: config.transition_episodes,
@@ -170,6 +182,7 @@ class BaseRunner(abc.ABC):
         return visitation_penalty
 
     def _setup_epsilon_function(self, config: ach_config.AchConfig):
+        """Setup epsilon function."""
         if config.schedule == constants.Constants.CONSTANT:
             epsilon_function = epsilon_schedules.ConstantEpsilon(value=config.value)
         elif config.schedule == constants.Constants.LINEAR_DECAY:
@@ -187,15 +200,18 @@ class BaseRunner(abc.ABC):
 
     @abc.abstractmethod
     def _pre_episode_log(self, episode: int):
+        """Define logging functionality for prior to each training episode."""
         pass
 
     def _scalar_log_iteration(self, tag: str, episode: int) -> bool:
+        """Whether or not scalar tag should be logged at this episode."""
         if tag in self._scalar_logging:
             if episode % self._scalar_logging[tag] == 0:
                 return True
         return False
 
     def _visualisation_iteration(self, tag: str, episode: int) -> bool:
+        """Whether or not visualistation should be produced at this episode."""
         if tag in self._visualisations:
             if episode % self._visualisations[tag] == 0:
                 return True
@@ -208,6 +224,7 @@ class BaseRunner(abc.ABC):
         scalar: Union[float, int],
         df_tag: Optional[str] = None,
     ):
+        """If specified, log scalar."""
         if tag in self._scalar_logging:
             if episode % self._scalar_logging[tag] == 0:
                 df_tag = df_tag or tag
@@ -215,8 +232,8 @@ class BaseRunner(abc.ABC):
 
     def train(self) -> None:
         """Perform training (and validation) on given number of episodes."""
-        train_reward: float
-        train_step_count: float
+        train_reward: float = 0
+        train_step_count: float = np.inf
 
         print("Starting Training...")
 
@@ -317,12 +334,6 @@ class BaseRunner(abc.ABC):
             scalar=episode_reward,
         )
 
-        # if episode % self._full_test_log_frequency == 0 and episode != 0:
-        #     if constants.Constants.INDIVIDUAL_TEST_RUN in self._array_logging:
-        #         self._logger.write_array_data(
-        #             name=f"{constants.Constants.INDIVIDUAL_TEST_RUN}_{episode}",
-        #             data=self._environment.plot_episode_history(),
-        #         )
         if episode != 0:
             if self._visualisation_iteration(
                 constants.Constants.INDIVIDUAL_TEST_RUN, episode
@@ -369,12 +380,6 @@ class BaseRunner(abc.ABC):
             scalar=episode_reward,
         )
 
-        # if episode % self._full_test_log_frequency == 0:
-        # if constants.Constants.INDIVIDUAL_NO_REP_TEST_RUN in self._array_logging:
-        #     self._logger.write_array_data(
-        #         name=f"{constants.Constants.INDIVIDUAL_NO_REP_TEST_RUN}_{episode}",
-        #         data=self._environment.plot_episode_history(),
-        #     )
         if episode != 0:
             if self._visualisation_iteration(
                 constants.Constants.INDIVIDUAL_NO_REP_TEST_RUN, episode
@@ -387,9 +392,5 @@ class BaseRunner(abc.ABC):
     def post_process(self) -> None:
         """Solidify any data and make plots."""
         self._plotter.load_data()
+
         self._plotter.plot_learning_curves()
-        # if constants.Constants.VALUE_FUNCTION in self._visualisations:
-        #     self._plotter.plot_value_function(
-        #         grid_size=self._grid_size,
-        #         state_action_values=self._learner.state_action_values,
-        #     )

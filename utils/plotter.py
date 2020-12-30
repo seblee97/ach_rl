@@ -1,17 +1,14 @@
-from typing import Dict
+import os
 from typing import List
-from typing import Optional
 from typing import Tuple
 from typing import Union
 
-import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import os
 
 import constants
-
 from utils import plotting_functions
 
 
@@ -128,42 +125,3 @@ class Plotter:
             fig_sub.plot(x, y, label=label)
 
         fig_sub.legend()
-
-    # def plot_value_function(
-    #     self,
-    #     state_action_values: Dict[Tuple, np.ndarray],
-    #     extra_tag: Optional[str] = "",
-    #     walls: Optional[Tuple] = None,
-    # ) -> None:
-    #     max_save_path = os.path.join(
-    #         self._save_folder, f"{extra_tag}{constants.Constants.MAX_VALUES_PDF}"
-    #     )
-    #     quiver_save_path = os.path.join(
-    #         self._save_folder, f"{extra_tag}{constants.Constants.QUIVER_VALUES_PDF}"
-    #     )
-    #     quiver_max_save_path = os.path.join(
-    #         self._save_folder,
-    #         f"{extra_tag}{constants.Constants.QUIVER_MAX_VALUES_PDF}",
-    #     )
-
-    #     plotting_functions.plot_value_function(
-    #         walls=walls,
-    #         state_action_values=state_action_values,
-    #         save_path=max_save_path,
-    #         plot_max_values=True,
-    #         quiver=False,
-    #     )
-    #     plotting_functions.plot_value_function(
-    #         walls=walls,
-    #         state_action_values=state_action_values,
-    #         save_path=quiver_save_path,
-    #         plot_max_values=False,
-    #         quiver=True,
-    #     )
-    #     plotting_functions.plot_value_function(
-    #         walls=walls,
-    #         state_action_values=state_action_values,
-    #         save_path=quiver_max_save_path,
-    #         plot_max_values=True,
-    #         quiver=True,
-    #     )

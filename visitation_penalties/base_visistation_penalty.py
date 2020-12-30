@@ -3,6 +3,8 @@ from experiments import ach_config
 
 
 class BaseVisitationPenalty(abc.ABC):
+    """Base class for visitation penalties."""
+
     def __init__(self, config: ach_config.AchConfig):
         pass
 

@@ -3,7 +3,6 @@ import random
 from typing import List
 from typing import Optional
 from typing import Tuple
-from typing import Union
 
 import numpy as np
 
@@ -11,7 +10,7 @@ from environments import base_environment
 
 
 class MiniGrid(base_environment.BaseEnvironment):
-    """Grid world environment. Single reward"""
+    """Grid world environment. Single room."""
 
     ACTION_SPACE = [0, 1, 2, 3]
 
@@ -29,7 +28,18 @@ class MiniGrid(base_environment.BaseEnvironment):
         reward_xy: Optional[List[Tuple[int, int]]] = None,
         repeat_rewards: Optional[bool] = False,
         episode_timeout: Optional[int] = None,
-    ):
+    ) -> None:
+        """Class constructor.
+
+        Args:
+            size: x, y dimensions of grid.
+            num_rewards: number of rewards to find in map.
+            reward_magnitudes: amount of scalar reward for each reward.
+            starting_xy: start position of agent, random if not given.
+            reward_xy: list of reward positions, random if not given.
+            repeat_rewards: whether or not rewards can be repeatedly collected.
+            episode_timeout: number of steps before episode automatically terminates.
+        """
         self._size = size
         self._num_rewards = num_rewards
         self._starting_xy = starting_xy
@@ -93,7 +103,7 @@ class MiniGrid(base_environment.BaseEnvironment):
         return heatmap
 
     def show_grid(self) -> np.ndarray:
-        """Generate 2d array of current state of environment."""
+        """Generate 2D array of current state of environment."""
         # flip size so indexing is consistent with axis dimensions
         grid_state = np.zeros(self._size[::-1])
         for reward in self._rewards.keys():

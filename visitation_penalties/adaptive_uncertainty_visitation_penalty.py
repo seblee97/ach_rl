@@ -1,7 +1,6 @@
 from typing import Dict
 from typing import List
 from typing import Tuple
-from typing import Union
 
 import numpy as np
 
@@ -10,6 +9,8 @@ from visitation_penalties import base_visistation_penalty
 
 
 class AdaptiveUncertaintyPenalty(base_visistation_penalty.BaseVisitationPenalty):
+    """Visitation penalty tuned to uncertainty."""
+
     def __init__(self, config: ach_config.AchConfig):
         self._state_action_values: List[Dict[Tuple[int], float]]
 

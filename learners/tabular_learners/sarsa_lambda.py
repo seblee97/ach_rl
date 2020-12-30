@@ -1,7 +1,7 @@
-from typing import List, Optional, Tuple
+from typing import List
+from typing import Tuple
 
 import constants
-
 from learners.tabular_learners import tabular_learner
 from utils import epsilon_schedules
 
@@ -21,6 +21,19 @@ class TabularSARSALambda(tabular_learner.TabularLearner):
         trace_lambda: float,
         epsilon: epsilon_schedules.EpsilonSchedule,
     ):
+        """Class constructor.
+
+        Args:
+            action_space: list of actions available.
+            state_space: list of states.
+            learning_rate: learning_rage.
+            gamma: discount factor.
+            initialisation_strategy: name of network initialisation strategy.
+            behaviour: name of behaviour type e.g. epsilon_greedy.
+            target: name of target type e.g. greedy.
+            trace_lambda: trace parameter, how far to extend trace.
+            epsilon: exploration parameter.
+        """
         super().__init__(
             action_space=action_space,
             state_space=state_space,
@@ -46,14 +59,7 @@ class TabularSARSALambda(tabular_learner.TabularLearner):
         active: bool,
         visitation_penalty: float,
     ) -> None:
-        """Update state-action values.
-
-        Make q-learning update:
-        Q(s_t, a_t) <- Q(s_t, a_t) + alpha * [
-                            r_{t+1}
-                            + gamma * max_a(Q(s_{t+1}, a))
-                            - Q(s_t, at_t)
-                            ]
+        """Update state-action values via sarsa-lambda.
 
         Args:
             state: state before update.
@@ -62,6 +68,7 @@ class TabularSARSALambda(tabular_learner.TabularLearner):
             next_state: next state.
             next_action: action taken by agent one step later.
             active: whether episode is still ongoing.
+            visitation_penalty: penalty to apply to state-action pair for visit.
         """
         state_id = self._state_id_mapping[state]
         next_state_id = self._state_id_mapping[next_state]

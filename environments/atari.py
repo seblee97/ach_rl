@@ -1,16 +1,10 @@
-import copy
-import random
 from collections import deque
-from typing import Any
 from typing import List
 from typing import Optional
 from typing import Tuple
-from typing import Union
 
-import cv2
 import gym
 import numpy as np
-import torch
 
 import constants
 from environments import base_environment
@@ -18,7 +12,22 @@ from utils import pre_processing_functions
 
 
 class PreProcessor:
-    def __init__(self, pre_processing: List[List]):
+    """Class to take pre-process states for atari envrionment.
+
+    Supports
+        - Down-sampling
+        - Gray-scaling
+        - Taking max over set of frames.
+    """
+
+    def __init__(self, pre_processing: List[List]) -> None:
+        """Class constructor.
+
+        Sets up functions to be called in pre-processing.
+
+        Args:
+            pre_processing: list of pre-processing steps to take.
+        """
 
         self._pre_process_functions = []
 
@@ -47,6 +56,14 @@ class PreProcessor:
             self._pre_process_functions.append(transformation)
 
     def __call__(self, unprocessed_state: np.ndarray) -> np.ndarray:
+        """Call to each successive pre-processing function.
+
+        Args:
+            unprocessed_state: state before pre-processing.
+
+        Returns:
+            x: pre-processed state.
+        """
         x = unprocessed_state
         for pre_process_function in self._pre_process_functions:
             x = pre_process_function(x)
@@ -81,11 +98,21 @@ class AtariEnv(base_environment.BaseEnvironment):
     def __init__(
         self,
         atari_env_name: str,
-        pre_processing,
+        pre_processing: List[List],
         frame_skip: int,
         frame_stack: int,
         episode_timeout: Optional[int] = None,
-    ):
+    ) -> None:
+        """Class constructor.
+
+        Args:
+            atari_env_name: gym atari environment name e.g. 'Pong-v0'.
+            pre_processing: list of pre-processing steps to apply to state.
+            frame_skip: number of frames to repeat each action.
+            frame_stack: number of frames (independent of skip) to stack
+                in state construction.
+            episode_timeout: number of steps before automatic termination of episode.
+        """
         # frame skip set to 1 here, dealt with later.
         self._env = gym.make(atari_env_name, frameskip=1)
         self._action_space = list(range(self._env.action_space.n))
@@ -146,21 +173,16 @@ class AtariEnv(base_environment.BaseEnvironment):
 
         return cum_reward, stacked_frame
 
-    def _compute_reward(self) -> float:
-        """Check for reward, i.e. whether agent position is equal to a reward position.
-        If reward is found, add to rewards received log.
-        """
-        if (
-            tuple(self._agent_position) in self._rewards
-            and tuple(self._agent_position) not in self._rewards_received
-        ):
-            reward = self._rewards.get(tuple(self._agent_position))
-            self._rewards_received.append(tuple(self._agent_position))
-        else:
-            reward = 0.0
-        return reward
-
     def _frame_skip_wrap(self, action: int) -> Tuple[List, List]:
+        """Method to collect skipped states.
+
+        Args:
+            action: index of action to take through frames.
+
+        Returns:
+            states: list of states for each frame.
+            rewards: list of rewards associated with each state.
+        """
         states = []
         rewards = []
         for _ in range(self._frame_skip):

@@ -8,7 +8,13 @@ import constants
 
 
 def animate(images: List[np.ndarray], file_name: str, plot_origin: str):
+    """Create animation from images.
 
+    Args:
+        images: list of numpy arrays to imshow in animation.
+        file_name: name of file under which to save animation.
+        plot_origin: orientation of numpy array image.
+    """
     # add extension to file_name
     file_name = f"{file_name}.{constants.Constants.ANIMATION_FILE_FORMAT}"
 

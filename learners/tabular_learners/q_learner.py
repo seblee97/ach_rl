@@ -1,5 +1,5 @@
-import random
-from typing import List, Optional, Tuple
+from typing import List
+from typing import Tuple
 
 from learners.tabular_learners import tabular_learner
 from utils import epsilon_schedules
@@ -19,6 +19,18 @@ class TabularQLearner(tabular_learner.TabularLearner):
         target: str,
         epsilon: epsilon_schedules.EpsilonSchedule,
     ):
+        """Class constructor.
+
+        Args:
+            action_space: list of actions available.
+            state_space: list of states.
+            learning_rate: learning_rage.
+            gamma: discount factor.
+            initialisation_strategy: name of network initialisation strategy.
+            behaviour: name of behaviour type e.g. epsilon_greedy.
+            target: name of target type e.g. greedy.
+            epsilon: exploration parameter.
+        """
         super().__init__(
             action_space=action_space,
             state_space=state_space,
@@ -55,6 +67,7 @@ class TabularQLearner(tabular_learner.TabularLearner):
             reward: scalar reward received from environment.
             new_state: next state.
             active: whether episode is still ongoing.
+            visitation_penalty: penalty to apply to state-action pair for visit.
         """
         state_id = self._state_id_mapping[state]
         initial_state_action_value = self._state_action_values[state_id][action]

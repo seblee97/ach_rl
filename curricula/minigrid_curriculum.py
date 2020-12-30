@@ -1,4 +1,3 @@
-from typing import Any
 from typing import List
 from typing import Optional
 from typing import Tuple
@@ -9,6 +8,8 @@ from environments import minigrid
 
 
 class MinigridCurriculum(minigrid.MiniGrid, base_curriculum.BaseCurriculum):
+    """Curriculum wrapper for the MiniGrid environment."""
+
     def __init__(
         self,
         transition_episodes: List[int],
@@ -20,7 +21,23 @@ class MinigridCurriculum(minigrid.MiniGrid, base_curriculum.BaseCurriculum):
         reward_xy: Optional[List[Tuple[int, int]]] = None,
         repeat_rewards: Optional[bool] = False,
         episode_timeout: Optional[int] = None,
-    ):
+    ) -> None:
+        """Class constructor.
+
+        Args:
+            transition_episodes: indices of episodes at which transitions occur.
+            environment_changes: list of changes to be made to the environment
+                at each switch.
+            size: size of environment.
+            num_rewards: number of distinct rewards in the environment.
+            reward_magnitudes: size of reward for each reward.
+            starting_xy: the coordinate position at which agent starts
+                each episode (random if not provided).
+            reward_xy: list of coordinates at which rewards can be found.
+            repeat_rewards: list of booleans indicating whether a reward
+                is only collectible once.
+            episode_timeout: number of episodes beyond which environment resets.
+        """
         minigrid.MiniGrid.__init__(
             self,
             size=size,

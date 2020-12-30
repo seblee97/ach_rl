@@ -16,9 +16,7 @@ from utils import epsilon_schedules
 
 
 class DQNLearner(base_learner.BaseLearner):
-    """
-    Simple DQN agent: Mnih, et al. 2015
-    """
+    """Simple DQN agent: Mnih, et al. 2015"""
 
     def __init__(
         self,
@@ -35,7 +33,23 @@ class DQNLearner(base_learner.BaseLearner):
         momentum: float = 0,
         eps: float = 1e-8,
     ):
+        """Class constructor.
 
+        Args:
+            action_space: possible action list.
+            state_dimensions: dimensions of state space.
+            layer_specifications: network architecture for q-networks.
+            optimiser_type: name of optimiser e.g. adam.
+            network_initialisation: name of network initialisation e.g. xavier_uniform.
+            learning_rate: learning rate.
+            gamma: discount factor.
+            epsilon: exploration percentage in epsilon-greedy.
+            target_network_update_period: number of steps between
+                re-callibrating q-network.
+            device: cpu or gpu.
+            momentum: momentum of optimiser (e.g. for adam).
+            eps: eps of optimiser (e.g. for adam).
+        """
         self._state_dimensions = state_dimensions
         self._action_space = action_space
         self._layer_specifications = layer_specifications
@@ -63,6 +77,7 @@ class DQNLearner(base_learner.BaseLearner):
         return self._q_network
 
     def _initialise_q_network(self):
+        """Setup a q-network."""
         return q_network.QNetwork(
             state_dim=self._state_dimensions,
             num_actions=len(self._action_space),
@@ -71,6 +86,9 @@ class DQNLearner(base_learner.BaseLearner):
         )
 
     def _setup_optimiser(self):
+        """Setup optimiser.
+
+        Supports adam and rms_prop."""
         if self._optimiser_type == constants.Constants.ADAM:
             optimiser = torch.optim.Adam(
                 self._q_network.parameters(), lr=self._learning_rate
@@ -80,24 +98,27 @@ class DQNLearner(base_learner.BaseLearner):
                 self._q_network.parameters(),
                 lr=self._learning_rate,
                 momentum=self._momentum,
-                eps=self._min_squared_gradient,
+                eps=self._eps,
             )
         return optimiser
 
     def train(self) -> None:
+        """Set to train."""
         self._q_network.train()
         self._target_q_network.train()
 
     def eval(self) -> None:
+        """Set to evaluation."""
         self._q_network.eval()
         self._target_q_network.eval()
 
     def _update_target_network(self):
+        """Re-set q-network to target network."""
         q_network_state_dict = copy.deepcopy(self._q_network.state_dict())
         self._target_q_network.load_state_dict(q_network_state_dict)
 
     def select_behaviour_action(self, state: np.ndarray):
-
+        """Action to select for behaviour i.e. for training."""
         # cast state to tensor
         state = torch.from_numpy(state).to(torch.float).to(self._device)
 
@@ -109,7 +130,7 @@ class DQNLearner(base_learner.BaseLearner):
         return action
 
     def select_target_action(self, state: np.ndarray):
-
+        """Action to select for target, i.e. final policy."""
         # cast state to tensor
         state = torch.from_numpy(state).to(torch.float).to(self._device)
 
@@ -125,8 +146,8 @@ class DQNLearner(base_learner.BaseLearner):
         next_state: torch.Tensor,
         active: torch.Tensor,
         visitation_penalty: float,
-    ):
-
+    ) -> None:
+        """Training step."""
         estimate = torch.max(self._q_network(next_state), axis=1).values
 
         target = reward + active * self._gamma * torch.max(

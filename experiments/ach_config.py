@@ -27,16 +27,17 @@ class AchConfig(base_configuration.BaseConfiguration):
         Raises:
             AssertionError: if any rules are broken by config.
         """
-        if self.environment == constants.Constants.MINIGRID:
-            assert (
-                self.reward_positions is None
-                or len(self.reward_positions) == self.num_rewards
-            ), (
+        environment = getattr(self, constants.Constants.ENVIRONMENT)
+        if environment == constants.Constants.MINIGRID:
+            reward_positions = getattr(self, constants.Constants.REWARD_POSITIONS)
+            num_rewards = getattr(self, constants.Constants.NUM_REWARDS)
+            reward_magnitudes = getattr(self, constants.Constants.REWARD_MAGNITUDES)
+            assert reward_positions is None or len(reward_positions) == num_rewards, (
                 "Number of reward positions must match number of rewards,"
                 "or reward positions must be set to None for random placement."
             )
             assert (
-                len(self.reward_magnitudes) == self.num_rewards
+                len(reward_magnitudes) == num_rewards
             ), "Number of reward magnitudes must match number of rewards,"
 
     def _maybe_reconfigure(self, property_name: str) -> None:

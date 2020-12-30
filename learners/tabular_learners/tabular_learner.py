@@ -28,6 +28,18 @@ class TabularLearner(base_learner.BaseLearner):
         behaviour: str,
         target: str,
     ):
+        """Class constructor.
+
+        Args:
+            action_space: list of actions available.
+            state_space: list of states.
+            learning_rate: learning_rage.
+            gamma: discount factor.
+            initialisation_strategy: name of network initialisation strategy.
+            behaviour: name of behaviour type e.g. epsilon_greedy.
+            target: name of target type e.g. greedy.
+            epsilon: exploration parameter.
+        """
         self._action_space = action_space
         self._state_space = state_space
 

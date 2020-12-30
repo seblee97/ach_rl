@@ -1,9 +1,6 @@
 import copy
 import multiprocessing
 import os
-import time
-from multiprocessing import managers
-from typing import Optional
 from typing import Tuple
 from typing import Union
 
@@ -19,11 +16,11 @@ from learners.ensemble_learners import sample_greedy_ensemble_learner
 from learners.tabular_learners import q_learner
 from runners import base_runner
 from utils import cycle_counter
-from utils import decorators
-from visitation_penalties import base_visistation_penalty
 
 
 class EnsembleQLearningRunner(base_runner.BaseRunner):
+    """Runner for Q-learning ensemble."""
+
     def __init__(self, config: ach_config.AchConfig):
         self._num_learners = config.num_learners
         super().__init__(config=config)
@@ -56,6 +53,7 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
         return learner
 
     def _get_individual_q_learner(self, config: ach_config.AchConfig):
+        """Setup a single q-learner."""
         return q_learner.TabularQLearner(
             action_space=self._environment.action_space,
             state_space=self._environment.state_space,
@@ -68,6 +66,7 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
         )
 
     def _pre_episode_log(self, episode: int):
+        """Logging pre-episode. Includes value-function, individual run."""
         if self._visualisation_iteration(constants.Constants.VALUE_FUNCTION, episode):
             max_save_path = os.path.join(
                 self._checkpoint_path,

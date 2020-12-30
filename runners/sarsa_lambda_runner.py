@@ -7,6 +7,8 @@ from typing import Tuple
 
 
 class SARSALambdaRunner(base_runner.BaseRunner):
+    """Runner for SARSA Lambda."""
+
     def __init__(self, config: ach_config.AchConfig):
         super().__init__(config=config)
 

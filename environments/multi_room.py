@@ -1,26 +1,20 @@
-import collections
 import copy
 import itertools
-import random
 from typing import Dict
 from typing import List
 from typing import Optional
 from typing import Tuple
-from typing import Union
-
-import matplotlib as mpl
-from matplotlib import cm
-from matplotlib import pyplot as plt
-from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 import numpy as np
+from matplotlib import cm
+from matplotlib import pyplot as plt
 
 import constants
 from environments import base_environment
 
 
 class MultiRoom(base_environment.BaseEnvironment):
-    """Grid world environment with multiple rooms. Multiple rewards."""
+    """Grid world environment with multiple rooms."""
 
     ACTION_SPACE = [0, 1, 2, 3]
 
@@ -40,7 +34,15 @@ class MultiRoom(base_environment.BaseEnvironment):
         self,
         ascii_map_path: str,
         episode_timeout: Optional[int] = None,
-    ):
+    ) -> None:
+        """Class constructor.
+
+        Args:
+            ascii_map_path: path to txt or other ascii file
+                with map specifications.
+            episode_timeout: number of steps before episode automatically terminates.
+        """
+        # used e.g. for plotting value function.
         self._color_spectrum = "plasma"
         self._colormap = cm.get_cmap(self._color_spectrum)
 
@@ -67,12 +69,15 @@ class MultiRoom(base_environment.BaseEnvironment):
 
         self._walls = list(zip(wall_indices[1], wall_indices[0]))
 
+        # TODO: make more flexible
         self._rewards = {
             tuple(reward_position): 1.0 for reward_position in reward_positions
         }
         self._total_rewards = sum(self._rewards.values())
 
         self._episode_timeout = episode_timeout or np.inf
+
+        # states are zero, -1 removes walls from counts.
         self._visitation_counts = -1 * copy.deepcopy(self._map)
 
         self._episode_history: List[List[int]]
@@ -84,6 +89,19 @@ class MultiRoom(base_environment.BaseEnvironment):
     def _parse_map(
         self, map_file_path: str
     ) -> Tuple[np.ndarray, List, List, List, List]:
+        """Method to parse ascii map.
+
+        Args:
+            map_file_path: path to file containing map.
+
+        Returns:
+            multi_room_grid: numpy array of map state.
+            initial_start_position: x,y coordinates for
+                agent at start of each episode.
+            key_positions: list of x, y coordinates of keys.
+            door_positions: list of x, y coordinates of doors.
+            reward_positions: list of x, y coordinates of rewards.
+        """
 
         start_positions = []
         key_positions = []
@@ -177,6 +195,18 @@ class MultiRoom(base_environment.BaseEnvironment):
     def _env_skeleton(
         self, show_rewards: bool = True, show_doors: bool = True, show_keys: bool = True
     ) -> np.ndarray:
+        """Get a 'skeleton' of map e.g. for visualisation purposes.
+
+        Does not include agent position.
+
+        Args:
+            show_rewards: whether or not to mark out rewards.
+            show_doors: whether or not to mark out doors.
+            show_keys: whether or not to mark out keys.
+
+        Returns:
+            skeleton: np array of map.
+        """
         # flip size so indexing is consistent with axis dimensions
         skeleton = np.ones(self._map.shape + (3,))
 
@@ -200,7 +230,8 @@ class MultiRoom(base_environment.BaseEnvironment):
 
         return skeleton
 
-    def plot_episode_history(self) -> np.ndarray:
+    def plot_episode_history(self) -> List[np.ndarray]:
+        """Get list of state images for episode history."""
         heatmap = self._env_skeleton()
 
         state_rgb_images = []
@@ -243,6 +274,16 @@ class MultiRoom(base_environment.BaseEnvironment):
     def _get_value_combinations(
         self, values: Dict[Tuple[int], float]
     ) -> Dict[Tuple[int], Dict[Tuple[int], float]]:
+        """Get each possible combination of positional state-values
+        over non-positional states.
+
+        Args:
+            values: values over overall state-space
+
+        Returns:
+            value_combinations: values over positional state space
+                for each combination of non-positional state.
+        """
         value_combinations = {}
         for key_state in self._key_possession_state_space:
             value_combination = {}
@@ -325,6 +366,7 @@ class MultiRoom(base_environment.BaseEnvironment):
         return ax
 
     def _get_value_heatmap(self, values: Dict) -> np.ndarray:
+        """Heatmap of values over states."""
         environment_map = self._env_skeleton(
             show_rewards=False, show_doors=False, show_keys=False
         )
@@ -346,6 +388,18 @@ class MultiRoom(base_environment.BaseEnvironment):
         return environment_map
 
     def _get_quiver_data(self, map_shape: Tuple[int], values: Dict) -> Tuple:
+        """Get data for arrow quiver plot.
+
+        Args:
+            map_shape: map skeleton.
+            values: state-action values.
+
+        Returns:
+            X: x part of meshgrid
+            Y: y part of meshgrid
+            arrow_x_directions: x component of arrow over grid
+            arrow_y_directions: y component of arrow over grid
+        """
         action_arrow_mapping = {0: [-1, 0], 1: [0, 1], 2: [1, 0], 3: [0, -1]}
         X, Y = np.meshgrid(
             np.arange(map_shape[1]),

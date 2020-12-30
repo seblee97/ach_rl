@@ -7,6 +7,7 @@ class BaseEnvironment(abc.ABC):
 
     Abstract methods:
         step: takes action produces reward and next state.
+        reset_environment: reset environment and return initial state.
     """
 
     def __init__(self):

@@ -12,6 +12,8 @@ import constants
 
 
 class QNetwork(nn.Module):
+    """Q-value network."""
+
     def __init__(
         self,
         state_dim: Tuple[int, int, int],
@@ -19,6 +21,14 @@ class QNetwork(nn.Module):
         layer_specifications: List[Dict[str, Any]],
         initialisation: str,
     ):
+        """Class constructor.
+
+        Args:
+            state_dim: dimensions of the state.
+            num_actions: number of possible actions.
+            layer_specifications: hidden layer specifications.
+            initialisation: type of initialisation e.g. xavier_normal.
+        """
         self._state_dim = state_dim
         self._num_actions = num_actions
         self._layer_specifications = layer_specifications
@@ -29,7 +39,7 @@ class QNetwork(nn.Module):
         self._construct_layers()
 
     def _construct_layers(self):
-
+        """Method to setup network architecture."""
         self._layers = nn.ModuleList([])
 
         for layer_specification in self._layer_specifications:
@@ -79,7 +89,7 @@ class QNetwork(nn.Module):
             self._layers.append(nonlinearity)
 
     def forward(self, x: torch.Tensor):
-
+        """Forward pass through network."""
         for layer in self._layers:
             x = layer(x)
 

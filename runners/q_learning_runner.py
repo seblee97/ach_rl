@@ -9,6 +9,8 @@ import constants
 
 
 class QLearningRunner(base_runner.BaseRunner):
+    """Runner for vanilla Q-learning."""
+
     def __init__(self, config: ach_config.AchConfig):
         super().__init__(config=config)
 

@@ -1,6 +1,5 @@
 import argparse
 import copy
-import itertools
 import os
 from multiprocessing import Process
 from typing import Any
@@ -48,7 +47,18 @@ def parallel_run(
     experiment_path: str,
     results_folder: str,
     timestamp: str,
-):
+) -> None:
+    """Run experiments in parallel.
+
+    Args:
+        base_configuration: config object.
+        seeds: list of seeds to run experiment over.
+        config_changes: changes to make to base configuration
+            for each separate experiment.
+        experiment_path: path to experiment.
+        results_folder: path to results.
+        timestamp: experiment timestamp.
+    """
     procs = []
 
     for run_name, changes in config_changes.items():
@@ -80,6 +90,17 @@ def serial_run(
     results_folder: str,
     timestamp: str,
 ):
+    """Run experiments in serial.
+
+    Args:
+        base_configuration: config object.
+        seeds: list of seeds to run experiment over.
+        config_changes: changes to make to base configuration
+            for each separate experiment.
+        experiment_path: path to experiment.
+        results_folder: path to results.
+        timestamp: experiment timestamp.
+    """
     for run_name, changes in config_changes.items():
         print(f"{run_name}")
         for seed in seeds:
@@ -104,6 +125,17 @@ def single_run(
     timestamp: str,
     config_change: List[Tuple[str, Any]],
 ):
+    """Run single experiment.
+
+    Args:
+        base_configuration: config object.
+        seeds: list of seeds to run experiment over.
+        run_name: name of single experiment.
+        experiment_path: path to experiment.
+        results_folder: path to results.
+        timestamp: experiment timestamp.
+        config_change: change to make to base configuration.
+    """
     config = copy.deepcopy(base_configuration)
 
     config = set_device(config)
@@ -146,7 +178,7 @@ def single_run(
 
 
 def summary_plot(config: ach_config.AchConfig, experiment_path: str):
-
+    """Plot summary of experiment."""
     if config.num_rewards == 1:
         threshold = sum(config.reward_positions[0])
     else:

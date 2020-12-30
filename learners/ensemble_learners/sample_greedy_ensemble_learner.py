@@ -8,6 +8,11 @@ from learners.ensemble_learners import ensemble_learner
 
 
 class SampleGreedyEnsemble(ensemble_learner.EnsembleLearner):
+    """Ensemble learner where action in a given state
+    is selected based on sample of maximum action-value
+    for that state over each learner in ensemble.
+    """
+
     @property
     def state_action_values(self):
         all_state_action_values = [
@@ -29,6 +34,11 @@ class SampleGreedyEnsemble(ensemble_learner.EnsembleLearner):
         return weighted_values
 
     def select_target_action(self, state: Tuple[int, int]) -> int:
+        """Select action for policy based on sample of maximums in ensemble.
+
+        Args:
+            state: state for which to select optimal action.
+        """
         all_state_action_values = [
             learner.state_action_values for learner in self._learner_ensemble
         ]
@@ -46,7 +56,8 @@ class SampleGreedyEnsemble(ensemble_learner.EnsembleLearner):
     def non_repeat_greedy_action(
         self, state: Tuple[int, int], excluded_actions: List[int]
     ) -> int:
-        """Find action with highest value in given state not included set of excluded actions.
+        """Find action with highest value in given state not included
+        in set of excluded actions.
 
         Args:
             state: state for which to find action with (modified) highest value.

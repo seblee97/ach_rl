@@ -2,6 +2,12 @@ import time
 
 
 def timer(function):
+    """Time a function
+
+    Args:
+        function: function to time completion of.
+    """
+
     def f(*args, **kwargs):
         before = time.time()
         function_return = function(*args, **kwargs)

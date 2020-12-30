@@ -5,6 +5,8 @@ from visitation_penalties import base_visistation_penalty
 
 
 class HardCodedPenalty(base_visistation_penalty.BaseVisitationPenalty):
+    """Hard-coded penalties."""
+
     def __init__(self, config: ach_config.AchConfig):
         hard_coded_penalties = config.vp_schedule
 
