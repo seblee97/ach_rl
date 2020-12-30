@@ -128,7 +128,7 @@ dqn:
             nonlinearity: identity
 
 training:
-    num_episodes: 5000
+    num_episodes: 100
     test_frequency: 1
     testing: 
         - greedy
@@ -139,43 +139,56 @@ training:
 logging:
     print_frequency: 5
     checkpoint_frequency: 500
-    columns:
-        - train_episode_reward
-        - train_episode_length
-        - test_episode_reward
-        - test_episode_length
-        - average_action_value
-        - [train_episode_reward_ensemble_runner, 10]
-        - [train_episode_length_ensemble_runner, 10]
-        - ensemble_episode_reward_std
-        - ensemble_episode_length_std
-        - mean_visitation_penalty
-        - no_repeat_test_episode_reward
-        - no_repeat_test_episode_length
+    # columns:
+    #     - train_episode_reward
+    #     - train_episode_length
+    #     - test_episode_reward
+    #     - test_episode_length
+    #     - average_action_value
+    #     - [train_episode_reward_ensemble_runner, 10]
+    #     - [train_episode_length_ensemble_runner, 10]
+    #     - ensemble_episode_reward_std
+    #     - ensemble_episode_length_std
+    #     - mean_visitation_penalty
+    #     - no_repeat_test_episode_reward
+    #     - no_repeat_test_episode_length
         # - cycle_count
     arrays:
-    plots:
-        - value_function
-        - plot_episode_lengths
-        - plot_episode_rewards
-        - no_repeat_test_episode_length
-        - no_repeat_test_episode_reward
+    scalars:
+        - [train_episode_reward, 1]
+        - [train_episode_length, 1]
+        - [test_episode_reward, 1]
+        - [test_episode_length, 1]
+        - [[train_episode_reward_ensemble_runner, 4], 1]
+        - [[train_episode_length_ensemble_runner, 4], 1]
+        - [ensemble_episode_reward_std, 1]
+        - [ensemble_episode_length_std, 1]
+        - [mean_visitation_penalty, 1]
+        - [no_repeat_test_episode_reward, 1]
+        - [no_repeat_test_episode_length, 1]
+        # - [cycle_count, 1]
+    visualisations:
+        - [value_function, 50]
+        # - plot_episode_lengths
+        # - plot_episode_rewards
+        # - no_repeat_test_episode_length
+        # - no_repeat_test_episode_reward
         # - visitation_count_heatmap
-        - individual_test_run
-        - individual_train_run
-        - individual_no_rep_test_run
-        - individual_no_rep_train_run
-        - average_action_value
-        - cycle_count
+        - [individual_test_run, 500]
+        - [individual_train_run, 500]
+        - [individual_no_rep_test_run, 500]
+        - [individual_no_rep_train_run, 500]
+        # - average_action_value
+        # - cycle_count
 
 post_processing:
-    plot_tags:
-        - train_episode_reward
-        - train_episode_length
-        - test_episode_reward
-        - test_episode_length
-        - no_repeat_test_episode_reward
-        - no_repeat_test_episode_length
-        - mean_visitation_penalty
+    # plot_tags:
+    #     - train_episode_reward
+    #     - train_episode_length
+    #     - test_episode_reward
+    #     - test_episode_length
+    #     - no_repeat_test_episode_reward
+    #     - no_repeat_test_episode_length
+    #     - mean_visitation_penalty
     smoothing: 40
         
