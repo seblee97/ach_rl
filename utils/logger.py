@@ -27,7 +27,8 @@ class Logger:
 
     def _get_df_columns(self, config: ach_config.AchConfig) -> List[str]:
         columns = []
-        for column_title in config.columns:
+        for column in config.scalars:
+            column_title = column[0]
             if isinstance(column_title, str):
                 columns.append(column_title)
             elif isinstance(column_title, list):
