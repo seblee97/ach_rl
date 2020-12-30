@@ -60,8 +60,8 @@ class Plotter:
 
     def plot_learning_curves(self) -> None:
 
-        graph_layout = (3, 3)
         num_graphs = len(self._plot_tags)
+        graph_layout = constants.Constants.GRAPH_LAYOUTS[num_graphs]
         num_rows = graph_layout[0]
         num_columns = graph_layout[1]
 
@@ -90,21 +90,11 @@ class Plotter:
         col: int,
         data_tag: str,
     ):
-        data = self._log_df[data_tag].dropna()
-
         fig_sub = self.fig.add_subplot(self.spec[row, col])
-
-        smoothed_data = plotting_functions.smooth_data(
-            data=data.to_numpy(), window_width=min(len(data), self._smoothing)
-        )
-
-        x_data = (self._scaling / len(smoothed_data)) * np.arange(len(smoothed_data))
-        fig_sub.plot(x_data, smoothed_data)
 
         # labelling
         fig_sub.set_xlabel(constants.Constants.EPISODE)
         fig_sub.set_ylabel(data_tag)
-        fig_sub.legend()
 
         # grids
         fig_sub.minorticks_on()
@@ -115,41 +105,65 @@ class Plotter:
             which="minor", linestyle=":", linewidth="0.5", color="black", alpha=0.4
         )
 
-    def plot_value_function(
-        self,
-        state_action_values: Dict[Tuple, np.ndarray],
-        extra_tag: Optional[str] = "",
-        walls: Optional[Tuple] = None,
-    ) -> None:
-        max_save_path = os.path.join(
-            self._save_folder, f"{extra_tag}{constants.Constants.MAX_VALUES_PDF}"
-        )
-        quiver_save_path = os.path.join(
-            self._save_folder, f"{extra_tag}{constants.Constants.QUIVER_VALUES_PDF}"
-        )
-        quiver_max_save_path = os.path.join(
-            self._save_folder,
-            f"{extra_tag}{constants.Constants.QUIVER_MAX_VALUES_PDF}",
-        )
+        # plot data
+        if data_tag in self._log_df.columns:
+            sub_fig_tags = [data_tag]
+            sub_fig_data = [self._log_df[data_tag].dropna()]
+        else:
+            sub_fig_tags = [tag for tag in self._log_df.columns if data_tag in tag]
+            sub_fig_data = [self._log_df[tag].dropna() for tag in sub_fig_tags]
 
-        plotting_functions.plot_value_function(
-            walls=walls,
-            state_action_values=state_action_values,
-            save_path=max_save_path,
-            plot_max_values=True,
-            quiver=False,
-        )
-        plotting_functions.plot_value_function(
-            walls=walls,
-            state_action_values=state_action_values,
-            save_path=quiver_save_path,
-            plot_max_values=False,
-            quiver=True,
-        )
-        plotting_functions.plot_value_function(
-            walls=walls,
-            state_action_values=state_action_values,
-            save_path=quiver_max_save_path,
-            plot_max_values=True,
-            quiver=True,
-        )
+        smoothed_data = [
+            plotting_functions.smooth_data(
+                data=data.to_numpy(), window_width=min(len(data), self._smoothing)
+            )
+            for data in sub_fig_data
+        ]
+
+        x_data = [
+            (self._scaling / len(data)) * np.arange(len(data)) for data in smoothed_data
+        ]
+
+        for x, y, label in zip(x_data, smoothed_data, sub_fig_tags):
+            fig_sub.plot(x, y, label=label)
+
+        fig_sub.legend()
+
+    # def plot_value_function(
+    #     self,
+    #     state_action_values: Dict[Tuple, np.ndarray],
+    #     extra_tag: Optional[str] = "",
+    #     walls: Optional[Tuple] = None,
+    # ) -> None:
+    #     max_save_path = os.path.join(
+    #         self._save_folder, f"{extra_tag}{constants.Constants.MAX_VALUES_PDF}"
+    #     )
+    #     quiver_save_path = os.path.join(
+    #         self._save_folder, f"{extra_tag}{constants.Constants.QUIVER_VALUES_PDF}"
+    #     )
+    #     quiver_max_save_path = os.path.join(
+    #         self._save_folder,
+    #         f"{extra_tag}{constants.Constants.QUIVER_MAX_VALUES_PDF}",
+    #     )
+
+    #     plotting_functions.plot_value_function(
+    #         walls=walls,
+    #         state_action_values=state_action_values,
+    #         save_path=max_save_path,
+    #         plot_max_values=True,
+    #         quiver=False,
+    #     )
+    #     plotting_functions.plot_value_function(
+    #         walls=walls,
+    #         state_action_values=state_action_values,
+    #         save_path=quiver_save_path,
+    #         plot_max_values=False,
+    #         quiver=True,
+    #     )
+    #     plotting_functions.plot_value_function(
+    #         walls=walls,
+    #         state_action_values=state_action_values,
+    #         save_path=quiver_max_save_path,
+    #         plot_max_values=True,
+    #         quiver=True,
+    #     )
