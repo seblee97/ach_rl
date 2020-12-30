@@ -2,6 +2,7 @@ import abc
 from typing import Any
 from typing import Dict
 from typing import List
+from typing import Optional
 from typing import Tuple
 from typing import Union
 
@@ -12,17 +13,16 @@ import constants
 from curricula import base_curriculum
 from curricula import minigrid_curriculum
 from environments import atari
-from environments import multi_room
 from environments import base_environment
 from environments import minigrid
+from environments import multi_room
 from experiments import ach_config
-from utils import cycle_counter
 from utils import epsilon_schedules
 from utils import logger
 from utils import plotter
+from visitation_penalties import adaptive_uncertainty_visitation_penalty
 from visitation_penalties import base_visistation_penalty
 from visitation_penalties import hard_coded_visitation_penalty
-from visitation_penalties import adaptive_uncertainty_visitation_penalty
 
 
 class BaseRunner(abc.ABC):
@@ -34,6 +34,10 @@ class BaseRunner(abc.ABC):
         self._epsilon_function = self._setup_epsilon_function(config=config)
         self._learner = self._setup_learner(config=config)
         self._logger = self._setup_logger(config=config)
+
+        self._array_logging = self._setup_logging_frequencies(config.arrays)
+        self._scalar_logging = self._setup_logging_frequencies(config.scalars)
+        self._visualisations = self._setup_logging_frequencies(config.visualisations)
         self._plotter = self._setup_plotter(config=config)
 
         self._checkpoint_path = config.checkpoint_path
@@ -41,15 +45,27 @@ class BaseRunner(abc.ABC):
         self._print_frequency = config.print_frequency or np.inf
         self._checkpoint_frequency = config.checkpoint_frequency
         self._test_frequency = config.test_frequency
-        self._train_log_frequency = config.train_log_frequency
-        self._full_test_log_frequency = config.full_test_log_frequency
+        # self._train_log_frequency = config.train_log_frequency
+        # self._full_test_log_frequency = config.full_test_log_frequency
         self._test_types = config.testing
-        self._scalar_logging = config.columns or []
-        self._array_logging = config.arrays or []
-        self._plot_logging = config.plots or []
+
         self._num_episodes = config.num_episodes
 
         config.save_configuration(folder_path=config.checkpoint_path)
+
+    def _setup_logging_frequencies(
+        self, logging_list: List[Tuple[Union[List, str], int]]
+    ) -> Dict[str, int]:
+        logging_frequencies = {}
+        if logging_list is not None:
+            for i in logging_list:
+                if isinstance(i[0], list):
+                    logging_frequencies[i[0][0]] = i[1]
+                elif isinstance(i[0], str):
+                    logging_frequencies[i[0]] = i[1]
+                else:
+                    raise ValueError("Log list incorrectly formatted.")
+        return logging_frequencies
 
     def _setup_environment(
         self, config: ach_config.AchConfig
@@ -129,7 +145,7 @@ class BaseRunner(abc.ABC):
         return plotter.Plotter(
             save_folder=config.checkpoint_path,
             logfile_path=config.logfile_path,
-            plot_tags=config.plot_tags,
+            plot_tags=list(self._scalar_logging.keys()),
             smoothing=config.smoothing,
         )
 
@@ -173,6 +189,30 @@ class BaseRunner(abc.ABC):
     def _pre_episode_log(self, episode: int):
         pass
 
+    def _scalar_log_iteration(self, tag: str, episode: int) -> bool:
+        if tag in self._scalar_logging:
+            if episode % self._scalar_logging[tag] == 0:
+                return True
+        return False
+
+    def _visualisation_iteration(self, tag: str, episode: int) -> bool:
+        if tag in self._visualisations:
+            if episode % self._visualisations[tag] == 0:
+                return True
+        return False
+
+    def _write_scalar(
+        self,
+        tag: str,
+        episode: int,
+        scalar: Union[float, int],
+        df_tag: Optional[str] = None,
+    ):
+        if tag in self._scalar_logging:
+            if episode % self._scalar_logging[tag] == 0:
+                df_tag = df_tag or tag
+                self._logger.write_scalar_df(tag=df_tag, step=episode, scalar=scalar)
+
     def train(self) -> None:
         """Perform training (and validation) on given number of episodes."""
         train_reward: float
@@ -191,11 +231,8 @@ class BaseRunner(abc.ABC):
             if i % self._checkpoint_frequency == 0:
                 self._logger.checkpoint_df()
 
-            if i % self._train_log_frequency == 0:
-                self._pre_episode_log(i)
-
-            if i % self._test_frequency == 0:
-                self._test_episode(episode=i)
+            self._pre_episode_log(i)
+            self._test_episode(episode=i)
 
             if self._apply_curriculum:
                 if i == self._environment.next_transition_episode:
@@ -203,18 +240,18 @@ class BaseRunner(abc.ABC):
 
             train_reward, train_step_count = self._train_episode(episode=i)
 
-            self._logger.write_scalar_df(
+            self._write_scalar(
                 tag=constants.Constants.TRAIN_EPISODE_LENGTH,
-                step=i,
+                episode=i,
                 scalar=train_step_count,
             )
-            self._logger.write_scalar_df(
+            self._write_scalar(
                 tag=constants.Constants.TRAIN_EPISODE_REWARD,
-                step=i,
+                episode=i,
                 scalar=train_reward,
             )
 
-        if constants.Constants.VISITATION_COUNT_HEATMAP in self._plot_logging:
+        if constants.Constants.VISITATION_COUNT_HEATMAP in self._visualisations:
             self._logger.plot_array_data(
                 name=constants.Constants.VISITATION_COUNT_HEATMAP,
                 data=self._environment.visitation_counts,
@@ -242,16 +279,16 @@ class BaseRunner(abc.ABC):
         Args:
             episode: current episode number.
         """
+        if episode % self._test_frequency == 0:
+            self._learner.eval()
 
-        self._learner.eval()
+            with torch.no_grad():
+                if constants.Constants.GREEDY in self._test_types:
+                    self._greedy_test_episode(episode=episode)
+                if constants.Constants.NO_REP in self._test_types:
+                    self._non_repeat_test_episode(episode=episode)
 
-        with torch.no_grad():
-            if constants.Constants.GREEDY in self._test_types:
-                self._greedy_test_episode(episode=episode)
-            if constants.Constants.NO_REP in self._test_types:
-                self._non_repeat_test_episode(episode=episode)
-
-        self._learner.train()
+            self._learner.train()
 
     def _greedy_test_episode(self, episode: int) -> None:
         """Perform 'test' rollout with target policy
@@ -280,13 +317,16 @@ class BaseRunner(abc.ABC):
             scalar=episode_reward,
         )
 
-        if episode % self._full_test_log_frequency == 0 and episode != 0:
-            if constants.Constants.INDIVIDUAL_TEST_RUN in self._array_logging:
-                self._logger.write_array_data(
-                    name=f"{constants.Constants.INDIVIDUAL_TEST_RUN}_{episode}",
-                    data=self._environment.plot_episode_history(),
-                )
-            if constants.Constants.INDIVIDUAL_TEST_RUN in self._plot_logging:
+        # if episode % self._full_test_log_frequency == 0 and episode != 0:
+        #     if constants.Constants.INDIVIDUAL_TEST_RUN in self._array_logging:
+        #         self._logger.write_array_data(
+        #             name=f"{constants.Constants.INDIVIDUAL_TEST_RUN}_{episode}",
+        #             data=self._environment.plot_episode_history(),
+        #         )
+        if episode != 0:
+            if self._visualisation_iteration(
+                constants.Constants.INDIVIDUAL_TEST_RUN, episode
+            ):
                 self._logger.plot_array_data(
                     name=f"{constants.Constants.INDIVIDUAL_TEST_RUN}_{episode}",
                     data=self._environment.plot_episode_history(),
@@ -329,13 +369,16 @@ class BaseRunner(abc.ABC):
             scalar=episode_reward,
         )
 
-        if episode % self._full_test_log_frequency == 0:
-            if constants.Constants.INDIVIDUAL_NO_REP_TEST_RUN in self._array_logging:
-                self._logger.write_array_data(
-                    name=f"{constants.Constants.INDIVIDUAL_NO_REP_TEST_RUN}_{episode}",
-                    data=self._environment.plot_episode_history(),
-                )
-            if constants.Constants.INDIVIDUAL_NO_REP_TEST_RUN in self._plot_logging:
+        # if episode % self._full_test_log_frequency == 0:
+        # if constants.Constants.INDIVIDUAL_NO_REP_TEST_RUN in self._array_logging:
+        #     self._logger.write_array_data(
+        #         name=f"{constants.Constants.INDIVIDUAL_NO_REP_TEST_RUN}_{episode}",
+        #         data=self._environment.plot_episode_history(),
+        #     )
+        if episode != 0:
+            if self._visualisation_iteration(
+                constants.Constants.INDIVIDUAL_NO_REP_TEST_RUN, episode
+            ):
                 self._logger.plot_array_data(
                     name=f"{constants.Constants.INDIVIDUAL_NO_REP_TEST_RUN}_{episode}",
                     data=self._environment.plot_episode_history(),
@@ -345,7 +388,7 @@ class BaseRunner(abc.ABC):
         """Solidify any data and make plots."""
         self._plotter.load_data()
         self._plotter.plot_learning_curves()
-        # if constants.Constants.VALUE_FUNCTION in self._plot_logging:
+        # if constants.Constants.VALUE_FUNCTION in self._visualisations:
         #     self._plotter.plot_value_function(
         #         grid_size=self._grid_size,
         #         state_action_values=self._learner.state_action_values,
