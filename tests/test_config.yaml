@@ -1,0 +1,186 @@
+experiment_name:
+seed: 0
+use_gpu: True
+gpu_id: 0
+
+environment: multiroom
+apply_curriculum: False
+    
+minigrid:
+    size: [20, 20]
+    living_reward: 0
+    no_op_penalty: 0
+    starting_position: [0, 0] # random if not given
+    num_rewards: 1
+    reward_positions: [[10, 10]] # random if not given
+    reward_magnitudes: [1.]
+    repeat_rewards: False
+    episode_timeout: 200 # infinity if not given
+    plot_origin: lower
+
+minigrid_curriculum:
+    transition_episodes: []
+    environment_changes: 
+        - []
+
+multiroom:
+    ascii_map_path: simple_map_1.txt
+    episode_timeout: 400 # infinity if not given
+    plot_origin: lower
+
+atari:
+    atari_env_name: "Pong-v0"
+    pre_processing:
+        - max_over:
+            num_frames: 2
+        - gray_scale:
+        - down_sample:
+            width: 84
+            height: 84
+
+    frame_stack: 4
+    frame_skip: 4
+    episode_timeout: 200 # infinity if not given
+    encoded_state_dimensions: [4, 84, 84]
+    plot_origin: upper
+
+
+learner: 
+    type: ensemble_q_learning
+    learning_rate: 0.01
+    gradient_momentum: 0.95
+    squared_gradient_momentum: 0.95
+    min_squared_gradient: 0.1
+    discount_factor: 0.99 
+    epsilon:
+        schedule: constant
+
+        constant:
+            value: 0.1
+        
+        linear_decay:
+            initial_value: 1
+            final_value: 0.1
+            anneal_duration: 1000000
+
+    initialisation: random
+    visitation_penalty_type: adaptive_uncertainty # hard_coded, adaptive_uncertainty
+
+    hard_coded: 
+        vp_schedule:
+            - [0, 0.5] # from step 0, 0 penalty
+
+    adaptive_uncertainty:
+        multiplicative_factor: 0.5
+
+sarsa_lambda:
+    trace_lambda: 0.05
+    behaviour: epsilon_greedy
+    target: greedy
+
+q_learning:
+    behaviour: epsilon_greedy
+    target: greedy
+
+ensemble_q_learning:
+    num_learners: 4
+    behaviour: epsilon_greedy
+    target: greedy_sample # greedy_sample, greedy_mean, greedy_vote
+    parallelise_ensemble: False
+
+dqn:
+    batch_size: 32
+    num_replay_fill_trajectories: 50
+    replay_buffer_size: 100000
+    target_network_update_period: 10000
+
+    optimiser: adam
+
+    network_initialisation: normal
+
+    layer_specifications:
+        - conv:
+            in_channels: 4
+            num_filters: 32 
+            kernel_size: 8
+            stride: 4
+            nonlinearity:  relu
+        - conv:
+            in_channels: 32
+            num_filters: 64 
+            kernel_size: 4
+            stride: 2
+            nonlinearity:  relu
+        - conv:
+            in_channels: 64
+            num_filters: 64 
+            kernel_size: 3
+            stride: 1
+            nonlinearity:  relu
+        - flatten:
+            nonlinearity: identity
+        - fc:
+            in_features: 3136
+            out_features: 512
+            nonlinearity: relu
+        - fc:
+            in_features: 512
+            nonlinearity: identity
+
+training:
+    num_episodes: 30
+    test_frequency: 1
+    testing: 
+        - greedy
+        - no_rep
+    full_test_log_frequency: 15
+    train_log_frequency: 15
+
+logging:
+    print_frequency: 5
+    checkpoint_frequency: 10
+    # columns:
+    #     - train_episode_reward
+    #     - train_episode_length
+    #     - test_episode_reward
+    #     - test_episode_length
+    #     - average_action_value
+    #     - [train_episode_reward_ensemble_runner, 10]
+    #     - [train_episode_length_ensemble_runner, 10]
+    #     - ensemble_episode_reward_std
+    #     - ensemble_episode_length_std
+    #     - mean_visitation_penalty
+    #     - no_repeat_test_episode_reward
+    #     - no_repeat_test_episode_length
+        # - cycle_count
+    arrays:
+    scalars:
+        - [train_episode_reward, 1]
+        - [train_episode_length, 1]
+        - [test_episode_reward, 1]
+        - [test_episode_length, 1]
+        - [[train_episode_reward_ensemble_runner, 4], 1]
+        - [[train_episode_length_ensemble_runner, 4], 1]
+        - [ensemble_episode_reward_std, 1]
+        - [ensemble_episode_length_std, 1]
+        - [mean_visitation_penalty, 1]
+        - [no_repeat_test_episode_reward, 1]
+        - [no_repeat_test_episode_length, 1]
+        # - [cycle_count, 1]
+    visualisations:
+        - [value_function, 50]
+        # - plot_episode_lengths
+        # - plot_episode_rewards
+        # - no_repeat_test_episode_length
+        # - no_repeat_test_episode_reward
+        # - visitation_count_heatmap
+        - [individual_test_run, 15]
+        - [individual_train_run, 15]
+        - [individual_no_rep_test_run, 15]
+        - [individual_no_rep_train_run, 15]
+        # - average_action_value
+        # - cycle_count
+
+post_processing:
+    smoothing: 40
+        
