@@ -6,10 +6,6 @@ import constants
 
 class AChConfigTemplate:
 
-    import pdb
-
-    pdb.set_trace()
-
     _minigrid_template = config_template.Template(
         fields=[
             config_field.Field(
