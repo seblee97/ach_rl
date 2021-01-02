@@ -29,20 +29,18 @@ class QLearningRunner(base_runner.BaseRunner):
         return learner
 
     def _pre_episode_log(self, episode: int):
-        if constants.Constants.VALUE_FUNCTION in self._plot_logging:
-            self._plotter.plot_value_function(
-                state_action_values=self._learner.state_action_values,
-                extra_tag=f"{episode}_",
-                walls=self._environment.walls,
-            )
+        if self._visualisation_iteration(constants.Constants.VALUE_FUNCTION, episode):
+            pass
         if episode != 0:
-            if constants.Constants.INDIVIDUAL_TRAIN_RUN in self._plot_logging:
+            if self._visualisation_iteration(
+                constants.Constants.INDIVIDUAL_TRAIN_RUN, episode
+            ):
                 self._logger.plot_array_data(
                     name=f"{constants.Constants.INDIVIDUAL_TRAIN_RUN}_{episode}",
                     data=self._environment.plot_episode_history(),
                 )
 
-        if constants.Constants.CYCLE_COUNT in self._scalar_logging:
+        if self._scalar_log_iteration(constants.Constants.CYCLE_COUNT, episode):
             num_cycles = cycle_counter.evaluate_loops_on_value_function(
                 size=self._grid_size,
                 state_action_values=self._learner.state_action_values,
