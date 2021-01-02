@@ -30,9 +30,9 @@ class SampleGreedyEnsemble(ensemble_learner.EnsembleLearner):
                 max_indices, minlength=len(possible_actions)
             ) / len(max_indices)
 
-            weighted_values[state] = np.average(
-                state_values, axis=1, weights=max_index_counts
-            )
+            weighted_state_values = max_index_counts * state_values
+
+            weighted_values[state] = np.mean(weighted_state_values, axis=0)
 
         return weighted_values
 
