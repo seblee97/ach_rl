@@ -9,7 +9,6 @@ from typing import Tuple
 
 import constants
 from experiments import ach_config
-from experiments import config_template
 from experiments.config_changes import ConfigChange
 from runners import dqn_runner
 from runners import q_learning_ensemble_runner
@@ -249,9 +248,7 @@ def summary_plot(config: ach_config.AchConfig, experiment_path: str):
 
 if __name__ == "__main__":
 
-    base_configuration = ach_config.AchConfig(
-        config=args.config, template=config_template.ConfigTemplate.base_template
-    )
+    base_configuration = ach_config.AchConfig(config=args.config)
 
     timestamp = experiment_utils.get_experiment_timestamp()
     results_folder = os.path.join(MAIN_FILE_PATH, constants.Constants.RESULTS)
