@@ -4,7 +4,11 @@ from config_manager import config_template
 import constants
 
 
-class ConfigTemplate:
+class AChConfigTemplate:
+
+    import pdb
+
+    pdb.set_trace()
 
     _minigrid_template = config_template.Template(
         fields=[
@@ -508,21 +512,6 @@ class ConfigTemplate:
                 types=[int],
                 requirements=[lambda x: x > 0],
             ),
-            # config_field.Field(
-            #     name=constants.Constants.COLUMNS,
-            #     types=[list],
-            #     requirements=[
-            #         lambda x: all(
-            #             (isinstance(y, str))
-            #             or (
-            #                 isinstance(y, list)
-            #                 and isinstance(y[0], str)
-            #                 and isinstance(y[1], int)
-            #             )
-            #             for y in x
-            #         )
-            #     ],
-            # ),
             config_field.Field(
                 name=constants.Constants.ARRAYS,
                 types=[list, type(None)],
