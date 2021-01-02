@@ -19,6 +19,7 @@ class SampleGreedyEnsemble(ensemble_learner.EnsembleLearner):
             learner.state_action_values for learner in self._learner_ensemble
         ]
 
+        possible_actions = self._learner_ensemble[0].action_space
         states = all_state_action_values[0].keys()
 
         weighted_values = {}
@@ -26,7 +27,7 @@ class SampleGreedyEnsemble(ensemble_learner.EnsembleLearner):
             state_values = [values[state] for values in all_state_action_values]
             max_indices = np.argmax(state_values, axis=1)
             max_index_counts = np.bincount(
-                max_indices, minlength=len(max_indices)
+                max_indices, minlength=len(possible_actions)
             ) / len(max_indices)
 
             weighted_values[state] = np.average(
