@@ -63,6 +63,10 @@ class TabularLearner(base_learner.BaseLearner):
         pass
 
     @property
+    def action_space(self) -> List[int]:
+        return self._action_space
+
+    @property
     def state_id_mapping(self) -> Dict:
         return self._state_id_mapping
 
