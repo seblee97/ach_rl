@@ -1,6 +1,7 @@
 import argparse
 import copy
 import os
+import multiprocessing
 from multiprocessing import Process
 from typing import Any
 from typing import Dict
@@ -57,6 +58,10 @@ def parallel_run(
         timestamp: experiment timestamp.
     """
     procs = []
+
+    # macOS + python 3.8 change in multiprocessing defaults.
+    # workaround: https://github.com/pytest-dev/pytest-flask/issues/104
+    multiprocessing.set_start_method("fork")
 
     for run_name, changes in config_changes.items():
         for seed in seeds:
