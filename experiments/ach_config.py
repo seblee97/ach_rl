@@ -2,7 +2,7 @@ from typing import Dict
 from typing import Union
 
 from config_manager import base_configuration
-from config_manager import config_template
+from experiments.ach_config_template import AChConfigTemplate
 
 import constants
 
@@ -14,10 +14,11 @@ class AchConfig(base_configuration.BaseConfiguration):
     non-trivial associations that need checking in config.
     """
 
-    def __init__(
-        self, config: Union[str, Dict], template: config_template.Template
-    ) -> None:
-        super().__init__(configuration=config, template=template)
+    def __init__(self, config: Union[str, Dict]) -> None:
+        super().__init__(
+            configuration=config,
+            template=AChConfigTemplate.base_template,
+        )
 
         self._validate_config()
 
