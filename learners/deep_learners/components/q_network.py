@@ -75,18 +75,29 @@ class QNetwork(nn.Module):
             else:
                 raise ValueError(f"Non-linearity {layer_nonlinearity} not recognised")
 
-            # initialise weights
-            if self._initialisation == constants.Constants.ZEROS:
-                nn.init.zeros_(layer.weight)
-            elif self._initialisation == constants.Constants.NORMAL:
-                nn.init.normal(layer.weight)
-            elif self._initialisation == constants.Constants.XAVIER_NORMAL:
-                nn.init.xavier_normal_(layer.weight)
-            elif self._initialisation == constants.Constants.XAVIER_UNIFORM:
-                nn.init.xavier_uniform_(layer.weight)
+            # initialise weights (only those with parameters)
+            if [p for p in layer.parameters()]:
+                self._initialise_weights(layer.weight)
 
             self._layers.append(layer)
             self._layers.append(nonlinearity)
+
+    def _initialise_weights(self, layer_weights: nn.Parameter) -> None:
+        """Initialise weights of network layer according to specification.
+
+        Initialisation is in-place.
+
+        Args:
+            layer_weights: un-initialised weights.
+        """
+        if self._initialisation == constants.Constants.ZEROS:
+            nn.init.zeros_(layer_weights)
+        elif self._initialisation == constants.Constants.NORMAL:
+            nn.init.normal(layer_weights)
+        elif self._initialisation == constants.Constants.XAVIER_NORMAL:
+            nn.init.xavier_normal_(layer_weights)
+        elif self._initialisation == constants.Constants.XAVIER_UNIFORM:
+            nn.init.xavier_uniform_(layer_weights)
 
     def forward(self, x: torch.Tensor):
         """Forward pass through network."""
