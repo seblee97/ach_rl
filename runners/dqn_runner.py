@@ -72,7 +72,14 @@ class DQNRunner(base_runner.BaseRunner):
                 state = next_state
 
     def _pre_episode_log(self, episode: int):
-        pass
+        if episode != 0:
+            if self._visualisation_iteration(
+                constants.Constants.INDIVIDUAL_TRAIN_RUN, episode
+            ):
+                self._logger.plot_array_data(
+                    name=f"{constants.Constants.INDIVIDUAL_TRAIN_RUN}_{episode}",
+                    data=self._environment.plot_episode_history(),
+                )
 
     def _train_episode(self, episode: int) -> Tuple[float, int]:
         """Perform single training loop.
