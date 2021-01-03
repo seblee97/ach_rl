@@ -3,7 +3,7 @@ seed: 0
 use_gpu: True
 gpu_id: 0
 
-environment: multiroom
+environment: atari
 apply_curriculum: False
     
 minigrid:
@@ -46,7 +46,7 @@ atari:
 
 
 learner: 
-    type: ensemble_q_learning
+    type: dqn
     learning_rate: 0.01
     gradient_momentum: 0.95
     squared_gradient_momentum: 0.95
@@ -64,11 +64,11 @@ learner:
             anneal_duration: 1000000
 
     initialisation: random
-    visitation_penalty_type: adaptive_uncertainty # hard_coded, adaptive_uncertainty
+    visitation_penalty_type: hard_coded # hard_coded, adaptive_uncertainty
 
     hard_coded: 
         vp_schedule:
-            - [0, 0.5] # from step 0, 0 penalty
+            - [0, 0.0] # from step 0, 0 penalty
 
     adaptive_uncertainty:
         multiplicative_factor: 0.5
@@ -132,43 +132,29 @@ training:
     test_frequency: 1
     testing: 
         - greedy
-        - no_rep
+        # - no_rep
     full_test_log_frequency: 500
     train_log_frequency: 50
 
 logging:
     print_frequency: 5
     checkpoint_frequency: 500
-    # columns:
-    #     - train_episode_reward
-    #     - train_episode_length
-    #     - test_episode_reward
-    #     - test_episode_length
-    #     - average_action_value
-    #     - [train_episode_reward_ensemble_runner, 10]
-    #     - [train_episode_length_ensemble_runner, 10]
-    #     - ensemble_episode_reward_std
-    #     - ensemble_episode_length_std
-    #     - mean_visitation_penalty
-    #     - no_repeat_test_episode_reward
-    #     - no_repeat_test_episode_length
-        # - cycle_count
     arrays:
     scalars:
         - [train_episode_reward, 1]
         - [train_episode_length, 1]
         - [test_episode_reward, 1]
         - [test_episode_length, 1]
-        - [[train_episode_reward_ensemble_runner, 4], 1]
-        - [[train_episode_length_ensemble_runner, 4], 1]
-        - [ensemble_episode_reward_std, 1]
-        - [ensemble_episode_length_std, 1]
-        - [mean_visitation_penalty, 1]
-        - [no_repeat_test_episode_reward, 1]
-        - [no_repeat_test_episode_length, 1]
+        # - [[train_episode_reward_ensemble_runner, 4], 1]
+        # - [[train_episode_length_ensemble_runner, 4], 1]
+        # - [ensemble_episode_reward_std, 1]
+        # - [ensemble_episode_length_std, 1]
+        # - [mean_visitation_penalty, 1]
+        # - [no_repeat_test_episode_reward, 1]
+        # - [no_repeat_test_episode_length, 1]
         # - [cycle_count, 1]
     visualisations:
-        - [value_function, 50]
+        # - [value_function, 50]
         # - plot_episode_lengths
         # - plot_episode_rewards
         # - no_repeat_test_episode_length
@@ -176,8 +162,8 @@ logging:
         # - visitation_count_heatmap
         - [individual_test_run, 500]
         - [individual_train_run, 500]
-        - [individual_no_rep_test_run, 500]
-        - [individual_no_rep_train_run, 500]
+        # - [individual_no_rep_test_run, 500]
+        # - [individual_no_rep_train_run, 500]
         # - average_action_value
         # - cycle_count
 
