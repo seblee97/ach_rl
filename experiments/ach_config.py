@@ -56,6 +56,36 @@ class AchConfig(base_configuration.BaseConfiguration):
                 constants.Constants.INDIVIDUAL_TRAIN_RUN,
                 constants.Constants.INDIVIDUAL_TEST_RUN,
             ]
+        elif learner == constants.Constants.ENSEMBLE_Q_LEARNING:
+            permitted_scalars = [
+                constants.Constants.TRAIN_EPISODE_REWARD,
+                constants.Constants.TRAIN_EPISODE_LENGTH,
+                constants.Constants.TEST_EPISODE_REWARD,
+                constants.Constants.TEST_EPISODE_LENGTH,
+                "_".join(
+                    [
+                        constants.Constants.TRAIN_EPISODE_REWARD,
+                        constants.Constants.ENSEMBLE_RUNNER,
+                    ]
+                ),
+                "_".join(
+                    [
+                        constants.Constants.TRAIN_EPISODE_LENGTH,
+                        constants.Constants.ENSEMBLE_RUNNER,
+                    ]
+                ),
+                constants.Constants.ENSEMBLE_EPISODE_REWARD_STD,
+                constants.Constants.ENSEMBLE_EPISODE_LENGTH_STD,
+                constants.Constants.MEAN_VISITATION_PENALTY,
+                constants.Constants.NO_REPEAT_TEST_EPISODE_REWARD,
+                constants.Constants.NO_REPEAT_TEST_EPISODE_LENGTH,
+                constants.Constants.CYCLE_COUNT,
+            ]
+            permitted_visuals = [
+                constants.Constants.INDIVIDUAL_TRAIN_RUN,
+                constants.Constants.INDIVIDUAL_TEST_RUN,
+                constants.Constants.VALUE_FUNCTION,
+            ]
         for scalar in scalars:
             if isinstance(scalar[0], str):
                 scalar_str = scalar[0]
