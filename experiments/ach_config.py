@@ -41,5 +41,47 @@ class AchConfig(base_configuration.BaseConfiguration):
                 len(reward_magnitudes) == num_rewards
             ), "Number of reward magnitudes must match number of rewards,"
 
+        # check scalars specified in logging are compatible with alg/env etc.
+        scalars = getattr(self, constants.Constants.SCALARS)
+        visuals = getattr(self, constants.Constants.VISUALISATIONS)
+        learner = getattr(self, constants.Constants.TYPE)
+        if learner == constants.Constants.DQN:
+            permitted_scalars = [
+                constants.Constants.TRAIN_EPISODE_REWARD,
+                constants.Constants.TRAIN_EPISODE_LENGTH,
+                constants.Constants.TEST_EPISODE_REWARD,
+                constants.Constants.TEST_EPISODE_LENGTH,
+            ]
+            permitted_visuals = [
+                constants.Constants.INDIVIDUAL_TRAIN_RUN,
+                constants.Constants.INDIVIDUAL_TEST_RUN,
+            ]
+        for scalar in scalars:
+            if isinstance(scalar[0], str):
+                scalar_str = scalar[0]
+            elif isinstance(scalar[0], list):
+                scalar_str = scalar[0][0]
+            assert scalar_str in permitted_scalars, (
+                f"Scalar {scalar} specified in config logging, "
+                f"is not compatible with learner {learner}."
+            )
+        for visual in visuals:
+            if isinstance(visual[0], str):
+                visual_str = visual[0]
+            elif isinstance(visual[0], list):
+                visual_str = visual[0][0]
+            assert visual_str in permitted_visuals, (
+                f"Visual {visual} specified in config logging, "
+                f"is not compatible with learner {learner}."
+            )
+
+        # check testing procedures are compatible with alg/env etc.
+        if learner == constants.Constants.DQN:
+            permitted_tests = [constants.Constants.GREEDY]
+        for test_type in getattr(self, constants.Constants.TESTING):
+            assert (
+                test_type in permitted_tests
+            ), f"Test type {test_type} not compatible with learner {learner}"
+
     def _maybe_reconfigure(self, property_name: str) -> None:
         pass
