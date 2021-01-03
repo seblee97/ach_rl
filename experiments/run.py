@@ -182,11 +182,11 @@ def single_run(
 def summary_plot(config: ach_config.AchConfig, experiment_path: str):
     """Plot summary of experiment."""
     for tag in config.scalars:
-        if isinstance(tag, str):
+        if isinstance(tag[0], str):
             plotting_functions.plot_multi_seed_multi_run(
                 folder_path=experiment_path,
                 tag=tag,
-                window_width=40,
+                window_width=config.smoothing,
                 xlabel=constants.Constants.EPISODE,
                 ylabel=tag,
             )
