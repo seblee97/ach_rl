@@ -108,6 +108,8 @@ class AchConfig(base_configuration.BaseConfiguration):
         # check testing procedures are compatible with alg/env etc.
         if learner == constants.Constants.DQN:
             permitted_tests = [constants.Constants.GREEDY]
+        elif learner == constants.Constants.ENSEMBLE_Q_LEARNING:
+            permitted_tests = [constants.Constants.GREEDY, constants.Constants.NO_REP]
         for test_type in getattr(self, constants.Constants.TESTING):
             assert (
                 test_type in permitted_tests
