@@ -71,6 +71,9 @@ class DQNRunner(base_runner.BaseRunner):
             else:
                 state = next_state
 
+    def _pre_episode_log(self, episode: int):
+        pass
+
     def _train_episode(self, episode: int) -> Tuple[float, int]:
         """Perform single training loop.
 
