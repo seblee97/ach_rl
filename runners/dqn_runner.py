@@ -92,6 +92,8 @@ class DQNRunner(base_runner.BaseRunner):
             num_steps: number of steps taken for episode.
         """
         episode_reward = 0
+        episode_loss = 0
+        episode_steps = 0
 
         visitation_penalty = self._visitation_penalty(episode)
 
@@ -112,7 +114,7 @@ class DQNRunner(base_runner.BaseRunner):
 
             experience_sample = self._replay_buffer.sample(self._batch_size)
 
-            self._learner.step(
+            loss, epsilon = self._learner.step(
                 state=torch.from_numpy(experience_sample[0]).to(
                     device=self._device, dtype=torch.float
                 ),
@@ -133,14 +135,26 @@ class DQNRunner(base_runner.BaseRunner):
 
             state = next_state
             episode_reward += reward
+            episode_loss += loss
+            episode_steps += 1
 
-        if constants.Constants.AVERAGE_ACTION_VALUE in self._scalar_logging:
+        if self._scalar_log_iteration(
+            constants.Constants.AVERAGE_ACTION_VALUE, episode
+        ):
             average_action_value = self._compute_average_action_value()
             self._logger.write_scalar_df(
                 tag=constants.Constants.AVERAGE_ACTION_VALUE,
                 step=episode,
                 scalar=average_action_value,
             )
+        self._write_scalar(
+            tag=constants.Constants.LOSS,
+            episode=episode,
+            scalar=episode_loss / episode_steps,
+        )
+        self._write_scalar(
+            tag=constants.Constants.EPSILON, episode=episode, scalar=epsilon
+        )
 
         return episode_reward, self._environment.episode_step_count
 
