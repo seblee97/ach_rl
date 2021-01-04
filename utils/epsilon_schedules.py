@@ -41,5 +41,5 @@ class LinearDecayEpsilon(EpsilonSchedule):
         super().__init__(value=initial_value)
 
     def __next__(self):
-        if self._value < self._final_value:
+        if self._value > self._final_value:
             self._value -= self._step_size
