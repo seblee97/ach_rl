@@ -126,7 +126,7 @@ class DQNLearner(base_learner.BaseLearner):
             action = random.choice(self._action_space)
         else:
             state_action_values = self._q_network(state)
-            action = torch.argmax(state_action_values)
+            action = torch.argmax(state_action_values).item()
         return action
 
     def select_target_action(self, state: np.ndarray):
@@ -146,9 +146,9 @@ class DQNLearner(base_learner.BaseLearner):
         next_state: torch.Tensor,
         active: torch.Tensor,
         visitation_penalty: float,
-    ) -> None:
+    ) -> Tuple[float, float]:
         """Training step."""
-        estimate = torch.max(self._q_network(next_state), axis=1).values
+        estimate = torch.max(self._q_network(state), axis=1).values
 
         target = reward + active * self._gamma * torch.max(
             self._target_q_network(next_state)
@@ -166,3 +166,5 @@ class DQNLearner(base_learner.BaseLearner):
 
         # step epsilon
         next(self._epsilon)
+
+        return loss.item(), self._epsilon.value
