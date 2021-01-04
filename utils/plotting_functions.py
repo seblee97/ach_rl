@@ -75,12 +75,22 @@ def plot_multi_seed_multi_run(
         except ValueError:
             return False
 
-    sortable_exp_names = [
-        exp_name for exp_name in exp_names if _is_number(exp_name.split("_")[1])
-    ]
-    sorted_exp_names = sorted(
-        sortable_exp_names, key=lambda x: float(x.split("_")[1])
-    ) + [exp_name for exp_name in exp_names if not _is_number(exp_name.split("_")[1])]
+    sortable_exp_names = []
+    non_sortable_exp_names = []
+    for exp_name in exp_names:
+        split_name = exp_name.split("_")
+        try:
+            if _is_number(split_name[1]):
+                sortable_exp_names.append(exp_name)
+            else:
+                non_sortable_exp_names.append(exp_name)
+        except IndexError:
+            non_sortable_exp_names.append(exp_name)
+
+    sorted_exp_names = (
+        sorted(sortable_exp_names, key=lambda x: float(x.split("_")[1]))
+        + non_sortable_exp_names
+    )
 
     experiment_folders = [os.path.join(folder_path, f) for f in sorted_exp_names]
     fig = plt.figure()
