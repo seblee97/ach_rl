@@ -177,6 +177,7 @@ class Constants:
     MEAN_VISITATION_PENALTY = "mean_visitation_penalty"
     SMOOTHING = "smoothing"
     MULTIPLICATIVE_FACTOR = "multiplicative_factor"
+    LOSS = "loss"
 
     ATARI_ENVS = ["Pong-v0"]
 
