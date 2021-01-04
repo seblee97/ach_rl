@@ -185,7 +185,7 @@ def summary_plot(config: ach_config.AchConfig, experiment_path: str):
         if isinstance(tag[0], str):
             plotting_functions.plot_multi_seed_multi_run(
                 folder_path=experiment_path,
-                tag=tag,
+                tag=tag[0],
                 window_width=config.smoothing,
                 xlabel=constants.Constants.EPISODE,
                 ylabel=tag,
