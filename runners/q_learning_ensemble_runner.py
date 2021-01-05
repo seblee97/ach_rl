@@ -14,6 +14,10 @@ from learners.ensemble_learners import majority_vote_ensemble_learner
 from learners.ensemble_learners import mean_greedy_ensemble_learner
 from learners.ensemble_learners import sample_greedy_ensemble_learner
 from learners.tabular_learners import q_learner
+from visitation_penalties.adaptive_uncertainty_visitation_penalty import (
+    AdaptiveUncertaintyPenalty,
+)
+from visitation_penalties.hard_coded_visitation_penalty import HardCodedPenalty
 from runners import base_runner
 from utils import cycle_counter
 
@@ -128,9 +132,14 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
             episode_reward: mean scalar reward accumulated over ensemble episodes.
             num_steps: mean number of steps taken for ensemble episodes.
         """
-        self._visitation_penalty.state_action_values = [
-            learner.state_action_values for learner in self._learner.ensemble
-        ]
+        if isinstance(self._visitation_penalty, AdaptiveUncertaintyPenalty):
+            self._visitation_penalty.state_action_values = [
+                learner.state_action_values for learner in self._learner.ensemble
+            ]
+        elif isinstance(self._visitation_penalty, HardCodedPenalty):
+            pass
+        else:
+            raise ValueError("Unknown visitation penalty type.")
 
         if self._parallelise_ensemble:
             train_fn = self._parallelised_train_episode
@@ -265,9 +274,12 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
         while environment.active:
             action = learner.select_behaviour_action(state)
             reward, new_state = environment.step(action)
-            penalty = self._multiplicative_factor * self._visitation_penalty(
-                state=state, action=action
-            )
+            if isinstance(self._visitation_penalty, AdaptiveUncertaintyPenalty):
+                penalty = self._multiplicative_factor * self._visitation_penalty(
+                    state=state, action=action
+                )
+            elif isinstance(self._visitation_penalty, HardCodedPenalty):
+                penalty = self._visitation_penalty(episode=episode)
             penalties.append(penalty)
             learner.step(
                 state,
