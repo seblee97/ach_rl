@@ -41,7 +41,7 @@ args = parser.parse_args()
 def parallel_run(
     base_configuration: ach_config.AchConfig,
     seeds: List[int],
-    config_changes: Dict[str, List[Tuple[str, Any]]],
+    config_changes: Dict[str, List[Tuple[str, Any, bool]]],
     experiment_path: str,
     results_folder: str,
     timestamp: str,
@@ -87,7 +87,7 @@ def parallel_run(
 def serial_run(
     base_configuration: ach_config.AchConfig,
     seeds: List[int],
-    config_changes: Dict[str, List[Tuple[str, Any]]],
+    config_changes: Dict[str, List[Tuple[str, Any, bool]]],
     experiment_path: str,
     results_folder: str,
     timestamp: str,
@@ -125,7 +125,7 @@ def single_run(
     results_folder: str,
     experiment_path: str,
     timestamp: str,
-    config_change: List[Tuple[str, Any]],
+    config_change: List[Tuple[str, Any, bool]],
 ):
     """Run single experiment.
 
@@ -152,10 +152,17 @@ def single_run(
     )
 
     for change in config_change:
-        config.amend_property(
-            property_name=change[0],
-            new_property_value=change[1],
-        )
+        try:
+            config.amend_property(
+                property_name=change[0],
+                new_property_value=change[1],
+            )
+        except AssertionError:
+            if change[2]:
+                config.add_property(
+                    property_name=change[0],
+                    property_value=change[1],
+                )
 
     config.add_property(constants.Constants.EXPERIMENT_TIMESTAMP, timestamp)
     config.add_property(constants.Constants.CHECKPOINT_PATH, checkpoint_path)
