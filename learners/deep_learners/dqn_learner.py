@@ -148,10 +148,17 @@ class DQNLearner(base_learner.BaseLearner):
         visitation_penalty: float,
     ) -> Tuple[float, float]:
         """Training step."""
-        estimate = torch.max(self._q_network(state), axis=1).values
+        state_value_estimates = self._q_network(state)
 
-        target = reward + active * self._gamma * torch.max(
-            self._target_q_network(next_state)
+        # add batch dimension to action for indexing
+        action_index = action.unsqueeze(-1).to(torch.int64)
+        estimate = torch.gather(state_value_estimates, 1, action_index).squeeze()
+
+        target = (
+            reward
+            + active
+            * self._gamma
+            * torch.max(self._target_q_network(next_state), axis=1).values
         )
 
         self._optimiser.zero_grad()
