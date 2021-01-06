@@ -93,7 +93,7 @@ class QNetwork(nn.Module):
         if self._initialisation == constants.Constants.ZEROS:
             nn.init.zeros_(layer_weights)
         elif self._initialisation == constants.Constants.NORMAL:
-            nn.init.normal(layer_weights)
+            nn.init.normal_(layer_weights)
         elif self._initialisation == constants.Constants.XAVIER_NORMAL:
             nn.init.xavier_normal_(layer_weights)
         elif self._initialisation == constants.Constants.XAVIER_UNIFORM:
