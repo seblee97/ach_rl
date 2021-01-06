@@ -178,6 +178,7 @@ class Constants:
     SMOOTHING = "smoothing"
     MULTIPLICATIVE_FACTOR = "multiplicative_factor"
     LOSS = "loss"
+    GRADIENT_CLIPPING = "gradient_clipping"
 
     ATARI_ENVS = ["Pong-v0"]
 
