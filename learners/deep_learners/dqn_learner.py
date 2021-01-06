@@ -30,7 +30,7 @@ class DQNLearner(base_learner.BaseLearner):
         epsilon: epsilon_schedules.EpsilonSchedule,
         target_network_update_period: int,
         device: torch.device,
-        gradient_clipping: Tuple,
+        gradient_clipping: Union[Tuple, None],
         momentum: float = 0,
         eps: float = 1e-8,
     ):
@@ -171,10 +171,11 @@ class DQNLearner(base_learner.BaseLearner):
         loss.backward()
 
         # clip gradients
-        for param in self._q_network.parameters():
-            param.grad.data.clamp_(
-                self._gradient_clipping[0], self._gradient_clipping[1]
-            )
+        if self._gradient_clipping is not None:
+            for param in self._q_network.parameters():
+                param.grad.data.clamp_(
+                    self._gradient_clipping[0], self._gradient_clipping[1]
+                )
 
         self._optimiser.step()
 
