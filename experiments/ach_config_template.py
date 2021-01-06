@@ -291,6 +291,14 @@ class AChConfigTemplate:
                 requirements=[lambda x: x <= 1 and x >= 0],
             ),
             config_field.Field(
+                name=constants.Constants.GRADIENT_CLIPPING,
+                types=[list],
+                requirements=[
+                    lambda x: len(x) == 2
+                    and all((isinstance(y, float) or isinstance(y, int)) for y in x)
+                ],
+            ),
+            config_field.Field(
                 name=constants.Constants.INITIALISATION,
                 types=[str, float, int],
                 requirements=[
