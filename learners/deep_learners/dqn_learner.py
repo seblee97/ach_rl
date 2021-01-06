@@ -65,6 +65,7 @@ class DQNLearner(base_learner.BaseLearner):
 
         self._q_network = self._initialise_q_network().to(self._device)
         self._target_q_network = self._initialise_q_network().to(self._device)
+        self._update_target_network()
 
         self._loss_module = nn.MSELoss()
 
@@ -125,17 +126,19 @@ class DQNLearner(base_learner.BaseLearner):
         if random.random() < self._epsilon.value:
             action = random.choice(self._action_space)
         else:
-            state_action_values = self._q_network(state)
-            action = torch.argmax(state_action_values).item()
+            with torch.no_grad():
+                state_action_values = self._q_network(state)
+                action = torch.argmax(state_action_values).item()
         return action
 
     def select_target_action(self, state: np.ndarray):
         """Action to select for target, i.e. final policy."""
-        # cast state to tensor
-        state = torch.from_numpy(state).to(torch.float).to(self._device)
+        with torch.no_grad():
+            # cast state to tensor
+            state = torch.from_numpy(state).to(torch.float).to(self._device)
 
-        state_action_values = self._q_network(state)
-        action = torch.argmax(state_action_values).item()
+            state_action_values = self._q_network(state)
+            action = torch.argmax(state_action_values).item()
         return action
 
     def step(
@@ -164,6 +167,11 @@ class DQNLearner(base_learner.BaseLearner):
         self._optimiser.zero_grad()
         loss = self._loss_module(target, estimate)
         loss.backward()
+
+        # clip gradients
+        for param in self._q_network.parameters():
+            param.grad.data.clamp_(-1, 1)
+
         self._optimiser.step()
 
         if self._num_training_steps % self._target_network_update_period == 0:
