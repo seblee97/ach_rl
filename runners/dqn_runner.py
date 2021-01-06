@@ -173,4 +173,6 @@ class DQNRunner(base_runner.BaseRunner):
             action_values_over_states = self._learner.q_network(states)
             average_value = torch.mean(action_values_over_states).item()
 
+        self._learner.train()
+
         return average_value
