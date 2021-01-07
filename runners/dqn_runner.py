@@ -38,6 +38,7 @@ class DQNRunner(base_runner.BaseRunner):
             gamma=config.discount_factor,
             target_network_update_period=config.target_network_update_period,
             device=config.experiment_device,
+            normalise_state=config.normalise_state,
             gradient_clipping=config.gradient_clipping,
         )
         return learner
