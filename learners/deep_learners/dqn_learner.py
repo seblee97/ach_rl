@@ -170,15 +170,14 @@ class DQNLearner(base_learner.BaseLearner):
         action_index = action.unsqueeze(-1).to(torch.int64)
         estimate = torch.gather(state_value_estimates, 1, action_index).squeeze()
 
-        target = (
-            reward
-            + active
-            * self._gamma
-            * torch.max(self._target_q_network(next_state), axis=1).values
-        ).detach()
+        max_target = torch.max(
+            self._target_q_network(next_state), axis=1
+        ).values.detach()
 
-        self._optimiser.zero_grad()
+        target = reward + active * self._gamma * max_target
+
         loss = self._loss_module(target, estimate)
+        self._optimiser.zero_grad()
         loss.backward()
 
         # clip gradients
