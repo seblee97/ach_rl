@@ -435,6 +435,7 @@ class AChConfigTemplate:
                 types=[int],
                 requirements=[lambda x: x >= 0],
             ),
+            config_field.Field(name=constants.Constants.NORMALISE_STATE, types=[bool]),
             config_field.Field(
                 name=constants.Constants.GRADIENT_CLIPPING,
                 types=[list, type(None)],

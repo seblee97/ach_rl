@@ -31,6 +31,7 @@ class DQNLearner(base_learner.BaseLearner):
         epsilon: epsilon_schedules.EpsilonSchedule,
         target_network_update_period: int,
         device: torch.device,
+        normalise_state: bool,
         gradient_clipping: Union[Tuple, None],
         momentum: float = 0,
         eps: float = 1e-8,
@@ -64,6 +65,7 @@ class DQNLearner(base_learner.BaseLearner):
         self._epsilon = epsilon
         self._target_network_update_period = target_network_update_period
         self._device = device
+        self._normalise_state = normalise_state
         self._gradient_clipping = gradient_clipping
 
         self._q_network = self._initialise_q_network().to(self._device)
@@ -152,6 +154,10 @@ class DQNLearner(base_learner.BaseLearner):
         visitation_penalty: float,
     ) -> Tuple[float, float]:
         """Training step."""
+        if self._normalise_state:
+            state = state / 255.0
+            next_state = next_state / 255.0
+
         state_value_estimates = self._q_network(state)
 
         # add batch dimension to action for indexing
