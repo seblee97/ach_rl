@@ -182,7 +182,8 @@ class AChConfigTemplate:
             config_field.Field(
                 name=constants.Constants.MULTIPLICATIVE_FACTOR,
                 types=[float, int],
-            )
+            ),
+            config_field.Field(name=constants.Constants.MAX_OVER_ACTIONS, types=[bool]),
         ],
         level=[constants.Constants.LEARNER, constants.Constants.ADAPTIVE_UNCERTAINTY],
         dependent_variables=[constants.Constants.VISITATION_PENALTY_TYPE],
