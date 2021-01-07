@@ -153,6 +153,8 @@ class Constants:
     XAVIER_NORMAL = "xavier_normal"
     XAVIER_UNIFORM = "xavier_uniform"
     NETWORK_INITIALISATION = "network_initialisation"
+    NETWORK_WEIGHT_INITIALISATION = "network_weight_initialisation"
+    NETWORK_BIAS_INITIALISATION = "network_bias_initialisation"
     MULTIROOM = "multiroom"
     ASCII_MAP_PATH = "ascii_map_path"
     WALL_CHARACTER = "#"
