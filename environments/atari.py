@@ -114,7 +114,10 @@ class AtariEnv(base_environment.BaseEnvironment):
             episode_timeout: number of steps before automatic termination of episode.
         """
         # frame skip set to 1 here, dealt with later.
-        self._env = gym.make(atari_env_name, frameskip=1)
+        try:
+            self._env = gym.make(atari_env_name, frameskip=1)
+        except TypeError:
+            self._env = gym.make(atari_env_name)
         self._action_space = list(range(self._env.action_space.n))
 
         self._frame_skip = frame_skip
