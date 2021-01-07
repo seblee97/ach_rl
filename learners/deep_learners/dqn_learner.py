@@ -4,6 +4,7 @@ from typing import Any
 from typing import Dict
 from typing import List
 from typing import Tuple
+from typing import Union
 
 import numpy as np
 import torch
@@ -117,8 +118,8 @@ class DQNLearner(base_learner.BaseLearner):
 
     def _update_target_network(self):
         """Re-set q-network to target network."""
-        q_network_state_dict = copy.deepcopy(self._q_network.state_dict())
-        self._target_q_network.load_state_dict(q_network_state_dict)
+        self._target_q_network.load_state_dict(self._q_network.state_dict())
+        self._target_q_network.eval()
 
     def select_behaviour_action(self, state: np.ndarray):
         """Action to select for behaviour i.e. for training."""
@@ -164,7 +165,11 @@ class DQNLearner(base_learner.BaseLearner):
             + active
             * self._gamma
             * torch.max(self._target_q_network(next_state), axis=1).values
-        )
+        ).detach()
+
+        import pdb
+
+        pdb.set_trace()
 
         self._optimiser.zero_grad()
         loss = self._loss_module(target, estimate)
