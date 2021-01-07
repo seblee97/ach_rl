@@ -133,9 +133,11 @@ class DQNLearner(base_learner.BaseLearner):
         if random.random() < self._epsilon.value:
             action = random.choice(self._action_space)
         else:
+            self._q_network.eval()
             with torch.no_grad():
                 state_action_values = self._q_network(state)
                 action = torch.argmax(state_action_values).item()
+            self._q_network.train()
         return action
 
     def select_target_action(self, state: np.ndarray):
