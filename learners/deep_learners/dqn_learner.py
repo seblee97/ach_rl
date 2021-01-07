@@ -109,12 +109,10 @@ class DQNLearner(base_learner.BaseLearner):
     def train(self) -> None:
         """Set to train."""
         self._q_network.train()
-        self._target_q_network.train()
 
     def eval(self) -> None:
         """Set to evaluation."""
         self._q_network.eval()
-        self._target_q_network.eval()
 
     def _update_target_network(self):
         """Re-set q-network to target network."""
@@ -166,10 +164,6 @@ class DQNLearner(base_learner.BaseLearner):
             * self._gamma
             * torch.max(self._target_q_network(next_state), axis=1).values
         ).detach()
-
-        import pdb
-
-        pdb.set_trace()
 
         self._optimiser.zero_grad()
         loss = self._loss_module(target, estimate)
