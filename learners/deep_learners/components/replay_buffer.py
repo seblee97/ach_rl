@@ -65,7 +65,9 @@ class ReplayBuffer:
             sample: experience sample.
         """
         current_num_entries = min(self._insertion_index, self._replay_size)
-        sample_indices = np.random.choice(current_num_entries, size=batch_size)
+        sample_indices = np.random.choice(
+            current_num_entries, size=batch_size, replace=False
+        )
 
         states_sample = self._states_buffer[sample_indices]
         actions_sample = self._actions_buffer[sample_indices]

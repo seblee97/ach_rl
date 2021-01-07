@@ -19,7 +19,8 @@ class QNetwork(nn.Module):
         state_dim: Tuple[int, int, int],
         num_actions: int,
         layer_specifications: List[Dict[str, Any]],
-        initialisation: str,
+        weight_initialisation: str,
+        bias_initialisation: str,
     ):
         """Class constructor.
 
@@ -27,12 +28,14 @@ class QNetwork(nn.Module):
             state_dim: dimensions of the state.
             num_actions: number of possible actions.
             layer_specifications: hidden layer specifications.
-            initialisation: type of initialisation e.g. xavier_normal.
+            weight_initialisation: type of initialisation for weights e.g. xavier_normal.
+            bias_initialisation: type of initialisation for bias e.g. zeros.
         """
         self._state_dim = state_dim
         self._num_actions = num_actions
         self._layer_specifications = layer_specifications
-        self._initialisation = initialisation
+        self._weight_initialisation = weight_initialisation
+        self._bias_initialisation = bias_initialisation
 
         super().__init__()
 
@@ -77,12 +80,19 @@ class QNetwork(nn.Module):
 
             # initialise weights (only those with parameters)
             if [p for p in layer.parameters()]:
-                self._initialise_weights(layer.weight)
+                self._initialise_weights(
+                    layer.weight, initialisation=self._weight_initialisation
+                )
+                self._initialise_weights(
+                    layer.bias, initialisation=self._bias_initialisation
+                )
 
             self._layers.append(layer)
             self._layers.append(nonlinearity)
 
-    def _initialise_weights(self, layer_weights: nn.Parameter) -> None:
+    def _initialise_weights(
+        self, layer_weights: nn.Parameter, initialisation: str
+    ) -> None:
         """Initialise weights of network layer according to specification.
 
         Initialisation is in-place.
@@ -90,13 +100,13 @@ class QNetwork(nn.Module):
         Args:
             layer_weights: un-initialised weights.
         """
-        if self._initialisation == constants.Constants.ZEROS:
+        if initialisation == constants.Constants.ZEROS:
             nn.init.zeros_(layer_weights)
-        elif self._initialisation == constants.Constants.NORMAL:
+        elif initialisation == constants.Constants.NORMAL:
             nn.init.normal_(layer_weights)
-        elif self._initialisation == constants.Constants.XAVIER_NORMAL:
+        elif initialisation == constants.Constants.XAVIER_NORMAL:
             nn.init.xavier_normal_(layer_weights)
-        elif self._initialisation == constants.Constants.XAVIER_UNIFORM:
+        elif initialisation == constants.Constants.XAVIER_UNIFORM:
             nn.init.xavier_uniform_(layer_weights)
 
     def forward(self, x: torch.Tensor):
