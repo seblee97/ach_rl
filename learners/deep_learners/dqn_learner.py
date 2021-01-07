@@ -25,7 +25,8 @@ class DQNLearner(base_learner.BaseLearner):
         state_dimensions: Tuple[int, int, int],
         layer_specifications: List[Dict[str, Any]],
         optimiser_type: str,
-        network_initialisation: str,
+        network_weight_initialisation: str,
+        network_bias_initialisation: str,
         learning_rate: float,
         gamma: float,
         epsilon: epsilon_schedules.EpsilonSchedule,
@@ -43,7 +44,8 @@ class DQNLearner(base_learner.BaseLearner):
             state_dimensions: dimensions of state space.
             layer_specifications: network architecture for q-networks.
             optimiser_type: name of optimiser e.g. adam.
-            network_initialisation: name of network initialisation e.g. xavier_uniform.
+            network_weight_initialisation: name of network initialisation e.g. xavier_uniform.
+            network_bias_initialisation: type of initialisation for bias e.g. zeros.
             learning_rate: learning rate.
             gamma: discount factor.
             epsilon: exploration percentage in epsilon-greedy.
@@ -57,7 +59,8 @@ class DQNLearner(base_learner.BaseLearner):
         self._action_space = action_space
         self._layer_specifications = layer_specifications
         self._optimiser_type = optimiser_type
-        self._network_initialisation = network_initialisation
+        self._network_weight_initialisation = network_weight_initialisation
+        self._network_bias_initialisation = network_bias_initialisation
         self._learning_rate = learning_rate
         self._momentum = momentum
         self._eps = eps
@@ -88,7 +91,8 @@ class DQNLearner(base_learner.BaseLearner):
             state_dim=self._state_dimensions,
             num_actions=len(self._action_space),
             layer_specifications=self._layer_specifications,
-            initialisation=self._network_initialisation,
+            weight_initialisation=self._network_weight_initialisation,
+            bias_initialisation=self._network_bias_initialisation,
         )
 
     def _setup_optimiser(self):
