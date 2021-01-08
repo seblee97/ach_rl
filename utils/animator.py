@@ -41,4 +41,5 @@ def animate(
         )
         plt.close()
     elif library == constants.Constants.IMAGEIO:
-        imageio.mimwrite(file_name, images)
+        int_images = [image.astype(np.int8) for image in images]
+        imageio.mimwrite(file_name, int_images)
