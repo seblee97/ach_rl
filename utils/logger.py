@@ -24,6 +24,7 @@ class Logger:
         self._logger_df = pd.DataFrame(columns=self._df_columns)
         self._plot_origin = config.plot_origin
         self._animation_library = config.animation_library
+        self._file_format = config.animation_file_format
 
     def _get_df_columns(self, config: ach_config.AchConfig) -> List[str]:
         columns = []
@@ -81,6 +82,7 @@ class Logger:
                 file_name=full_path,
                 plot_origin=self._plot_origin,
                 library=self._animation_library,
+                file_format=self._file_format,
             )
         elif isinstance(data, np.ndarray):
             fig = plt.figure()
