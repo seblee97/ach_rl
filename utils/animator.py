@@ -7,6 +7,7 @@ import imageio
 from matplotlib.animation import FuncAnimation
 
 import constants
+import warnings
 
 
 def animate(
@@ -33,7 +34,7 @@ def animate(
         def update(image):
             ax.imshow(image, origin=plot_origin)
 
-        anim = FuncAnimation(fig, update, frames=images[:100], interval=200)
+        anim = FuncAnimation(fig, update, frames=images, interval=200)
         anim.save(
             file_name,
             dpi=80,
@@ -41,5 +42,4 @@ def animate(
         )
         plt.close()
     elif library == constants.Constants.IMAGEIO:
-        int_images = [image.astype(np.int8) for image in images]
-        imageio.mimwrite(file_name, int_images)
+        imageio.mimwrite(file_name, images)
