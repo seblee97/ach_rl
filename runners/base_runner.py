@@ -16,6 +16,7 @@ from environments import atari
 from environments import base_environment
 from environments import minigrid
 from environments import multi_room
+from environments import wrapper_atari
 from experiments import ach_config
 from utils import epsilon_schedules
 from utils import logger
@@ -91,7 +92,10 @@ class BaseRunner(abc.ABC):
             if config.environment == constants.Constants.MINIGRID:
                 environment = minigrid.MiniGrid(**environment_args)
             elif config.environment == constants.Constants.ATARI:
-                environment = atari.AtariEnv(**environment_args)
+                if config.implementation == constants.Constants.WRAPPER:
+                    environment = wrapper_atari.AtariEnv(**environment_args)
+                elif config.implementation == constants.Constants.FUNCTIONAL:
+                    environment = atari.AtariEnv(**environment_args)
             elif config.environment == constants.Constants.MULTIROOM:
                 environment = multi_room.MultiRoom(**environment_args)
         return environment
@@ -122,10 +126,11 @@ class BaseRunner(abc.ABC):
             env_args = {
                 constants.Constants.ATARI_ENV_NAME: config.atari_env_name,
                 constants.Constants.EPISODE_TIMEOUT: config.episode_timeout,
-                constants.Constants.PRE_PROCESSING: config.pre_processing,
                 constants.Constants.FRAME_STACK: config.frame_stack,
                 constants.Constants.FRAME_SKIP: config.frame_skip,
             }
+            if config.implementation == constants.Constants.FUNCTIONAL:
+                env_args[constants.Constants.PRE_PROCESSING] = config.pre_processing
         elif config.environment == constants.Constants.MULTIROOM:
             env_args = {
                 constants.Constants.ASCII_MAP_PATH: config.ascii_map_path,
