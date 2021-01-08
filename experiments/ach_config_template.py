@@ -124,6 +124,14 @@ class AChConfigTemplate:
                 requirements=[lambda x: x in constants.Constants.ATARI_ENVS],
             ),
             config_field.Field(
+                name=constants.Constants.IMPLEMENTATION,
+                types=[str],
+                requirements=[
+                    lambda x: x
+                    in [constants.Constants.FUNCTIONAL, constants.Constants.WRAPPER]
+                ],
+            ),
+            config_field.Field(
                 name=constants.Constants.PRE_PROCESSING,
                 types=[list],
                 requirements=[lambda x: all(isinstance(y, dict) for y in x)],
