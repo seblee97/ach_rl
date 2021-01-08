@@ -148,7 +148,7 @@ class Constants:
     USING_GPU = "using_gpu"
     EXPERIMENT_DEVICE = "experiment_device"
     AVERAGE_ACTION_VALUE = "average_action_value"
-    ANIMATION_FILE_FORMAT = "gif"
+    ANIMATION_FILE_FORMAT = "animation_file_format"
     NORMAL = "normal"
     XAVIER_NORMAL = "xavier_normal"
     XAVIER_UNIFORM = "xavier_uniform"
@@ -186,6 +186,11 @@ class Constants:
     IMPLEMENTATION = "implementation"
     FUNCTIONAL = "functional"
     WRAPPER = "wrapper"
+    ANIMATION_LIBRARY = "animation_library"
+    MATPLOTLIB_ANIMATION = "matplotlib_animation"
+    IMAGEIO = "imageio"
+    MP4 = "mp4"
+    GIF = "gif"
 
     ATARI_ENVS = ["Pong-v0"]
 
