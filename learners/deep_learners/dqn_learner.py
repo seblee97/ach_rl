@@ -176,7 +176,7 @@ class DQNLearner(base_learner.BaseLearner):
 
         target = reward + active * self._gamma * max_target
 
-        loss = self._loss_module(target, estimate)
+        loss = self._loss_module(estimate, target)
         self._optimiser.zero_grad()
         loss.backward()
 
