@@ -543,6 +543,24 @@ class AChConfigTemplate:
                 requirements=[lambda x: x > 0],
             ),
             config_field.Field(
+                name=constants.Constants.ANIMATION_LIBRARY,
+                types=[str],
+                requirements=[
+                    lambda x: x
+                    in [
+                        constants.Constants.MATPLOTLIB_ANIMATION,
+                        constants.Constants.IMAGEIO,
+                    ]
+                ],
+            ),
+            config_field.Field(
+                name=constants.Constants.ANIMATION_FILE_FORMAT,
+                types=[str],
+                requirements=[
+                    lambda x: x in [constants.Constants.MP4, constants.Constants.GIF]
+                ],
+            ),
+            config_field.Field(
                 name=constants.Constants.ARRAYS,
                 types=[list, type(None)],
                 requirements=[
