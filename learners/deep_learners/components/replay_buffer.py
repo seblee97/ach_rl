@@ -15,10 +15,12 @@ class ReplayBuffer:
             replay_size: size of buffer.
             state_dim: dimension of state.
         """
-        self._states_buffer = np.zeros((replay_size,) + state_dim, dtype=np.int8)
+        self._states_buffer = np.zeros((replay_size,) + state_dim, dtype=np.float32)
         self._actions_buffer = np.zeros(replay_size, dtype=np.int8)
         self._rewards_buffer = np.zeros(replay_size)
-        self._next_states_buffer = np.zeros((replay_size,) + state_dim, dtype=np.int8)
+        self._next_states_buffer = np.zeros(
+            (replay_size,) + state_dim, dtype=np.float32
+        )
         self._active_buffer = np.zeros(replay_size, dtype=bool)
 
         self._insertion_index = 0
