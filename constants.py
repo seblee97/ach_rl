@@ -183,6 +183,9 @@ class Constants:
     GRADIENT_CLIPPING = "gradient_clipping"
     MAX_OVER_ACTIONS = "max_over_actions"
     NORMALISE_STATE = "normalise_state"
+    IMPLEMENTATION = "implementation"
+    FUNCTIONAL = "functional"
+    WRAPPER = "wrapper"
 
     ATARI_ENVS = ["Pong-v0"]
 
