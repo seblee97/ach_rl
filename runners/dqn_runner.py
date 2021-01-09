@@ -8,6 +8,7 @@ from experiments import ach_config
 from learners.deep_learners import dqn_learner
 from learners.deep_learners.components import replay_buffer
 from runners import base_runner
+from utils import custom_objects
 
 
 class DQNRunner(base_runner.BaseRunner):
@@ -61,13 +62,17 @@ class DQNRunner(base_runner.BaseRunner):
         for _ in range(num_trajectories):
             action = random.choice(self._environment.action_space)
             reward, next_state = self._environment.step(action)
-            self._replay_buffer.add(
-                state=state,
-                action=action,
-                reward=reward,
-                next_state=next_state,
-                active=self._environment.active,
+            transition = custom_objects.Transition(
+                state, action, reward, next_state, self._environment.active
             )
+            self._replay_buffer.add(transition)
+            # self._replay_buffer.add(
+            #     state=state,
+            #     action=action,
+            #     reward=reward,
+            #     next_state=next_state,
+            #     active=self._environment.active,
+            # )
             if not self._environment.active:
                 state = self._environment.reset_environment(train=True)
             else:
@@ -106,49 +111,46 @@ class DQNRunner(base_runner.BaseRunner):
             action = self._learner.select_behaviour_action(state)
             reward, next_state = self._environment.step(action)
 
-            self._replay_buffer.add(
-                state=state,
-                action=action,
-                reward=reward,
-                next_state=next_state,
-                active=self._environment.active,
+            transition = custom_objects.Transition(
+                state, action, reward, next_state, self._environment.active
             )
+
+            self._replay_buffer.add(transition)
+            # self._replay_buffer.add(
+            #     state=state,
+            #     action=action,
+            #     reward=reward,
+            #     next_state=next_state,
+            #     active=self._environment.active,
+            # )
+            state = next_state
 
             experience_sample = self._replay_buffer.sample(self._batch_size)
 
             loss, epsilon = self._learner.step(
-                state=torch.from_numpy(experience_sample[0]).to(
-                    device=self._device, dtype=torch.float
-                ),
-                action=torch.from_numpy(experience_sample[1]).to(
-                    device=self._device, dtype=torch.int
-                ),
-                reward=torch.from_numpy(experience_sample[2]).to(
-                    device=self._device, dtype=torch.float
-                ),
-                next_state=torch.from_numpy(experience_sample[3]).to(
-                    device=self._device, dtype=torch.float
-                ),
-                active=torch.from_numpy(experience_sample[4]).to(
-                    device=self._device, dtype=torch.int
-                ),
+                state=torch.tensor(experience_sample[0]).to(device=self._device),
+                action=torch.tensor(experience_sample[1]).to(device=self._device),
+                reward=torch.tensor(experience_sample[2]).to(device=self._device),
+                next_state=torch.tensor(experience_sample[3]).to(device=self._device),
+                active=torch.BoolTensor(experience_sample[4]).to(device=self._device),
                 visitation_penalty=visitation_penalty,
             )
 
-            state = next_state
             episode_reward += reward
             episode_loss += loss
             episode_steps += 1
 
-        if self._scalar_log_iteration(
-            constants.Constants.AVERAGE_ACTION_VALUE, episode
-        ):
-            average_action_value = self._compute_average_action_value()
-            self._logger.write_scalar_df(
-                tag=constants.Constants.AVERAGE_ACTION_VALUE,
-                step=episode,
-                scalar=average_action_value,
-            )
+        print(episode_loss, episode_loss / episode_steps, epsilon)
+
+        # if self._scalar_log_iteration(
+        #     constants.Constants.AVERAGE_ACTION_VALUE, episode
+        # ):
+        #     average_action_value = self._compute_average_action_value()
+        #     self._logger.write_scalar_df(
+        #         tag=constants.Constants.AVERAGE_ACTION_VALUE,
+        #         step=episode,
+        #         scalar=average_action_value,
+        #     )
         self._write_scalar(
             tag=constants.Constants.LOSS,
             episode=episode,
