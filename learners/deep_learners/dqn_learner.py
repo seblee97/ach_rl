@@ -144,7 +144,7 @@ class DQNLearner(base_learner.BaseLearner):
             # cast state to tensor
             state = torch.from_numpy(state).to(torch.float).to(self._device)
 
-            state_action_values = self._q_network(state)
+            state_action_values = self._q_network(state.unsqueeze(0))
             action = torch.argmax(state_action_values).item()
         return action
 
