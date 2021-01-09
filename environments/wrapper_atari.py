@@ -96,16 +96,14 @@ class AtariEnv(base_environment.BaseEnvironment):
             reward: float indicating reward.
             next_state: new state of agent.
         """
-        squeezed_state, reward, done, _ = self._env.step(action)
+        state, reward, done, _ = self._env.step(action)
 
         self._episode_step_count += 1
-        self._episode_history.append(squeezed_state[-1])
+        self._episode_history.append(state[-1])
 
         self._active = not done
         if self._episode_step_count == self._episode_timeout:
             self._active = False
-
-        state = np.expand_dims(squeezed_state, 0)
 
         return reward, state
 
@@ -116,14 +114,12 @@ class AtariEnv(base_environment.BaseEnvironment):
             train: whether episode is for train or test
             (may affect e.g. logging).
         """
-        squeezed_state = self._env.reset()
+        state = self._env.reset()
 
         self._active = True
         self._episode_step_count = 0
         self._rewards_received = []
         self._training = train
         self._episode_history = []
-
-        state = np.expand_dims(squeezed_state, 0)
 
         return state
