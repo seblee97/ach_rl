@@ -100,14 +100,15 @@ class QNetwork(nn.Module):
         Args:
             layer_weights: un-initialised weights.
         """
-        if initialisation == constants.Constants.ZEROS:
-            nn.init.zeros_(layer_weights)
-        elif initialisation == constants.Constants.NORMAL:
-            nn.init.normal_(layer_weights)
-        elif initialisation == constants.Constants.XAVIER_NORMAL:
-            nn.init.xavier_normal_(layer_weights)
-        elif initialisation == constants.Constants.XAVIER_UNIFORM:
-            nn.init.xavier_uniform_(layer_weights)
+        pass
+        # if initialisation == constants.Constants.ZEROS:
+        #     nn.init.zeros_(layer_weights)
+        # elif initialisation == constants.Constants.NORMAL:
+        #     nn.init.normal_(layer_weights)
+        # elif initialisation == constants.Constants.XAVIER_NORMAL:
+        #     nn.init.xavier_normal_(layer_weights)
+        # elif initialisation == constants.Constants.XAVIER_UNIFORM:
+        #     nn.init.xavier_uniform_(layer_weights)
 
     def forward(self, x: torch.Tensor):
         """Forward pass through network."""
