@@ -133,7 +133,7 @@ class DQNLearner(base_learner.BaseLearner):
         else:
             self._q_network.eval()
             with torch.no_grad():
-                state_action_values = self._q_network(state)
+                state_action_values = self._q_network(state.unsqueeze(0))
                 action = torch.argmax(state_action_values).item()
             self._q_network.train()
         return action
@@ -165,11 +165,11 @@ class DQNLearner(base_learner.BaseLearner):
         action_index = action.unsqueeze(-1).to(torch.int64)
         estimate = torch.gather(state_value_estimates, 1, action_index).squeeze()
 
-        max_target = torch.max(
-            self._target_q_network(next_state), axis=1
-        ).values.detach()
+        max_target = self._target_q_network(next_state).max(1)[0]
+        max_target[~active] = 0.0
+        max_target = max_target.detach()
 
-        target = reward + active * self._gamma * max_target
+        target = reward + self._gamma * max_target
 
         loss = self._loss_module(estimate, target)
         self._optimiser.zero_grad()
