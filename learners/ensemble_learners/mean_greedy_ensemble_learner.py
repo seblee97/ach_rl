@@ -8,13 +8,17 @@ from learners.ensemble_learners import ensemble_learner
 
 
 class MeanGreedyEnsemble(ensemble_learner.EnsembleLearner):
+    """Ensemble learner where action in a given state
+    is selected based on argmax over mean of action-values
+    across learners in ensemble.
+    """
+
     @property
-    def state_action_values(self):
+    def weighted_state_action_values(self):
         all_state_action_values = [
             learner.state_action_values for learner in self._learner_ensemble
         ]
 
-        possible_actions = self._learner_ensemble[0].action_space
         states = all_state_action_values[0].keys()
 
         values = {}
