@@ -115,7 +115,7 @@ class AtariEnv(base_environment.BaseEnvironment):
         """
         # frame skip set to 1 here, dealt with later.
         try:
-            self._env = gym.make(atari_env_name, frameskip=1)
+            self._env = gym.make(atari_env_name, frameskip=0)
         except TypeError:
             self._env = gym.make(atari_env_name)
         self._action_space = list(range(self._env.action_space.n))
