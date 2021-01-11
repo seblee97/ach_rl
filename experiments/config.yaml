@@ -40,30 +40,31 @@ atari:
 
     frame_stack: 4
     frame_skip: 4
-    episode_timeout: 200 # infinity if not given
+    episode_timeout: 500 # infinity if not given
     encoded_state_dimensions: [4, 84, 84]
     plot_origin: upper
 
 
 learner: 
     type: dqn
-    learning_rate: 0.01
+    learning_rate: 0.00025
     gradient_momentum: 0.95
     squared_gradient_momentum: 0.95
-    min_squared_gradient: 0.1
+    min_squared_gradient: 0.01
     discount_factor: 0.99 
     epsilon:
-        schedule: constant
+        schedule: linear_decay
 
         constant:
             value: 0.1
         
         linear_decay:
-            initial_value: 1
-            final_value: 0.1
-            anneal_duration: 1000000
-
+            initial_value: 0.9
+            final_value: 0.02
+            anneal_duration: 100000
+    
     initialisation: random
+
     visitation_penalty_type: hard_coded # hard_coded, adaptive_uncertainty
 
     hard_coded: 
@@ -71,6 +72,7 @@ learner:
             - [0, 0.0] # from step 0, 0 penalty
 
     adaptive_uncertainty:
+        max_over_actions: True
         multiplicative_factor: 0.5
 
 sarsa_lambda:
@@ -93,11 +95,13 @@ dqn:
     num_replay_fill_trajectories: 500
     replay_buffer_size: 1000000
     target_network_update_period: 10000
+    normalise_state: True
     gradient_clipping: [-1, 1]
 
-    optimiser: adam
+    optimiser: rms_prop
 
-    network_initialisation: normal
+    network_weight_initialisation: normal
+    network_bias_initialisation: zeros
 
     layer_specifications:
         - conv:
@@ -129,7 +133,7 @@ dqn:
             nonlinearity: identity
 
 training:
-    num_episodes: 100
+    num_episodes: 300
     test_frequency: 1
     testing: 
         - greedy
@@ -138,15 +142,17 @@ training:
     train_log_frequency: 50
 
 logging:
-    print_frequency: 5
+    print_frequency: 1
     checkpoint_frequency: 500
+    animation_library: imageio
+    animation_file_format: mp4
     arrays:
     scalars:
         - [train_episode_reward, 1]
         - [train_episode_length, 1]
         - [test_episode_reward, 1]
         - [test_episode_length, 1]
-        - [average_action_value, 50]
+        # - [average_action_value, 50]
         - [loss, 1]
         - [epsilon, 1]
         # - [[train_episode_reward_ensemble_runner, 4], 1]
@@ -164,11 +170,10 @@ logging:
         # - no_repeat_test_episode_length
         # - no_repeat_test_episode_reward
         # - visitation_count_heatmap
-        - [individual_test_run, 500]
-        - [individual_train_run, 500]
+        - [individual_test_run, 200]
+        - [individual_train_run, 200]
         # - [individual_no_rep_test_run, 500]
         # - [individual_no_rep_train_run, 500]
-        # - average_action_value
         # - cycle_count
 
 post_processing:
@@ -180,5 +185,5 @@ post_processing:
     #     - no_repeat_test_episode_reward
     #     - no_repeat_test_episode_length
     #     - mean_visitation_penalty
-    smoothing: 40
+    smoothing: 1
         
