@@ -30,6 +30,9 @@ multiroom:
 
 atari:
     atari_env_name: "Pong-v0"
+    
+    implementation: wrapper # wrapper or functional
+    
     pre_processing:
         - max_over:
             num_frames: 2
