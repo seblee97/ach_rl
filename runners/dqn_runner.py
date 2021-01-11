@@ -31,8 +31,6 @@ class DQNRunner(base_runner.BaseRunner):
             layer_specifications=config.layer_specifications,
             optimiser_type=config.optimiser,
             epsilon=self._epsilon_function,
-            network_weight_initialisation=config.network_weight_initialisation,
-            network_bias_initialisation=config.network_bias_initialisation,
             learning_rate=config.learning_rate,
             momentum=config.gradient_momentum,
             eps=config.min_squared_gradient,
