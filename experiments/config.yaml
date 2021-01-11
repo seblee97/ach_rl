@@ -29,7 +29,7 @@ multiroom:
     plot_origin: lower
 
 atari:
-    atari_env_name: "Pong-v0"
+    atari_env_name: "PongNoFrameskip-v4"
     pre_processing:
         - max_over:
             num_frames: 2
