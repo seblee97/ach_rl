@@ -8,8 +8,13 @@ from learners.ensemble_learners import ensemble_learner
 
 
 class MajorityVoteEnsemble(ensemble_learner.EnsembleLearner):
+    """Ensemble learner where action in a given state
+    is selected based on most common argmax of state-action
+    values in ensemble.
+    """
+
     @property
-    def state_action_values(self):
+    def weighted_state_action_values(self):
         all_state_action_values = [
             learner.state_action_values for learner in self._learner_ensemble
         ]
