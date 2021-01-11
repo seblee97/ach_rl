@@ -103,9 +103,6 @@ dqn:
 
     optimiser: rms_prop
 
-    network_weight_initialisation: normal
-    network_bias_initialisation: zeros
-
     layer_specifications:
         - conv:
             in_channels: 4
@@ -113,27 +110,37 @@ dqn:
             kernel_size: 8
             stride: 4
             nonlinearity:  relu
+            bias_initialisation: 
+            weight_initialisation: 
         - conv:
             in_channels: 32
             num_filters: 64 
             kernel_size: 4
             stride: 2
             nonlinearity:  relu
+            bias_initialisation: 
+            weight_initialisation:
         - conv:
             in_channels: 64
             num_filters: 64 
             kernel_size: 3
             stride: 1
             nonlinearity:  relu
+            bias_initialisation: 
+            weight_initialisation:
         - flatten:
             nonlinearity: identity
         - fc:
             in_features: 3136
             out_features: 512
             nonlinearity: relu
+            bias_initialisation: 
+            weight_initialisation:
         - fc:
             in_features: 512
             nonlinearity: identity
+            bias_initialisation: 
+            weight_initialisation:
 
 training:
     num_episodes: 300
