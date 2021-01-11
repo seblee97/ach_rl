@@ -464,32 +464,6 @@ class AChConfigTemplate:
                 ],
             ),
             config_field.Field(
-                name=constants.Constants.NETWORK_WEIGHT_INITIALISATION,
-                types=[str],
-                requirements=[
-                    lambda x: x
-                    in [
-                        constants.Constants.NORMAL,
-                        constants.Constants.ZEROS,
-                        constants.Constants.XAVIER_NORMAL,
-                        constants.Constants.XAVIER_UNIFORM,
-                    ]
-                ],
-            ),
-            config_field.Field(
-                name=constants.Constants.NETWORK_BIAS_INITIALISATION,
-                types=[str],
-                requirements=[
-                    lambda x: x
-                    in [
-                        constants.Constants.NORMAL,
-                        constants.Constants.ZEROS,
-                        constants.Constants.XAVIER_NORMAL,
-                        constants.Constants.XAVIER_UNIFORM,
-                    ]
-                ],
-            ),
-            config_field.Field(
                 name=constants.Constants.LAYER_SPECIFICATIONS,
                 types=[list],
             ),
