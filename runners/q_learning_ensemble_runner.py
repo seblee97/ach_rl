@@ -29,8 +29,6 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
         self._num_learners = config.num_learners
         super().__init__(config=config)
 
-        self._multiplicative_factor = config.multiplicative_factor
-
         self._parallelise_ensemble = config.parallelise_ensemble
         if self._parallelise_ensemble:
             num_cores = min(len(self._learner.ensemble), multiprocessing.cpu_count())
@@ -275,9 +273,7 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
             action = learner.select_behaviour_action(state)
             reward, new_state = environment.step(action)
             if isinstance(self._visitation_penalty, AdaptiveUncertaintyPenalty):
-                penalty = self._multiplicative_factor * self._visitation_penalty(
-                    state=state, action=action
-                )
+                penalty = self._visitation_penalty(state=state, action=action)
             elif isinstance(self._visitation_penalty, HardCodedPenalty):
                 penalty = self._visitation_penalty(episode=episode)
             penalties.append(penalty)
