@@ -42,6 +42,7 @@ class SampleGreedyEnsemble(ensemble_learner.EnsembleLearner):
         Args:
             state: state for which to select optimal action.
         """
+        possible_actions = self._learner_ensemble[0].action_space
         all_state_action_values = [
             learner.state_action_values for learner in self._learner_ensemble
         ]
@@ -49,11 +50,12 @@ class SampleGreedyEnsemble(ensemble_learner.EnsembleLearner):
             np.argmax(state_action_values[state])
             for state_action_values in all_state_action_values
         ]
-        action_probabilities = np.bincount(max_action_values) / len(max_action_values)
+        action_probabilities = np.bincount(
+            max_action_values, minlength=possible_actions
+        ) / len(max_action_values)
 
-        action = np.random.choice(
-            range(len(action_probabilities)), p=action_probabilities
-        )
+        action = np.random.choice(possible_actions, p=action_probabilities)
+
         return action
 
     def non_repeat_greedy_action(
