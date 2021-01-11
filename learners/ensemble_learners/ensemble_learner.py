@@ -1,3 +1,5 @@
+import abc
+from typing import Any
 from typing import List
 
 from learners import base_learner
@@ -18,8 +20,14 @@ class EnsembleLearner(base_learner.BaseLearner):
     def ensemble(self) -> List:
         return self._learner_ensemble
 
-    def eval(self) -> None:
+    @abc.abstractmethod
+    def select_target_action(self, state: Any) -> None:
         pass
 
+    def eval(self) -> None:
+        for learner in self._learner_ensemble:
+            learner.eval()
+
     def train(self) -> None:
-        pass
+        for learner in self._learner_ensemble:
+            learner.train()
