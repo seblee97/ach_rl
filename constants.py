@@ -192,7 +192,7 @@ class Constants:
     MP4 = "mp4"
     GIF = "gif"
 
-    ATARI_ENVS = ["Pong-v0"]
+    ATARI_ENVS = ["PongNoFrameskip-v4"]
 
     GRAPH_LAYOUTS = {
         1: (1, 1),
