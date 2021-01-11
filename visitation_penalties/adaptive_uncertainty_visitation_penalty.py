@@ -14,6 +14,7 @@ class AdaptiveUncertaintyPenalty(base_visistation_penalty.BaseVisitationPenalty)
     def __init__(self, config: ach_config.AchConfig):
         self._state_action_values: List[Dict[Tuple[int], float]]
 
+        self._multiplicative_factor = config.multiplicative_factor
         self._max_over_actions = config.max_over_actions
         super().__init__(config=config)
 
@@ -34,6 +35,6 @@ class AdaptiveUncertaintyPenalty(base_visistation_penalty.BaseVisitationPenalty)
         else:
             current_state_action_values = [s[action] for s in current_state_values]
 
-        uncertainty = np.std(current_state_action_values)
+        uncertainty = self._multiplicative_factor * np.std(current_state_action_values)
 
         return uncertainty
