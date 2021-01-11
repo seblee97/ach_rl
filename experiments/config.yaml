@@ -30,6 +30,9 @@ multiroom:
 
 atari:
     atari_env_name: "PongNoFrameskip-v4"
+
+    implementation: wrapper
+
     pre_processing:
         - max_over:
             num_frames: 2
