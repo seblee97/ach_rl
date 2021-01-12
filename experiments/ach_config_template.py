@@ -200,6 +200,24 @@ class AChConfigTemplate:
         ],
     )
 
+    _potential_based_adaptive_uncertainty_template = config_template.Template(
+        fields=[
+            config_field.Field(
+                name=constants.Constants.MULTIPLICATIVE_FACTOR,
+                types=[float, int],
+            ),
+            config_field.Field(name=constants.Constants.MAX_OVER_ACTIONS, types=[bool]),
+        ],
+        level=[
+            constants.Constants.LEARNER,
+            constants.Constants.POTENTIAL_BASED_ADAPTIVE_UNCERTAINTY,
+        ],
+        dependent_variables=[constants.Constants.VISITATION_PENALTY_TYPE],
+        dependent_variables_required_values=[
+            [constants.Constants.POTENTIAL_BASED_ADAPTIVE_UNCERTAINTY]
+        ],
+    )
+
     _constant_epsilon_template = config_template.Template(
         fields=[
             config_field.Field(
@@ -320,6 +338,7 @@ class AChConfigTemplate:
                     in [
                         constants.Constants.HARD_CODED,
                         constants.Constants.ADAPTIVE_UNCERTAINTY,
+                        constants.Constants.POTENTIAL_BASED_ADAPTIVE_UNCERTAINTY,
                     ]
                 ],
             ),
@@ -329,6 +348,7 @@ class AChConfigTemplate:
             _epsilon_template,
             _hard_coded_vp_template,
             _adaptive_uncertainty_template,
+            _potential_based_adaptive_uncertainty_template,
         ],
     )
 
