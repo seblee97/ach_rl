@@ -401,15 +401,19 @@ class AChConfigTemplate:
                 ],
             ),
             config_field.Field(
-                name=constants.Constants.TARGET,
-                types=[str],
+                name=constants.Constants.TARGETS,
+                types=[list],
                 requirements=[
-                    lambda x: x
-                    in [
-                        constants.Constants.GREEDY_SAMPLE,
-                        constants.Constants.GREEDY_MEAN,
-                        constants.Constants.GREEDY_VOTE,
-                    ]
+                    lambda x: x is None
+                    or all(
+                        y
+                        in [
+                            constants.Constants.GREEDY_SAMPLE,
+                            constants.Constants.GREEDY_MEAN,
+                            constants.Constants.GREEDY_VOTE,
+                        ]
+                        for y in x
+                    )
                 ],
             ),
             config_field.Field(
@@ -487,8 +491,10 @@ class AChConfigTemplate:
             ),
             config_field.Field(
                 name=constants.Constants.TESTING,
-                types=[list],
-                requirements=[lambda x: all(isinstance(y, str) for y in x)],
+                types=[list, type(None)],
+                requirements=[
+                    lambda x: x is None or all(isinstance(y, str) for y in x)
+                ],
             ),
             config_field.Field(
                 name=constants.Constants.TRAIN_LOG_FREQUENCY,
