@@ -1,13 +1,11 @@
 from typing import List
 
+import imageio
 import matplotlib.pyplot as plt
 import numpy as np
-import cv2
-import imageio
 from matplotlib.animation import FuncAnimation
 
 import constants
-import warnings
 
 
 def animate(
