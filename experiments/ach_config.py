@@ -1,10 +1,11 @@
+import itertools
 from typing import Dict
 from typing import Union
 
 from config_manager import base_configuration
-from experiments.ach_config_template import AChConfigTemplate
 
 import constants
+from experiments.ach_config_template import AChConfigTemplate
 
 
 class AchConfig(base_configuration.BaseConfiguration):
@@ -84,6 +85,32 @@ class AchConfig(base_configuration.BaseConfiguration):
                 constants.Constants.NO_REPEAT_TEST_EPISODE_LENGTH,
                 constants.Constants.CYCLE_COUNT,
             ]
+            test_constants = [
+                constants.Constants.TEST_EPISODE_REWARD,
+                constants.Constants.TEST_EPISODE_LENGTH,
+            ]
+            targets = [
+                constants.Constants.GREEDY_SAMPLE,
+                constants.Constants.GREEDY_VOTE,
+                constants.Constants.GREEDY_MEAN,
+            ]
+            permitted_scalars.extend(
+                [
+                    "_".join([test_constant, constants.Constants.NO_REP, target])
+                    for test_constant, target in itertools.product(
+                        test_constants, targets
+                    )
+                ]
+            )
+            permitted_scalars.extend(
+                [
+                    "_".join([test_constant, target])
+                    for test_constant, target in itertools.product(
+                        test_constants, targets
+                    )
+                ]
+            )
+
             permitted_visuals = [
                 constants.Constants.INDIVIDUAL_TRAIN_RUN,
                 constants.Constants.INDIVIDUAL_TEST_RUN,
@@ -113,10 +140,13 @@ class AchConfig(base_configuration.BaseConfiguration):
             permitted_tests = [constants.Constants.GREEDY]
         elif learner == constants.Constants.ENSEMBLE_Q_LEARNING:
             permitted_tests = [constants.Constants.GREEDY, constants.Constants.NO_REP]
-        for test_type in getattr(self, constants.Constants.TESTING):
-            assert (
-                test_type in permitted_tests
-            ), f"Test type {test_type} not compatible with learner {learner}"
+
+        test_types = getattr(self, constants.Constants.TESTING)
+        if test_types:
+            for test_type in test_types:
+                assert (
+                    test_type in permitted_tests
+                ), f"Test type {test_type} not compatible with learner {learner}"
 
     def _maybe_reconfigure(self, property_name: str) -> None:
         pass
