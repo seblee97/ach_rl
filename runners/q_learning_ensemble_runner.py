@@ -17,6 +17,9 @@ from learners.tabular_learners import q_learner
 from visitation_penalties.adaptive_uncertainty_visitation_penalty import (
     AdaptiveUncertaintyPenalty,
 )
+from visitation_penalties.potential_adaptive_uncertainty_penalty import (
+    PotentialAdaptiveUncertaintyPenalty,
+)
 from visitation_penalties.hard_coded_visitation_penalty import HardCodedPenalty
 from runners import base_runner
 from utils import cycle_counter
@@ -130,7 +133,10 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
             episode_reward: mean scalar reward accumulated over ensemble episodes.
             num_steps: mean number of steps taken for ensemble episodes.
         """
-        if isinstance(self._visitation_penalty, AdaptiveUncertaintyPenalty):
+        if isinstance(
+            self._visitation_penalty,
+            (AdaptiveUncertaintyPenalty, PotentialAdaptiveUncertaintyPenalty),
+        ):
             self._visitation_penalty.state_action_values = [
                 learner.state_action_values for learner in self._learner.ensemble
             ]
@@ -272,10 +278,18 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
         while environment.active:
             action = learner.select_behaviour_action(state)
             reward, new_state = environment.step(action)
+
             if isinstance(self._visitation_penalty, AdaptiveUncertaintyPenalty):
                 penalty = self._visitation_penalty(state=state, action=action)
             elif isinstance(self._visitation_penalty, HardCodedPenalty):
                 penalty = self._visitation_penalty(episode=episode)
+            elif isinstance(
+                self._visitation_penalty, PotentialAdaptiveUncertaintyPenalty
+            ):
+                penalty = self._visitation_penalty(
+                    state=state, action=action, next_state=new_state
+                )
+
             penalties.append(penalty)
             learner.step(
                 state,
