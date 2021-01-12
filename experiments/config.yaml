@@ -68,14 +68,18 @@ learner:
     
     initialisation: random
 
-    visitation_penalty_type: hard_coded # hard_coded, adaptive_uncertainty
+    visitation_penalty_type: potential_based_adaptive_uncertainty # hard_coded, adaptive_uncertainty, potential_based_adaptive_uncertainty
 
     hard_coded: 
         vp_schedule:
-            - [0, 0.0] # from step 0, 0 penalty
+            - [0, 0.25] # from step 0, 0 penalty
 
     adaptive_uncertainty:
         max_over_actions: True
+        multiplicative_factor: 0.5
+
+    potential_based_adaptive_uncertainty:
+        max_over_actions: True 
         multiplicative_factor: 0.5
 
 sarsa_lambda:
