@@ -158,6 +158,10 @@ class DQNRunner(base_runner.BaseRunner):
 
         return episode_reward, self._environment.episode_step_count
 
+    def _run_specific_tests(self, episode: int):
+        """Implement specific test runs for each runner."""
+        pass
+
     def _compute_average_action_value(self) -> float:
         """Compute average value of action implied by learned state-action values.
 

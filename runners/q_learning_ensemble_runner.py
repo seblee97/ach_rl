@@ -10,9 +10,14 @@ import constants
 from environments import base_environment
 from experiments import ach_config
 from learners import base_learner
-from learners.ensemble_learners import majority_vote_ensemble_learner
-from learners.ensemble_learners import mean_greedy_ensemble_learner
-from learners.ensemble_learners import sample_greedy_ensemble_learner
+from learners.ensemble_learners import ensemble_learner
+from learners.ensemble_learners.majority_vote_ensemble_learner import (
+    MajorityVoteEnsemble,
+)
+from learners.ensemble_learners.mean_greedy_ensemble_learner import MeanGreedyEnsemble
+from learners.ensemble_learners.sample_greedy_ensemble_learner import (
+    SampleGreedyEnsemble,
+)
 from learners.tabular_learners import q_learner
 from visitation_penalties.adaptive_uncertainty_visitation_penalty import (
     AdaptiveUncertaintyPenalty,
@@ -30,6 +35,7 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
 
     def __init__(self, config: ach_config.AchConfig):
         self._num_learners = config.num_learners
+        self._targets = config.targets
         super().__init__(config=config)
 
         self._parallelise_ensemble = config.parallelise_ensemble
@@ -43,18 +49,7 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
             self._get_individual_q_learner(config=config)
             for _ in range(self._num_learners)
         ]
-        if config.target == constants.Constants.GREEDY_SAMPLE:
-            learner = sample_greedy_ensemble_learner.SampleGreedyEnsemble(
-                learner_ensemble=learners
-            )
-        elif config.target == constants.Constants.GREEDY_MEAN:
-            learner = mean_greedy_ensemble_learner.MeanGreedyEnsemble(
-                learner_ensemble=learners
-            )
-        elif config.target == constants.Constants.GREEDY_VOTE:
-            learner = majority_vote_ensemble_learner.MajorityVoteEnsemble(
-                learner_ensemble=learners
-            )
+        learner = ensemble_learner.EnsembleLearner(learner_ensemble=learners)
         return learner
 
     def _get_individual_q_learner(self, config: ach_config.AchConfig):
@@ -63,7 +58,7 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
             action_space=self._environment.action_space,
             state_space=self._environment.state_space,
             behaviour=config.behaviour,
-            target=config.target,
+            target="",
             initialisation_strategy=config.initialisation,
             epsilon=self._epsilon_function,
             learning_rate=config.learning_rate,
@@ -303,3 +298,77 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
             episode_reward += reward
 
         return episode_reward, environment.episode_step_count, np.mean(penalties)
+
+    def _run_specific_tests(self, episode: int):
+        """Implement specific test runs for each runner.
+
+        Here, there are various methods for performing inference.
+        """
+        greedy_sample = constants.Constants.GREEDY_SAMPLE
+        greedy_mean = constants.Constants.GREEDY_MEAN
+        greedy_vote = constants.Constants.GREEDY_VOTE
+
+        no_rep_greedy_sample = "_".join(
+            [constants.Constants.NO_REP, constants.Constants.GREEDY_SAMPLE]
+        )
+        no_rep_greedy_mean = "_".join(
+            [constants.Constants.NO_REP, constants.Constants.GREEDY_MEAN]
+        )
+        no_rep_greedy_vote = "_".join(
+            [constants.Constants.NO_REP, constants.Constants.GREEDY_VOTE]
+        )
+
+        if greedy_sample in self._targets:
+            self._greedy_test_episode(
+                episode=episode,
+                action_selection_method=SampleGreedyEnsemble.select_target_action,
+                action_selection_method_args={
+                    constants.Constants.LEARNERS: self._learner.ensemble
+                },
+                tag_=f"_{greedy_sample}",
+            )
+        if greedy_mean in self._targets:
+            self._greedy_test_episode(
+                episode=episode,
+                action_selection_method=MeanGreedyEnsemble.select_target_action,
+                action_selection_method_args={
+                    constants.Constants.LEARNERS: self._learner.ensemble
+                },
+                tag_=f"_{greedy_mean}",
+            )
+        if greedy_vote in self._targets:
+            self._greedy_test_episode(
+                episode=episode,
+                action_selection_method=MajorityVoteEnsemble.select_target_action,
+                action_selection_method_args={
+                    constants.Constants.LEARNERS: self._learner.ensemble
+                },
+                tag_=f"_{greedy_vote}",
+            )
+        if no_rep_greedy_sample in self._targets:
+            self._non_repeat_test_episode(
+                episode=episode,
+                action_selection_method=SampleGreedyEnsemble.select_target_action,
+                action_selection_method_args={
+                    constants.Constants.LEARNERS: self._learner.ensemble
+                },
+                tag_=f"_{no_rep_greedy_sample}",
+            )
+        if no_rep_greedy_mean in self._targets:
+            self._non_repeat_test_episode(
+                episode=episode,
+                action_selection_method=MeanGreedyEnsemble.select_target_action,
+                action_selection_method_args={
+                    constants.Constants.LEARNERS: self._learner.ensemble
+                },
+                tag_=f"_{no_rep_greedy_mean}",
+            )
+        if no_rep_greedy_vote in self._targets:
+            self._non_repeat_test_episode(
+                episode=episode,
+                action_selection_method=MajorityVoteEnsemble.select_target_action,
+                action_selection_method_args={
+                    constants.Constants.LEARNERS: self._learner.ensemble
+                },
+                tag_=f"_{no_rep_greedy_vote}",
+            )

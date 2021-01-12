@@ -3,7 +3,7 @@ seed: 0
 use_gpu: True
 gpu_id: 0
 
-environment: atari
+environment: multiroom
 apply_curriculum: False
     
 minigrid:
@@ -49,8 +49,8 @@ atari:
 
 
 learner: 
-    type: dqn
-    learning_rate: 0.00025
+    type: ensemble_q_learning
+    learning_rate: 0.01
     gradient_momentum: 0.95
     squared_gradient_momentum: 0.95
     min_squared_gradient: 0.01
@@ -94,7 +94,10 @@ q_learning:
 ensemble_q_learning:
     num_learners: 4
     behaviour: epsilon_greedy
-    target: greedy_sample # greedy_sample, greedy_mean, greedy_vote
+    targets: 
+        - greedy_sample
+        - greedy_mean
+        - greedy_vote
     parallelise_ensemble: False
 
 dqn:
@@ -147,10 +150,10 @@ dqn:
             weight_initialisation:
 
 training:
-    num_episodes: 300
+    num_episodes: 100
     test_frequency: 1
     testing: 
-        - greedy
+        # - greedy
         # - no_rep
     full_test_log_frequency: 500
     train_log_frequency: 50
@@ -164,11 +167,15 @@ logging:
     scalars:
         - [train_episode_reward, 1]
         - [train_episode_length, 1]
-        - [test_episode_reward, 1]
-        - [test_episode_length, 1]
+        - [test_episode_reward_greedy_sample, 1]
+        - [test_episode_reward_greedy_vote, 1]
+        - [test_episode_reward_greedy_mean, 1]
+        - [test_episode_length_greedy_sample, 1]
+        - [test_episode_length_greedy_vote, 1]
+        - [test_episode_length_greedy_mean, 1]
         # - [average_action_value, 50]
-        - [loss, 1]
-        - [epsilon, 1]
+        # - [loss, 1]
+        # - [epsilon, 1]
         # - [[train_episode_reward_ensemble_runner, 4], 1]
         # - [[train_episode_length_ensemble_runner, 4], 1]
         # - [ensemble_episode_reward_std, 1]
@@ -178,7 +185,7 @@ logging:
         # - [no_repeat_test_episode_length, 1]
         # - [cycle_count, 1]
     visualisations:
-        # - [value_function, 50]
+        - [value_function, 50]
         # - plot_episode_lengths
         # - plot_episode_rewards
         # - no_repeat_test_episode_length

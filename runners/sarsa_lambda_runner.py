@@ -64,3 +64,7 @@ class SARSALambdaRunner(base_runner.BaseRunner):
             episode_reward += reward
 
         return episode_reward, self._environment.episode_step_count
+
+    def _run_specific_tests(self, episode: int):
+        """Implement specific test runs for each runner."""
+        pass
