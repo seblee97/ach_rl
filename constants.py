@@ -20,6 +20,7 @@ class Constants:
     LEARNING_RATE = "learning_rate"
     DISCOUNT_FACTOR = "discount_factor"
     LEARNER = "learner"
+    LEARNERS = "learners"
     TRAINING = "training"
     NUM_EPISODES = "num_episodes"
     EXPERIMENT_NAME = "experiment_name"
@@ -47,6 +48,7 @@ class Constants:
     GREEDY = "greedy"
     BEHAVIOUR = "behaviour"
     TARGET = "target"
+    TARGETS = "targets"
     NUM_REWARDS = "num_rewards"
     REWARD_MAGNITUDES = "reward_magnitudes"
     REPEAT_REWARDS = "repeat_rewards"
@@ -153,6 +155,8 @@ class Constants:
     XAVIER_NORMAL = "xavier_normal"
     XAVIER_UNIFORM = "xavier_uniform"
     NETWORK_INITIALISATION = "network_initialisation"
+    WEIGHT_INITIALISATION = "weight_initialisation"
+    BIAS_INITIALISATION = "bias_initialisation"
     NETWORK_WEIGHT_INITIALISATION = "network_weight_initialisation"
     NETWORK_BIAS_INITIALISATION = "network_bias_initialisation"
     MULTIROOM = "multiroom"
@@ -173,6 +177,7 @@ class Constants:
     GREEDY_VOTE = "greedy_vote"
     PARALLELISE_ENSEMBLE = "parallelise_ensemble"
     ADAPTIVE_UNCERTAINTY = "adaptive_uncertainty"
+    POTENTIAL_BASED_ADAPTIVE_UNCERTAINTY = "potential_based_adaptive_uncertainty"
     ENSEMBLE_RUNNER = "ensemble_runner"
     ENSEMBLE_EPISODE_REWARD_STD = "ensemble_episode_reward_std"
     ENSEMBLE_EPISODE_LENGTH_STD = "ensemble_episode_length_std"
@@ -192,7 +197,7 @@ class Constants:
     MP4 = "mp4"
     GIF = "gif"
 
-    ATARI_ENVS = ["Pong-v0"]
+    ATARI_ENVS = ["PongNoFrameskip-v4"]
 
     GRAPH_LAYOUTS = {
         1: (1, 1),

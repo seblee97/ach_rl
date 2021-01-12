@@ -2,13 +2,13 @@ from typing import Any
 from typing import Dict
 from typing import List
 from typing import Tuple
-
-from utils import custom_torch_layers
+from typing import Union
 
 import torch
 import torch.nn as nn
 
 import constants
+from utils import custom_torch_layers
 
 
 class QNetwork(nn.Module):
@@ -19,8 +19,6 @@ class QNetwork(nn.Module):
         state_dim: Tuple[int, int, int],
         num_actions: int,
         layer_specifications: List[Dict[str, Any]],
-        weight_initialisation: str,
-        bias_initialisation: str,
     ):
         """Class constructor.
 
@@ -28,14 +26,10 @@ class QNetwork(nn.Module):
             state_dim: dimensions of the state.
             num_actions: number of possible actions.
             layer_specifications: hidden layer specifications.
-            weight_initialisation: type of initialisation for weights e.g. xavier_normal.
-            bias_initialisation: type of initialisation for bias e.g. zeros.
         """
         self._state_dim = state_dim
         self._num_actions = num_actions
         self._layer_specifications = layer_specifications
-        self._weight_initialisation = weight_initialisation
-        self._bias_initialisation = bias_initialisation
 
         super().__init__()
 
@@ -66,6 +60,7 @@ class QNetwork(nn.Module):
                         constants.Constants.OUT_FEATURES, self._num_actions
                     ),
                 )
+
             elif layer_type == constants.Constants.FLATTEN:
                 layer = custom_torch_layers.Flatten()
             else:
@@ -81,17 +76,23 @@ class QNetwork(nn.Module):
             # initialise weights (only those with parameters)
             if [p for p in layer.parameters()]:
                 self._initialise_weights(
-                    layer.weight, initialisation=self._weight_initialisation
+                    layer.weight,
+                    initialisation=layer_info.get(
+                        constants.Constants.WEIGHT_INITIALISATION
+                    ),
                 )
                 self._initialise_weights(
-                    layer.bias, initialisation=self._bias_initialisation
+                    layer.bias,
+                    initialisation=layer_info.get(
+                        constants.Constants.BIAS_INITIALISATION
+                    ),
                 )
 
             self._layers.append(layer)
             self._layers.append(nonlinearity)
 
     def _initialise_weights(
-        self, layer_weights: nn.Parameter, initialisation: str
+        self, layer_weights: nn.Parameter, initialisation: Union[str, None]
     ) -> None:
         """Initialise weights of network layer according to specification.
 
@@ -100,15 +101,16 @@ class QNetwork(nn.Module):
         Args:
             layer_weights: un-initialised weights.
         """
-        pass
-        # if initialisation == constants.Constants.ZEROS:
-        #     nn.init.zeros_(layer_weights)
-        # elif initialisation == constants.Constants.NORMAL:
-        #     nn.init.normal_(layer_weights)
-        # elif initialisation == constants.Constants.XAVIER_NORMAL:
-        #     nn.init.xavier_normal_(layer_weights)
-        # elif initialisation == constants.Constants.XAVIER_UNIFORM:
-        #     nn.init.xavier_uniform_(layer_weights)
+        if initialisation is None:
+            pass
+        elif initialisation == constants.Constants.ZEROS:
+            nn.init.zeros_(layer_weights)
+        elif initialisation == constants.Constants.NORMAL:
+            nn.init.normal_(layer_weights)
+        elif initialisation == constants.Constants.XAVIER_NORMAL:
+            nn.init.xavier_normal_(layer_weights)
+        elif initialisation == constants.Constants.XAVIER_UNIFORM:
+            nn.init.xavier_uniform_(layer_weights)
 
     def forward(self, x: torch.Tensor):
         """Forward pass through network."""

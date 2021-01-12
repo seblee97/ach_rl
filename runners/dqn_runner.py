@@ -32,8 +32,6 @@ class DQNRunner(base_runner.BaseRunner):
             layer_specifications=config.layer_specifications,
             optimiser_type=config.optimiser,
             epsilon=self._epsilon_function,
-            network_weight_initialisation=config.network_weight_initialisation,
-            network_bias_initialisation=config.network_bias_initialisation,
             learning_rate=config.learning_rate,
             momentum=config.gradient_momentum,
             eps=config.min_squared_gradient,
@@ -161,6 +159,10 @@ class DQNRunner(base_runner.BaseRunner):
         )
 
         return episode_reward, self._environment.episode_step_count
+
+    def _run_specific_tests(self, episode: int):
+        """Implement specific test runs for each runner."""
+        pass
 
     def _compute_average_action_value(self) -> float:
         """Compute average value of action implied by learned state-action values.

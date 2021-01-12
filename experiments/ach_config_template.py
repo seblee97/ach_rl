@@ -200,6 +200,24 @@ class AChConfigTemplate:
         ],
     )
 
+    _potential_based_adaptive_uncertainty_template = config_template.Template(
+        fields=[
+            config_field.Field(
+                name=constants.Constants.MULTIPLICATIVE_FACTOR,
+                types=[float, int],
+            ),
+            config_field.Field(name=constants.Constants.MAX_OVER_ACTIONS, types=[bool]),
+        ],
+        level=[
+            constants.Constants.LEARNER,
+            constants.Constants.POTENTIAL_BASED_ADAPTIVE_UNCERTAINTY,
+        ],
+        dependent_variables=[constants.Constants.VISITATION_PENALTY_TYPE],
+        dependent_variables_required_values=[
+            [constants.Constants.POTENTIAL_BASED_ADAPTIVE_UNCERTAINTY]
+        ],
+    )
+
     _constant_epsilon_template = config_template.Template(
         fields=[
             config_field.Field(
@@ -320,6 +338,7 @@ class AChConfigTemplate:
                     in [
                         constants.Constants.HARD_CODED,
                         constants.Constants.ADAPTIVE_UNCERTAINTY,
+                        constants.Constants.POTENTIAL_BASED_ADAPTIVE_UNCERTAINTY,
                     ]
                 ],
             ),
@@ -329,6 +348,7 @@ class AChConfigTemplate:
             _epsilon_template,
             _hard_coded_vp_template,
             _adaptive_uncertainty_template,
+            _potential_based_adaptive_uncertainty_template,
         ],
     )
 
@@ -401,15 +421,19 @@ class AChConfigTemplate:
                 ],
             ),
             config_field.Field(
-                name=constants.Constants.TARGET,
-                types=[str],
+                name=constants.Constants.TARGETS,
+                types=[list],
                 requirements=[
-                    lambda x: x
-                    in [
-                        constants.Constants.GREEDY_SAMPLE,
-                        constants.Constants.GREEDY_MEAN,
-                        constants.Constants.GREEDY_VOTE,
-                    ]
+                    lambda x: x is None
+                    or all(
+                        y
+                        in [
+                            constants.Constants.GREEDY_SAMPLE,
+                            constants.Constants.GREEDY_MEAN,
+                            constants.Constants.GREEDY_VOTE,
+                        ]
+                        for y in x
+                    )
                 ],
             ),
             config_field.Field(
@@ -464,32 +488,6 @@ class AChConfigTemplate:
                 ],
             ),
             config_field.Field(
-                name=constants.Constants.NETWORK_WEIGHT_INITIALISATION,
-                types=[str],
-                requirements=[
-                    lambda x: x
-                    in [
-                        constants.Constants.NORMAL,
-                        constants.Constants.ZEROS,
-                        constants.Constants.XAVIER_NORMAL,
-                        constants.Constants.XAVIER_UNIFORM,
-                    ]
-                ],
-            ),
-            config_field.Field(
-                name=constants.Constants.NETWORK_BIAS_INITIALISATION,
-                types=[str],
-                requirements=[
-                    lambda x: x
-                    in [
-                        constants.Constants.NORMAL,
-                        constants.Constants.ZEROS,
-                        constants.Constants.XAVIER_NORMAL,
-                        constants.Constants.XAVIER_UNIFORM,
-                    ]
-                ],
-            ),
-            config_field.Field(
                 name=constants.Constants.LAYER_SPECIFICATIONS,
                 types=[list],
             ),
@@ -513,8 +511,10 @@ class AChConfigTemplate:
             ),
             config_field.Field(
                 name=constants.Constants.TESTING,
-                types=[list],
-                requirements=[lambda x: all(isinstance(y, str) for y in x)],
+                types=[list, type(None)],
+                requirements=[
+                    lambda x: x is None or all(isinstance(y, str) for y in x)
+                ],
             ),
             config_field.Field(
                 name=constants.Constants.TRAIN_LOG_FREQUENCY,

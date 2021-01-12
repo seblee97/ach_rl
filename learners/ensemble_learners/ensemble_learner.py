@@ -1,4 +1,8 @@
+import abc
+from typing import Any
 from typing import List
+
+import numpy as np
 
 from learners import base_learner
 
@@ -15,11 +19,31 @@ class EnsembleLearner(base_learner.BaseLearner):
         self._learner_ensemble = learner_ensemble
 
     @property
+    def state_action_values(self):
+        all_state_action_values = [
+            learner.state_action_values for learner in self._learner_ensemble
+        ]
+
+        averaged_values = {}
+
+        states = all_state_action_values[0].keys()
+        for state in states:
+            state_values = [values[state] for values in all_state_action_values]
+            mean_state_values = np.mean(state_values, axis=0)
+            averaged_values[state] = mean_state_values
+        return averaged_values
+
+    @property
     def ensemble(self) -> List:
         return self._learner_ensemble
 
-    def eval(self) -> None:
+    def select_target_action(self, state: Any) -> None:
         pass
 
+    def eval(self) -> None:
+        for learner in self._learner_ensemble:
+            learner.eval()
+
     def train(self) -> None:
-        pass
+        for learner in self._learner_ensemble:
+            learner.train()

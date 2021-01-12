@@ -1,5 +1,6 @@
 import abc
 from typing import Any
+from typing import Callable
 from typing import Dict
 from typing import List
 from typing import Optional
@@ -22,6 +23,7 @@ from utils import epsilon_schedules
 from utils import logger
 from utils import plotter
 from visitation_penalties import adaptive_uncertainty_visitation_penalty
+from visitation_penalties import potential_adaptive_uncertainty_penalty
 from visitation_penalties import base_visistation_penalty
 from visitation_penalties import hard_coded_visitation_penalty
 
@@ -180,9 +182,16 @@ class BaseRunner(abc.ABC):
                     config=config
                 )
             )
+        elif (
+            config.visitation_penalty_type
+            == constants.Constants.POTENTIAL_BASED_ADAPTIVE_UNCERTAINTY
+        ):
+            visitation_penalty = potential_adaptive_uncertainty_penalty.PotentialAdaptiveUncertaintyPenalty(
+                config=config
+            )
         else:
             raise ValueError(
-                f"Visitation penalty type {config.visitation_penalty} not recognised"
+                f"Visitation penalty type {config.visitation_penalty_type} not recognised"
             )
         return visitation_penalty
 
@@ -294,6 +303,11 @@ class BaseRunner(abc.ABC):
         """
         pass
 
+    @abc.abstractmethod
+    def _run_specific_tests(self, episode: int):
+        """Implement specific test runs for each runner."""
+        pass
+
     def _test_episode(self, episode: int) -> None:
         """Perform test rollouts, once with target policy,
         and---if specified---once with non-repeat target.
@@ -305,50 +319,71 @@ class BaseRunner(abc.ABC):
             self._learner.eval()
 
             with torch.no_grad():
-                if constants.Constants.GREEDY in self._test_types:
-                    self._greedy_test_episode(episode=episode)
-                if constants.Constants.NO_REP in self._test_types:
-                    self._non_repeat_test_episode(episode=episode)
+                if self._test_types is not None:
+                    if constants.Constants.GREEDY in self._test_types:
+                        self._greedy_test_episode(episode=episode)
+                    if constants.Constants.NO_REP in self._test_types:
+                        self._non_repeat_test_episode(episode=episode)
+
+                self._run_specific_tests(episode=episode)
 
             self._learner.train()
 
-    def _greedy_test_episode(self, episode: int) -> None:
+    def _greedy_test_episode(
+        self,
+        episode: int,
+        action_selection_method: Optional[Callable] = None,
+        action_selection_method_args: Optional[Dict] = {},
+        tag_: Optional[str] = "",
+    ) -> None:
         """Perform 'test' rollout with target policy
 
         Returns:
             episode_reward: scalar reward accumulated over episode.
             num_steps: number of steps taken for episode.
         """
+        action_selection_method = (
+            action_selection_method or self._learner.select_target_action
+        )
+
         episode_reward = 0
 
         state = self._environment.reset_environment(train=False)
 
         while self._environment.active:
-            action = self._learner.select_target_action(state)
+            action = action_selection_method(
+                state=state, **action_selection_method_args
+            )
             reward, state = self._environment.step(action)
             episode_reward += reward
 
         self._logger.write_scalar_df(
-            tag=constants.Constants.TEST_EPISODE_LENGTH,
+            tag=constants.Constants.TEST_EPISODE_LENGTH + tag_,
             step=episode,
             scalar=self._environment.episode_step_count,
         )
         self._logger.write_scalar_df(
-            tag=constants.Constants.TEST_EPISODE_REWARD,
+            tag=constants.Constants.TEST_EPISODE_REWARD + tag_,
             step=episode,
             scalar=episode_reward,
         )
 
         if episode != 0:
             if self._visualisation_iteration(
-                constants.Constants.INDIVIDUAL_TEST_RUN, episode
+                constants.Constants.INDIVIDUAL_TEST_RUN + tag_, episode
             ):
                 self._logger.plot_array_data(
-                    name=f"{constants.Constants.INDIVIDUAL_TEST_RUN}_{episode}",
+                    name=f"{constants.Constants.INDIVIDUAL_TEST_RUN + tag_}_{episode}",
                     data=self._environment.plot_episode_history(),
                 )
 
-    def _non_repeat_test_episode(self, episode: int) -> None:
+    def _non_repeat_test_episode(
+        self,
+        episode: int,
+        action_selection_method: Optional[Callable] = None,
+        action_selection_method_args: Optional[Dict] = {},
+        tag_: Optional[str] = "",
+    ) -> None:
         """Perform 'test' rollout with target policy, except actions are never
         repeated in same state. Instead next best action is chosen.
         This is to break loops in test rollouts.
@@ -357,6 +392,10 @@ class BaseRunner(abc.ABC):
             episode_reward: scalar reward accumulated over episode.
             num_steps: number of steps taken for episode.
         """
+        action_selection_method = (
+            action_selection_method or self._learner.select_target_action
+        )
+
         episode_reward = 0
 
         states_visited = {}
@@ -365,8 +404,10 @@ class BaseRunner(abc.ABC):
         states_visited[state] = []
 
         while self._environment.active:
-            action = self._learner.non_repeat_greedy_action(
-                state, excluded_actions=states_visited.get(state, [])
+            action = action_selection_method(
+                state=state,
+                excluded_actions=states_visited.get(state, []),
+                **action_selection_method_args,
             )
             if state not in states_visited:
                 states_visited[state] = []
