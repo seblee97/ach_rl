@@ -37,7 +37,6 @@ class EnsembleLearner(base_learner.BaseLearner):
     def ensemble(self) -> List:
         return self._learner_ensemble
 
-    @abc.abstractmethod
     def select_target_action(self, state: Any) -> None:
         pass
 
