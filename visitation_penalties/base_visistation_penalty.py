@@ -1,5 +1,4 @@
 import abc
-from experiments import ach_config
 
 
 class BaseVisitationPenalty(abc.ABC):
@@ -10,7 +9,7 @@ class BaseVisitationPenalty(abc.ABC):
     Ng, Harada, Russell (1999).
     """
 
-    def __init__(self, config: ach_config.AchConfig):
+    def __init__(self, *args, **kwargs):
         pass
 
     @abc.abstractmethod
