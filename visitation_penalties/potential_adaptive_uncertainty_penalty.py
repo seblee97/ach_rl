@@ -1,6 +1,7 @@
 from typing import Dict
 from typing import List
 from typing import Tuple
+from typing import Union
 
 import numpy as np
 
@@ -14,13 +15,17 @@ class PotentialAdaptiveUncertaintyPenalty(
     """Visitation penalty tuned to uncertainty,
     in the potential-based reward shaping formulation of Ng, Harada, Russell (1999)."""
 
-    def __init__(self, config: ach_config.AchConfig):
+    def __init__(
+        self,
+        gamma: float,
+        multiplicative_factor: Union[int, float],
+        max_over_actions: bool,
+    ):
         self._state_action_values: List[Dict[Tuple[int], float]]
 
-        self._gamma = config.discount_factor
-        self._multiplicative_factor = config.multiplicative_factor
-        self._max_over_actions = config.max_over_actions
-        super().__init__(config=config)
+        self._gamma = gamma
+        self._multiplicative_factor = multiplicative_factor
+        self._max_over_actions = max_over_actions
 
     @property
     def state_action_values(self):
