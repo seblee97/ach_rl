@@ -5,7 +5,6 @@ from typing import Union
 
 import numpy as np
 
-from experiments import ach_config
 from visitation_penalties import base_visistation_penalty
 
 
