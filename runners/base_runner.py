@@ -174,12 +174,13 @@ class BaseRunner(abc.ABC):
         """Initialise object to act as visitation penalty."""
         if config.visitation_penalty_type == constants.Constants.HARD_CODED:
             visitation_penalty = hard_coded_visitation_penalty.HardCodedPenalty(
-                config=config
+                hard_coded_penalties=config.vp_schedule
             )
         elif config.visitation_penalty_type == constants.Constants.ADAPTIVE_UNCERTAINTY:
             visitation_penalty = (
                 adaptive_uncertainty_visitation_penalty.AdaptiveUncertaintyPenalty(
-                    config=config
+                    multiplicative_factor=config.multiplicative_factor,
+                    max_over_actions=config.max_over_actions,
                 )
             )
         elif (
@@ -187,7 +188,9 @@ class BaseRunner(abc.ABC):
             == constants.Constants.POTENTIAL_BASED_ADAPTIVE_UNCERTAINTY
         ):
             visitation_penalty = potential_adaptive_uncertainty_penalty.PotentialAdaptiveUncertaintyPenalty(
-                config=config
+                gamma=config.discount_factor,
+                multiplicative_factor=config.multiplicative_factor,
+                max_over_actions=config.max_over_actions,
             )
         else:
             raise ValueError(
