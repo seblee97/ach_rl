@@ -82,7 +82,7 @@ class TabularQLearner(tabular_learner.TabularLearner):
             + self._learning_rate
             * (
                 reward
-                - visitation_penalty
+                + visitation_penalty
                 + discount * self._max_state_action_value(state=new_state)
                 - initial_state_action_value
             )
