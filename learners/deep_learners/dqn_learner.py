@@ -163,7 +163,7 @@ class DQNLearner(base_learner.BaseLearner):
             self._target_q_network(next_state), axis=1
         ).values.detach()
 
-        target = reward + active * self._gamma * max_target
+        target = reward + visitation_penalty + active * self._gamma * max_target
 
         loss = self._loss_module(estimate, target)
         self._optimiser.zero_grad()
