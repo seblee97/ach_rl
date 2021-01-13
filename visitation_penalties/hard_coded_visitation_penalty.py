@@ -1,15 +1,14 @@
 import numpy as np
 
-from experiments import ach_config
 from visitation_penalties import base_visistation_penalty
+
+from typing import List
 
 
 class HardCodedPenalty(base_visistation_penalty.BaseVisitationPenalty):
     """Hard-coded penalties."""
 
-    def __init__(self, config: ach_config.AchConfig):
-        hard_coded_penalties = config.vp_schedule
-
+    def __init__(self, hard_coded_penalties: List[List]):
         self._switch_episodes = iter([int(i[0]) for i in hard_coded_penalties])
         self._penalties = iter([float(i[1]) for i in hard_coded_penalties])
 
