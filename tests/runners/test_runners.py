@@ -8,7 +8,6 @@ from typing import Tuple
 
 import constants
 from experiments import ach_config
-from experiments import config_template
 from runners import base_runner
 from runners import q_learning_ensemble_runner
 from utils import experiment_utils
@@ -28,7 +27,6 @@ def get_base_config() -> ach_config.AchConfig:
     """
     config = ach_config.AchConfig(
         config=TEST_CONFIG_FILE_PATH,
-        template=config_template.ConfigTemplate.base_template,
     )
 
     config = experiment_utils.set_device(config)
