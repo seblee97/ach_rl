@@ -1,29 +1,30 @@
 from typing import Dict
 from typing import List
 from typing import Tuple
+from typing import Union
 
 import numpy as np
 
-from experiments import ach_config
 from visitation_penalties import base_visistation_penalty
 
 
 class AdaptiveUncertaintyPenalty(base_visistation_penalty.BaseVisitationPenalty):
-    """Visitation penalty tuned to uncertainty."""
+    """Visitation penalty tuned to uncertainty over an ensemble."""
 
-    def __init__(self, config: ach_config.AchConfig):
-        self._state_action_values: List[Dict[Tuple[int], float]]
+    def __init__(
+        self, multiplicative_factor: Union[float, int], max_over_actions: bool
+    ):
+        self._state_action_values: List[Dict[Tuple[int], List[float]]]
 
-        self._multiplicative_factor = config.multiplicative_factor
-        self._max_over_actions = config.max_over_actions
-        super().__init__(config=config)
+        self._multiplicative_factor = multiplicative_factor
+        self._max_over_actions = max_over_actions
 
     @property
     def state_action_values(self):
         return self._state_action_values
 
     @state_action_values.setter
-    def state_action_values(self, state_action_values):
+    def state_action_values(self, state_action_values: List[Dict[Tuple[int], float]]):
         self._state_action_values = state_action_values
 
     def __call__(self, state: Tuple, action: int) -> float:
