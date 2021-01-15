@@ -33,6 +33,7 @@ def set_device(
             torch.backends.cudnn.benchmark = False
             config.add_property(constants.Constants.USING_GPU, True)
             experiment_device = torch.device("cuda:{}".format(config.gpu_id))
+            print(f"Device in use: {experiment_device}")
         else:
             print("GPU not found, reverting to CPU")
             config.add_property(constants.Constants.USING_GPU, False)
