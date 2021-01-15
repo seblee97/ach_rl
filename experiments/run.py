@@ -142,8 +142,6 @@ def single_run(
     """
     config = copy.deepcopy(base_configuration)
 
-    config = experiment_utils.set_device(config)
-
     experiment_utils.set_random_seeds(seed)
     checkpoint_path = experiment_utils.get_checkpoint_path(
         results_folder, timestamp, run_name, str(seed)
@@ -165,6 +163,8 @@ def single_run(
                     property_name=change[0],
                     property_value=change[1],
                 )
+
+    config = experiment_utils.set_device(config)
 
     config.add_property(constants.Constants.EXPERIMENT_TIMESTAMP, timestamp)
     config.add_property(constants.Constants.CHECKPOINT_PATH, checkpoint_path)
