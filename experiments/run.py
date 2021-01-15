@@ -1,12 +1,14 @@
 import argparse
 import copy
-import os
 import multiprocessing
+import os
 from multiprocessing import Process
 from typing import Any
 from typing import Dict
 from typing import List
 from typing import Tuple
+
+import torch
 
 import constants
 from experiments import ach_config
@@ -199,6 +201,35 @@ def summary_plot(config: ach_config.AchConfig, experiment_path: str):
             )
 
 
+def _distribute_over_gpus(config_changes: Dict[str, List[Tuple[Any]]]):
+    """If performing a parallel run with GPUs we want to split our processes evenly
+    over the available GPUs. This method allocates tasks (as evenly as possible)
+    over the GPUs.
+
+    Method changes config_changes object in-place.
+    """
+    num_runs = len(args.seeds) * len(config_changes)
+    num_gpus_available = torch.cuda.device_count()
+
+    if num_gpus_available > 0:
+        even_runs_per_gpu = num_runs // num_gpus_available
+        excess_runs = num_runs % num_gpus_available
+
+        gpu_ids = {}
+
+        for i in range(num_gpus_available):
+            jobs_with_id_i = {
+                j: i for j in range(i * even_runs_per_gpu, (i + 1) * even_runs_per_gpu)
+            }
+            gpu_ids.update(jobs_with_id_i)
+
+        for i in range(excess_runs):
+            gpu_ids[num_runs - excess_runs + i] = i
+
+        for i, config_change in enumerate(config_changes.values()):
+            config_change.append((constants.Constants.GPU_ID, gpu_ids[i]))
+
+
 if __name__ == "__main__":
 
     base_configuration = ach_config.AchConfig(config=args.config)
@@ -208,9 +239,13 @@ if __name__ == "__main__":
     experiment_path = os.path.join(results_folder, timestamp)
 
     if args.mode == constants.Constants.PARALLEL:
+        config_changes = args.config_changes
+        if base_configuration.use_gpu:
+            _distribute_over_gpus(config_changes)
+
         parallel_run(
             base_configuration=base_configuration,
-            config_changes=args.config_changes,
+            config_changes=config_changes,
             seeds=args.seeds,
             experiment_path=experiment_path,
             results_folder=results_folder,
