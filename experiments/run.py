@@ -201,6 +201,7 @@ def summary_plot(config: ach_config.AchConfig, experiment_path: str):
                 ylabel=tag,
             )
 
+
 def _distribute_over_gpus(config_changes: Dict[str, List[Tuple[Any]]]):
     """If performing a parallel run with GPUs we want to split our processes evenly
     over the available GPUs. This method allocates tasks (as evenly as possible)
@@ -229,6 +230,7 @@ def _distribute_over_gpus(config_changes: Dict[str, List[Tuple[Any]]]):
         for i, config_change in enumerate(config_changes.values()):
             config_change.append((constants.Constants.GPU_ID, gpu_ids[i]))
 
+
 def save_config_changes(
     config_changes: Dict[str, List[Tuple[str, Any, bool]]], file_name: str
 ) -> None:
@@ -247,7 +249,8 @@ if __name__ == "__main__":
     save_config_changes(
         config_changes=args.config_changes,
         file_name=os.path.join(
-            base_configuration.checkpoint_path,
+            results_folder,
+            timestamp,
             f"{constants.Constants.CONFIG_CHANGES}.json",
         ),
     )
