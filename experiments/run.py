@@ -246,11 +246,12 @@ if __name__ == "__main__":
     results_folder = os.path.join(MAIN_FILE_PATH, constants.Constants.RESULTS)
     experiment_path = os.path.join(results_folder, timestamp)
 
+    os.makedirs(name=experiment_path, exist_ok=True)
+
     save_config_changes(
         config_changes=args.config_changes,
         file_name=os.path.join(
-            results_folder,
-            timestamp,
+            experiment_path,
             f"{constants.Constants.CONFIG_CHANGES}.json",
         ),
     )
