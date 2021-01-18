@@ -191,7 +191,18 @@ class AChConfigTemplate:
                 name=constants.Constants.MULTIPLICATIVE_FACTOR,
                 types=[float, int],
             ),
-            config_field.Field(name=constants.Constants.MAX_OVER_ACTIONS, types=[bool]),
+            config_field.Field(
+                name=constants.Constants.ACTION_FUNCTION,
+                types=[str],
+                requirements=[
+                    lambda x: x
+                    in [
+                        constants.Constants.MEAN,
+                        constants.Constants.MAX,
+                        constants.Constants.SELECT,
+                    ]
+                ],
+            ),
         ],
         level=[constants.Constants.LEARNER, constants.Constants.ADAPTIVE_UNCERTAINTY],
         dependent_variables=[constants.Constants.VISITATION_PENALTY_TYPE],
@@ -206,7 +217,18 @@ class AChConfigTemplate:
                 name=constants.Constants.MULTIPLICATIVE_FACTOR,
                 types=[float, int],
             ),
-            config_field.Field(name=constants.Constants.MAX_OVER_ACTIONS, types=[bool]),
+            config_field.Field(
+                name=constants.Constants.ACTION_FUNCTION,
+                types=[str],
+                requirements=[
+                    lambda x: x
+                    in [
+                        constants.Constants.MEAN,
+                        constants.Constants.MAX,
+                        constants.Constants.SELECT,
+                    ]
+                ],
+            ),
         ],
         level=[
             constants.Constants.LEARNER,
