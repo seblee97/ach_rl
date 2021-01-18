@@ -13,10 +13,12 @@ from runners import q_learning_ensemble_runner
 from utils import experiment_utils
 
 RUNNER_TEST_DIR = os.path.dirname(os.path.realpath(__file__))
+
 TEST_CONFIG_FILE_PATH = os.path.join(RUNNER_TEST_DIR, "test_config.yaml")
+ATARI_TEST_CONFIG_FILE_PATH = os.path.join(RUNNER_TEST_DIR, "atari_test_config.yaml")
 
 
-def get_base_config() -> ach_config.AchConfig:
+def _get_base_config(config_path: str) -> ach_config.AchConfig:
     """
     Generate base configuration object from test yaml file.
 
@@ -26,7 +28,7 @@ def get_base_config() -> ach_config.AchConfig:
         config: Configuration object
     """
     config = ach_config.AchConfig(
-        config=TEST_CONFIG_FILE_PATH,
+        config=config_path,
     )
 
     config = experiment_utils.set_device(config)
@@ -54,8 +56,8 @@ class TestRunners:
         self,
         runner: base_runner.BaseRunner,
         config_changes: List[Tuple[str, Any]],
+        base_config: ach_config.AchConfig,
     ):
-        base_config = get_base_config()
 
         for change in config_changes:
             base_config.amend_property(
@@ -67,7 +69,7 @@ class TestRunners:
         runner_instance.train()
         runner_instance.post_process()
 
-    def test_ensemble_q_runner(self):
+    def _test_ensemble_q_runner(self):
         config_changes = [
             ("environment", "multiroom"),
             ("apply_curriculum", False),
@@ -75,7 +77,22 @@ class TestRunners:
             ("type", "ensemble_q_learning"),
             ("visitation_penalty_type", "adaptive_uncertainty"),
         ]
+        base_config = _get_base_config(config_path=TEST_CONFIG_FILE_PATH)
         self._test_runner(
             runner=q_learning_ensemble_runner.EnsembleQLearningRunner,
             config_changes=config_changes,
+            base_config=base_config,
+        )
+
+    def test_dqn_runner(self):
+        config_changes = [
+            ("apply_curriculum", False),
+            ("type", "dqn"),
+            ("visitation_penalty_type", "hard_coded"),
+        ]
+        base_config = _get_base_config(config_path=ATARI_TEST_CONFIG_FILE_PATH)
+        self._test_runner(
+            runner=q_learning_ensemble_runner.EnsembleQLearningRunner,
+            config_changes=config_changes,
+            base_config=base_config,
         )
