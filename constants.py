@@ -197,6 +197,10 @@ class Constants:
     MP4 = "mp4"
     GIF = "gif"
     CONFIG_CHANGES = "config_changes"
+    MAX = "max"
+    SELECT = "select"
+    MEAN = "mean"
+    ACTION_FUNCTION = "action_function"
 
     ATARI_ENVS = ["PongNoFrameskip-v4"]
 
