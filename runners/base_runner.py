@@ -180,7 +180,7 @@ class BaseRunner(abc.ABC):
             visitation_penalty = (
                 adaptive_uncertainty_visitation_penalty.AdaptiveUncertaintyPenalty(
                     multiplicative_factor=config.multiplicative_factor,
-                    max_over_actions=config.max_over_actions,
+                    action_function=config.action_function,
                 )
             )
         elif (
@@ -190,7 +190,7 @@ class BaseRunner(abc.ABC):
             visitation_penalty = potential_adaptive_uncertainty_penalty.PotentialAdaptiveUncertaintyPenalty(
                 gamma=config.discount_factor,
                 multiplicative_factor=config.multiplicative_factor,
-                max_over_actions=config.max_over_actions,
+                action_function=config.action_function,
             )
         else:
             raise ValueError(
