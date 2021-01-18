@@ -1,0 +1,210 @@
+experiment_name:
+seed: 0
+use_gpu: True
+gpu_id: 0
+
+environment: atari
+apply_curriculum: False
+    
+minigrid:
+    size: [20, 20]
+    living_reward: 0
+    no_op_penalty: 0
+    starting_position: [0, 0] # random if not given
+    num_rewards: 1
+    reward_positions: [[10, 10]] # random if not given
+    reward_magnitudes: [1.]
+    repeat_rewards: False
+    episode_timeout: 200 # infinity if not given
+    plot_origin: lower
+
+minigrid_curriculum:
+    transition_episodes: []
+    environment_changes: 
+        - []
+
+multiroom:
+    ascii_map_path: simple_map_1.txt
+    episode_timeout: 400 # infinity if not given
+    plot_origin: lower
+
+atari:
+    atari_env_name: "PongNoFrameskip-v4"
+
+    implementation: wrapper
+
+    pre_processing:
+        - max_over:
+            num_frames: 2
+        - gray_scale:
+        - down_sample:
+            width: 84
+            height: 84
+
+    frame_stack: 4
+    frame_skip: 4
+    episode_timeout: 500 # infinity if not given
+    encoded_state_dimensions: [4, 84, 84]
+    plot_origin: upper
+
+
+learner: 
+    type: ensemble_q_learning
+    learning_rate: 0.01
+    gradient_momentum: 0.95
+    squared_gradient_momentum: 0.95
+    min_squared_gradient: 0.01
+    discount_factor: 0.99 
+    epsilon:
+        schedule: linear_decay
+
+        constant:
+            value: 0.1
+        
+        linear_decay:
+            initial_value: 0.9
+            final_value: 0.02
+            anneal_duration: 100000
+    
+    initialisation: random
+
+    visitation_penalty_type: potential_based_adaptive_uncertainty # hard_coded, adaptive_uncertainty, potential_based_adaptive_uncertainty
+
+    hard_coded: 
+        vp_schedule:
+            - [0, 0.25] # from step 0, 0 penalty
+
+    adaptive_uncertainty:
+        max_over_actions: True
+        multiplicative_factor: 0.5
+
+    potential_based_adaptive_uncertainty:
+        max_over_actions: True 
+        multiplicative_factor: 0.5
+
+sarsa_lambda:
+    trace_lambda: 0.05
+    behaviour: epsilon_greedy
+    target: greedy
+
+q_learning:
+    behaviour: epsilon_greedy
+    target: greedy
+
+ensemble_q_learning:
+    num_learners: 4
+    behaviour: epsilon_greedy
+    targets: 
+        - greedy_sample
+        - greedy_mean
+        - greedy_vote
+    parallelise_ensemble: False
+
+dqn:
+    batch_size: 32
+    num_replay_fill_trajectories: 500
+    replay_buffer_size: 1000000
+    target_network_update_period: 10000
+    normalise_state: True
+    gradient_clipping: [-1, 1]
+
+    optimiser: rms_prop
+
+    layer_specifications:
+        - conv:
+            in_channels: 4
+            num_filters: 32 
+            kernel_size: 8
+            stride: 4
+            nonlinearity:  relu
+            bias_initialisation: 
+            weight_initialisation: 
+        - conv:
+            in_channels: 32
+            num_filters: 64 
+            kernel_size: 4
+            stride: 2
+            nonlinearity:  relu
+            bias_initialisation: 
+            weight_initialisation:
+        - conv:
+            in_channels: 64
+            num_filters: 64 
+            kernel_size: 3
+            stride: 1
+            nonlinearity:  relu
+            bias_initialisation: 
+            weight_initialisation:
+        - flatten:
+            nonlinearity: identity
+        - fc:
+            in_features: 3136
+            out_features: 512
+            nonlinearity: relu
+            bias_initialisation: 
+            weight_initialisation:
+        - fc:
+            in_features: 512
+            nonlinearity: identity
+            bias_initialisation: 
+            weight_initialisation:
+
+training:
+    num_episodes: 10
+    test_frequency: 1
+    testing: 
+        # - greedy
+        # - no_rep
+    full_test_log_frequency: 5
+    train_log_frequency: 5
+
+logging:
+    print_frequency: 1
+    checkpoint_frequency: 5
+    animation_library: imageio
+    animation_file_format: mp4
+    arrays:
+    scalars:
+        - [train_episode_reward, 1]
+        - [train_episode_length, 1]
+        - [test_episode_reward_greedy_sample, 1]
+        - [test_episode_reward_greedy_vote, 1]
+        - [test_episode_reward_greedy_mean, 1]
+        - [test_episode_length_greedy_sample, 1]
+        - [test_episode_length_greedy_vote, 1]
+        - [test_episode_length_greedy_mean, 1]
+        # - [average_action_value, 50]
+        # - [loss, 1]
+        # - [epsilon, 1]
+        # - [[train_episode_reward_ensemble_runner, 4], 1]
+        # - [[train_episode_length_ensemble_runner, 4], 1]
+        # - [ensemble_episode_reward_std, 1]
+        # - [ensemble_episode_length_std, 1]
+        # - [mean_visitation_penalty, 1]
+        # - [no_repeat_test_episode_reward, 1]
+        # - [no_repeat_test_episode_length, 1]
+        # - [cycle_count, 1]
+    visualisations:
+        - [value_function, 5]
+        # - plot_episode_lengths
+        # - plot_episode_rewards
+        # - no_repeat_test_episode_length
+        # - no_repeat_test_episode_reward
+        # - visitation_count_heatmap
+        - [individual_test_run, 2]
+        - [individual_train_run, 2]
+        # - [individual_no_rep_test_run, 500]
+        # - [individual_no_rep_train_run, 500]
+        # - cycle_count
+
+post_processing:
+    # plot_tags:
+    #     - train_episode_reward
+    #     - train_episode_length
+    #     - test_episode_reward
+    #     - test_episode_length
+    #     - no_repeat_test_episode_reward
+    #     - no_repeat_test_episode_length
+    #     - mean_visitation_penalty
+    smoothing: 1
+        
