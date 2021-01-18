@@ -196,6 +196,7 @@ class Constants:
     IMAGEIO = "imageio"
     MP4 = "mp4"
     GIF = "gif"
+    CONFIG_CHANGES = "config_changes"
 
     ATARI_ENVS = ["PongNoFrameskip-v4"]
 
