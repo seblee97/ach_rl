@@ -1,5 +1,6 @@
 import argparse
 import copy
+import json
 import multiprocessing
 import os
 from multiprocessing import Process
@@ -200,7 +201,6 @@ def summary_plot(config: ach_config.AchConfig, experiment_path: str):
                 ylabel=tag,
             )
 
-
 def _distribute_over_gpus(config_changes: Dict[str, List[Tuple[Any]]]):
     """If performing a parallel run with GPUs we want to split our processes evenly
     over the available GPUs. This method allocates tasks (as evenly as possible)
@@ -229,6 +229,12 @@ def _distribute_over_gpus(config_changes: Dict[str, List[Tuple[Any]]]):
         for i, config_change in enumerate(config_changes.values()):
             config_change.append((constants.Constants.GPU_ID, gpu_ids[i]))
 
+def save_config_changes(
+    config_changes: Dict[str, List[Tuple[str, Any, bool]]], file_name: str
+) -> None:
+    with open(file_name, "w") as fp:
+        json.dump(config_changes, fp, indent=4)
+
 
 if __name__ == "__main__":
 
@@ -237,6 +243,14 @@ if __name__ == "__main__":
     timestamp = experiment_utils.get_experiment_timestamp()
     results_folder = os.path.join(MAIN_FILE_PATH, constants.Constants.RESULTS)
     experiment_path = os.path.join(results_folder, timestamp)
+
+    save_config_changes(
+        config_changes=args.config_changes,
+        file_name=os.path.join(
+            base_configuration.checkpoint_path,
+            f"{constants.Constants.CONFIG_CHANGES}.json",
+        ),
+    )
 
     if args.mode == constants.Constants.PARALLEL:
         config_changes = args.config_changes
