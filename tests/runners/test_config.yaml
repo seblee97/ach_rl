@@ -150,17 +150,17 @@ dqn:
             weight_initialisation:
 
 training:
-    num_episodes: 100
+    num_episodes: 10
     test_frequency: 1
     testing: 
         # - greedy
         # - no_rep
-    full_test_log_frequency: 500
-    train_log_frequency: 50
+    full_test_log_frequency: 5
+    train_log_frequency: 5
 
 logging:
     print_frequency: 1
-    checkpoint_frequency: 500
+    checkpoint_frequency: 5
     animation_library: imageio
     animation_file_format: mp4
     arrays:
@@ -185,14 +185,14 @@ logging:
         # - [no_repeat_test_episode_length, 1]
         # - [cycle_count, 1]
     visualisations:
-        - [value_function, 50]
+        - [value_function, 5]
         # - plot_episode_lengths
         # - plot_episode_rewards
         # - no_repeat_test_episode_length
         # - no_repeat_test_episode_reward
         # - visitation_count_heatmap
-        - [individual_test_run, 200]
-        - [individual_train_run, 200]
+        - [individual_test_run, 2]
+        - [individual_train_run, 2]
         # - [individual_no_rep_test_run, 500]
         # - [individual_no_rep_train_run, 500]
         # - cycle_count
