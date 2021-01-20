@@ -189,17 +189,13 @@ def single_run(
     r.post_process()
 
 
-def summary_plot(config: ach_config.AchConfig, experiment_path: str):
+def summary_plot(
+    config: ach_config.AchConfig, exp_names: List[str], experiment_path: str
+):
     """Plot summary of experiment."""
-    for tag in config.scalars:
-        if isinstance(tag[0], str):
-            plotting_functions.plot_multi_seed_multi_run(
-                folder_path=experiment_path,
-                tag=tag[0],
-                window_width=config.smoothing,
-                xlabel=constants.Constants.EPISODE,
-                ylabel=tag,
-            )
+    plotting_functions.plot_all_multi_seed_multi_run(
+        folder_path=experiment_path, exp_names=exp_names, window_width=config.smoothing
+    )
 
 
 def _distribute_over_gpus(config_changes: Dict[str, List[Tuple[Any]]]):
@@ -257,19 +253,22 @@ if __name__ == "__main__":
     )
 
     if args.mode == constants.Constants.PARALLEL:
-        config_changes = args.config_changes
         if base_configuration.use_gpu:
-            _distribute_over_gpus(config_changes)
+            _distribute_over_gpus(args.config_changes)
 
         parallel_run(
             base_configuration=base_configuration,
-            config_changes=config_changes,
+            config_changes=args.config_changes,
             seeds=args.seeds,
             experiment_path=experiment_path,
             results_folder=results_folder,
             timestamp=timestamp,
         )
-        summary_plot(config=base_configuration, experiment_path=experiment_path)
+        summary_plot(
+            config=base_configuration,
+            experiment_path=experiment_path,
+            exp_names=list(args.config_changes.keys()),
+        )
     elif args.mode == constants.Constants.SERIAL:
         serial_run(
             base_configuration=base_configuration,
@@ -279,7 +278,11 @@ if __name__ == "__main__":
             results_folder=results_folder,
             timestamp=timestamp,
         )
-        summary_plot(config=base_configuration, experiment_path=experiment_path)
+        summary_plot(
+            config=base_configuration,
+            experiment_path=experiment_path,
+            exp_names=list(args.config_changes.keys()),
+        )
     elif args.mode == constants.Constants.SINGLE:
         single_run(
             base_configuration=base_configuration,
