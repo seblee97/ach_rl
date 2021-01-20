@@ -81,6 +81,7 @@ class AchConfig(base_configuration.BaseConfiguration):
                 constants.Constants.ENSEMBLE_EPISODE_REWARD_STD,
                 constants.Constants.ENSEMBLE_EPISODE_LENGTH_STD,
                 constants.Constants.MEAN_VISITATION_PENALTY,
+                constants.Constants.MEAN_PENALTY_INFO,
                 constants.Constants.NO_REPEAT_TEST_EPISODE_REWARD,
                 constants.Constants.NO_REPEAT_TEST_EPISODE_LENGTH,
                 constants.Constants.CYCLE_COUNT,
