@@ -155,8 +155,6 @@ training:
     testing: 
         # - greedy
         # - no_rep
-    full_test_log_frequency: 500
-    train_log_frequency: 50
 
 logging:
     print_frequency: 1
@@ -186,25 +184,10 @@ logging:
         # - [cycle_count, 1]
     visualisations:
         - [value_function, 50]
-        # - plot_episode_lengths
-        # - plot_episode_rewards
-        # - no_repeat_test_episode_length
-        # - no_repeat_test_episode_reward
         # - visitation_count_heatmap
         - [individual_test_run, 200]
         - [individual_train_run, 200]
-        # - [individual_no_rep_test_run, 500]
-        # - [individual_no_rep_train_run, 500]
-        # - cycle_count
 
 post_processing:
-    # plot_tags:
-    #     - train_episode_reward
-    #     - train_episode_length
-    #     - test_episode_reward
-    #     - test_episode_length
-    #     - no_repeat_test_episode_reward
-    #     - no_repeat_test_episode_length
-    #     - mean_visitation_penalty
     smoothing: 1
         
