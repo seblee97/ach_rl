@@ -201,6 +201,8 @@ class Constants:
     SELECT = "select"
     MEAN = "mean"
     ACTION_FUNCTION = "action_function"
+    MEAN_PENALTY_INFO = "mean_penalty_info"
+    UNCERTAINTY = "uncertainty"
 
     ATARI_ENVS = ["PongNoFrameskip-v4"]
 
