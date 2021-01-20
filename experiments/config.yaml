@@ -68,14 +68,20 @@ learner:
     
     initialisation: random
 
-    visitation_penalty_type: adaptive_uncertainty # hard_coded, adaptive_uncertainty, potential_based_adaptive_uncertainty
+    # hard_coded, adaptive_uncertainty, adaptive_arriving_uncertainty, 
+    # or potential_based_adaptive_uncertainty
+    visitation_penalty_type: hard_coded 
 
     hard_coded: 
         vp_schedule:
             - [0, 0.25] # from step 0, 0 penalty
-
+        
     adaptive_uncertainty:
         action_function: mean # mean or max or select
+        multiplicative_factor: 0.5
+
+    adaptive_arriving_uncertainty:
+        action_function: mean # mean or max
         multiplicative_factor: 0.5
 
     potential_based_adaptive_uncertainty:
