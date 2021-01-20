@@ -142,7 +142,7 @@ class DQNRunner(base_runner.BaseRunner):
             constants.Constants.AVERAGE_ACTION_VALUE, episode
         ):
             average_action_value = self._compute_average_action_value()
-            self._logger.write_scalar_df(
+            self._logger.write_scalar(
                 tag=constants.Constants.AVERAGE_ACTION_VALUE,
                 step=episode,
                 scalar=average_action_value,
