@@ -203,6 +203,9 @@ class Constants:
     ACTION_FUNCTION = "action_function"
     MEAN_PENALTY_INFO = "mean_penalty_info"
     UNCERTAINTY = "uncertainty"
+    CURRENT_STATE_UNCERTAINTY = "current_state_uncertainty"
+    NEXT_STATE_UNCERTAINTY = "next_state_uncertainty"
+    ADAPTIVE_ARRIVING_UNCERTAINTY = "adaptive_arriving_uncertainty"
 
     ATARI_ENVS = ["PongNoFrameskip-v4"]
 
