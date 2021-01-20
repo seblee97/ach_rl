@@ -538,16 +538,6 @@ class AChConfigTemplate:
                     lambda x: x is None or all(isinstance(y, str) for y in x)
                 ],
             ),
-            config_field.Field(
-                name=constants.Constants.TRAIN_LOG_FREQUENCY,
-                types=[int],
-                requirements=[lambda x: x > 0],
-            ),
-            config_field.Field(
-                name=constants.Constants.FULL_TEST_LOG_FREQUENCY,
-                types=[int],
-                requirements=[lambda x: x > 0],
-            ),
         ],
         level=[constants.Constants.TRAINING],
     )
