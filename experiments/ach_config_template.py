@@ -58,14 +58,6 @@ class AChConfigTemplate:
                 types=[int, type(None)],
                 requirements=[lambda x: x is None or x > 0],
             ),
-            config_field.Field(
-                name=constants.Constants.PLOT_ORIGIN,
-                types=[str],
-                requirements=[
-                    lambda x: x
-                    in [constants.Constants.UPPER, constants.Constants.LOWER]
-                ],
-            ),
         ],
         dependent_variables=[constants.Constants.ENVIRONMENT],
         dependent_variables_required_values=[[constants.Constants.MINIGRID]],
@@ -99,14 +91,6 @@ class AChConfigTemplate:
                 name=constants.Constants.EPISODE_TIMEOUT,
                 types=[type(None), int],
                 requirements=[lambda x: x is None or x > 0],
-            ),
-            config_field.Field(
-                name=constants.Constants.PLOT_ORIGIN,
-                types=[str],
-                requirements=[
-                    lambda x: x
-                    in [constants.Constants.UPPER, constants.Constants.LOWER]
-                ],
             ),
         ],
         level=[constants.Constants.MULTIROOM],
@@ -155,14 +139,6 @@ class AChConfigTemplate:
                 name=constants.Constants.ENCODED_STATE_DIMENSIONS,
                 types=[list],
                 requirements=[lambda x: all(isinstance(y, int) and y > 0 for y in x)],
-            ),
-            config_field.Field(
-                name=constants.Constants.PLOT_ORIGIN,
-                types=[str],
-                requirements=[
-                    lambda x: x
-                    in [constants.Constants.UPPER, constants.Constants.LOWER]
-                ],
             ),
         ],
         dependent_variables=[constants.Constants.ENVIRONMENT],
