@@ -164,7 +164,6 @@ class BaseRunner(abc.ABC):
         return plotter.Plotter(
             save_folder=config.checkpoint_path,
             logfile_path=config.logfile_path,
-            plot_tags=list(self._scalar_logging.keys()),
             smoothing=config.smoothing,
         )
 
@@ -245,7 +244,7 @@ class BaseRunner(abc.ABC):
         if tag in self._scalar_logging:
             if episode % self._scalar_logging[tag] == 0:
                 df_tag = df_tag or tag
-                self._logger.write_scalar_df(tag=df_tag, step=episode, scalar=scalar)
+                self._logger.write_scalar(tag=df_tag, step=episode, scalar=scalar)
 
     def train(self) -> None:
         """Perform training (and validation) on given number of episodes."""
@@ -262,8 +261,8 @@ class BaseRunner(abc.ABC):
                     print(f"    Latest Train Reward: {train_reward}")
                     print(f"    Latest Train Length: {train_step_count}")
 
-            if i % self._checkpoint_frequency == 0:
-                self._logger.checkpoint_df()
+            if i % self._checkpoint_frequency == 0 and i != 0:
+                self._logger.checkpoint()
 
             self._pre_episode_log(i)
             self._test_episode(episode=i)
@@ -291,7 +290,7 @@ class BaseRunner(abc.ABC):
                 data=self._environment.visitation_counts,
             )
 
-        self._logger.checkpoint_df()
+        self._logger.checkpoint()
 
     @abc.abstractmethod
     def _train_episode(self, episode: int) -> Tuple[float, int]:
@@ -360,12 +359,12 @@ class BaseRunner(abc.ABC):
             reward, state = self._environment.step(action)
             episode_reward += reward
 
-        self._logger.write_scalar_df(
+        self._logger.write_scalar(
             tag=constants.Constants.TEST_EPISODE_LENGTH + tag_,
             step=episode,
             scalar=self._environment.episode_step_count,
         )
-        self._logger.write_scalar_df(
+        self._logger.write_scalar(
             tag=constants.Constants.TEST_EPISODE_REWARD + tag_,
             step=episode,
             scalar=episode_reward,
