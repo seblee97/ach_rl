@@ -15,13 +15,12 @@ from utils import plotting_functions
 class Plotter:
     """Class for plotting scalar data."""
 
-    def __init__(
-        self, save_folder: str, logfile_path: str, plot_tags: List[str], smoothing: int
-    ):
+    def __init__(self, save_folder: str, logfile_path: str, smoothing: int):
         self._save_folder = save_folder
         self._logfile_path = logfile_path
-        self._plot_tags = plot_tags
         self._smoothing = smoothing
+
+        self._plot_tags: List[str]
 
         self._log_df: pd.DataFrame
         self._scaling: int
@@ -29,6 +28,7 @@ class Plotter:
     def load_data(self) -> None:
         """Read in data logged to path."""
         self._log_df = pd.read_csv(self._logfile_path)
+        self._plot_tags = list(self._log_df.columns)
         self._scaling = len(self._log_df)
 
     @staticmethod
