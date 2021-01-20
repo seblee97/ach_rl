@@ -57,8 +57,13 @@ class PotentialAdaptiveUncertaintyPenalty(
             )
             next_state_uncertainty = np.std([s[action] for s in next_state_values])
 
+        penalty_info = {
+            constants.Constants.CURRENT_STATE_UNCERTAINTY: current_state_uncertainty,
+            constants.Constants.NEXT_STATE_UNCERTAINTY: next_state_uncertainty,
+        }
+
         penalty = self._multiplicative_factor * (
             self._gamma * next_state_uncertainty - current_state_uncertainty
         )
 
-        return penalty
+        return penalty, penalty_info
