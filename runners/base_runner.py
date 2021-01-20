@@ -23,6 +23,7 @@ from utils import epsilon_schedules
 from utils import logger
 from utils import plotter
 from visitation_penalties import adaptive_uncertainty_visitation_penalty
+from visitation_penalties import adaptive_arriving_uncertainty_visitation_penalty
 from visitation_penalties import potential_adaptive_uncertainty_penalty
 from visitation_penalties import base_visistation_penalty
 from visitation_penalties import hard_coded_visitation_penalty
@@ -181,6 +182,14 @@ class BaseRunner(abc.ABC):
                     multiplicative_factor=config.multiplicative_factor,
                     action_function=config.action_function,
                 )
+            )
+        elif (
+            config.visitation_penalty_type
+            == constants.Constants.ADAPTIVE_ARRIVING_UNCERTAINTY
+        ):
+            visitation_penalty = adaptive_arriving_uncertainty_visitation_penalty.AdaptiveArrivingUncertaintyPenalty(
+                multiplicative_factor=config.multiplicative_factor,
+                action_function=config.action_function,
             )
         elif (
             config.visitation_penalty_type
