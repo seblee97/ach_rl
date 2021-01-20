@@ -20,50 +20,46 @@ class Logger:
     def __init__(self, config: ach_config.AchConfig):
         self._checkpoint_path = config.checkpoint_path
         self._logfile_path = config.logfile_path
-        self._df_columns = self._get_df_columns(config)
-        self._logger_df = pd.DataFrame(columns=self._df_columns)
+        self._df_columns = []
+        self._logger_data = {}
         self._plot_origin = config.plot_origin
         self._animation_library = config.animation_library
         self._file_format = config.animation_file_format
 
-    def _get_df_columns(self, config: ach_config.AchConfig) -> List[str]:
-        columns = []
-        for column in config.scalars:
-            column_title = column[0]
-            if isinstance(column_title, str):
-                columns.append(column_title)
-            elif isinstance(column_title, list):
-                columns.extend(
-                    [f"{column_title[0]}_{i}" for i in range(column_title[1])]
-                )
-        return columns
-
-    def write_scalar_df(self, tag: str, step: int, scalar: float) -> None:
-        """Write (scalar) data to dataframe.
+    def write_scalar(self, tag: str, step: int, scalar: float) -> None:
+        """Write (scalar) data to dictionary.
 
         Args:
             tag: tag for data to be logged.
             step: current step count.
             scalar: data to be written.
+        """
+        if tag not in self._logger_data:
+            self._logger_data[tag] = {}
+            self._df_columns.append(tag)
+
+        self._logger_data[tag][step] = scalar
+
+    def checkpoint(self) -> None:
+        """Construct dataframe from data and merge with previously saved checkpoint.
 
         Raises:
-            AssertionError: if tag provided is not previously defined as a column.
+            AssertionError: if columns of dataframe to be appended do
+            not match previous checkpoints.
         """
-        assert tag in self._df_columns, (
-            f"Scalar tag {tag} not in list of recognised columns"
-            f"for DataFrame provided: {self._df_columns}"
+        assert (
+            list(self._logger_data.keys()) == self._df_columns
+        ), "Incorrect dataframe columns for merging"
+
+        # only append header on first checkpoint/save.
+        header = not os.path.exists(self._logfile_path)
+        pd.DataFrame(self._logger_data).to_csv(
+            self._logfile_path, mode="a", header=header, index=False
         )
-        self._logger_df.at[step, tag] = scalar
 
-    def write_array_data(self, name: str, data: np.ndarray) -> None:
-        """Write array data to np save file.
-
-        Args:
-            name: filename for save.
-            data: data to save.
-        """
-        full_path = os.path.join(self._checkpoint_path, name)
-        np.save(file=full_path, arr=data)
+        # reset logger in memory to empty.
+        self._df_columns = []
+        self._logger_data = {}
 
     def plot_array_data(
         self, name: str, data: Union[List[np.ndarray], np.ndarray]
@@ -91,20 +87,12 @@ class Logger:
             fig.savefig(fname=full_path)
             plt.close(fig)
 
-    def checkpoint_df(self) -> None:
-        """Merge dataframe with previously saved checkpoint.
+    def write_array_data(self, name: str, data: np.ndarray) -> None:
+        """Write array data to np save file.
 
-        Raises:
-            AssertionError: if columns of dataframe to be appended do
-            not match previous checkpoints.
+        Args:
+            name: filename for save.
+            data: data to save.
         """
-        assert all(
-            self._logger_df.columns == self._df_columns
-        ), "Incorrect dataframe columns for merging"
-
-        # only append header on first checkpoint/save.
-        header = not os.path.exists(self._logfile_path)
-        self._logger_df.to_csv(self._logfile_path, mode="a", header=header, index=False)
-
-        # reset logger in memory to empty.
-        self._logger_df = pd.DataFrame(columns=self._df_columns)
+        full_path = os.path.join(self._checkpoint_path, name)
+        np.save(file=full_path, arr=data)
