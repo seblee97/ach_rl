@@ -26,7 +26,9 @@ class AdaptiveUncertaintyPenalty(base_visistation_penalty.BaseVisitationPenalty)
     def state_action_values(self, state_action_values: List[Dict[Tuple[int], float]]):
         self._state_action_values = state_action_values
 
-    def __call__(self, state: Tuple, action: int) -> float:
+    def __call__(
+        self, episode: int, state: Tuple, action: int, next_state: Tuple
+    ) -> float:
         current_state_values = [s[state] for s in self._state_action_values]
 
         if self._action_function == constants.Constants.MAX:
@@ -39,4 +41,6 @@ class AdaptiveUncertaintyPenalty(base_visistation_penalty.BaseVisitationPenalty)
 
         penalty = self._multiplicative_factor * uncertainty
 
-        return penalty
+        penalty_info = {constants.Constants.UNCERTAINTY: uncertainty}
+
+        return penalty, penalty_info
