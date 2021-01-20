@@ -9,6 +9,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
+import constants
+
 
 def smooth_data(data: List[float], window_width: int) -> List[float]:
     """Calculates moving average of list of values
@@ -40,6 +42,80 @@ def smooth_data(data: List[float], window_width: int) -> List[float]:
         smoothed_data = _smooth(data)
 
     return smoothed_data
+
+
+def plot_all_multi_seed_multi_run(
+    folder_path: str, exp_names: List[str], window_width: int
+):
+    """Expected structure of folder_path is:
+
+    - folder_path
+        |_ run_1
+        |   |_ seed_0
+        |   |_ seed_1
+        |   |_ ...
+        |   |_ seed_M
+        |
+        |_ run_2
+        |   |_ seed_0
+        |   |_ seed_1
+        |   |_ ...
+        |   |_ seed_M
+        |
+        |_ ...
+        |_ ...
+        |_ run_N
+            |_ seed_0
+            |_ seed_1
+            |_ ...
+            |_ seed_M
+
+    with a file called data_logger.csv in each leaf folder.
+    """
+    experiment_folders = [os.path.join(folder_path, f) for f in exp_names]
+
+    # arbitrarily select one dataframe to find column names
+    ex_seed = os.listdir(experiment_folders[0])[0]
+    ex_df = pd.read_csv(os.path.join(experiment_folders[0], ex_seed, "data_logger.csv"))
+    tags = list(ex_df.columns)
+
+    for tag in tags:
+        fig = plt.figure()
+        for i, exp in enumerate(experiment_folders):
+            attribute_data = []
+            seed_folders = [f for f in os.listdir(exp) if not f.startswith(".")]
+            for seed in seed_folders:
+                df = pd.read_csv(os.path.join(exp, seed, "data_logger.csv"))
+                tag_data = df[tag]
+                attribute_data.append(tag_data)
+            mean_attribute_data = np.mean(attribute_data, axis=0)
+            std_attribute_data = np.std(attribute_data, axis=0)
+            smooth_mean_data = smooth_data(
+                mean_attribute_data, window_width=window_width
+            )
+            smooth_std_data = smooth_data(std_attribute_data, window_width=window_width)
+            plt.plot(
+                range(len(smooth_mean_data)),
+                smooth_mean_data,
+                label=exp_names[i],
+            )
+            plt.fill_between(
+                range(len(smooth_mean_data)),
+                smooth_mean_data - smooth_std_data,
+                smooth_mean_data + smooth_std_data,
+                alpha=0.3,
+            )
+            plt.legend()
+            plt.xlabel(constants.Constants.EPISODE)
+            plt.ylabel(tag)
+
+        os.makedirs(os.path.join(folder_path, "figures"), exist_ok=True)
+        fig.savefig(
+            os.path.join(
+                folder_path, "figures", f"{tag}_plot_multi_seed_multi_run.pdf"
+            ),
+            dpi=100,
+        )
 
 
 def plot_multi_seed_multi_run(
