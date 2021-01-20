@@ -45,7 +45,7 @@ class QLearningRunner(base_runner.BaseRunner):
                 size=self._grid_size,
                 state_action_values=self._learner.state_action_values,
             )
-            self._logger.write_scalar_df(
+            self._logger.write_scalar(
                 tag=constants.Constants.CYCLE_COUNT,
                 step=episode,
                 scalar=num_cycles,
