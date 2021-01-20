@@ -637,11 +637,6 @@ class AChConfigTemplate:
 
     _post_processing_template = config_template.Template(
         fields=[
-            # config_field.Field(
-            #     name=constants.Constants.PLOT_TAGS,
-            #     types=[list],
-            #     requirements=[lambda x: all(isinstance(y, str) for y in x)],
-            # ),
             config_field.Field(
                 name=constants.Constants.SMOOTHING,
                 types=[int],
