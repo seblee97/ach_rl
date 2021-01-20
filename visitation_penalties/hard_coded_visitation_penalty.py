@@ -1,8 +1,8 @@
+from typing import List
+
 import numpy as np
 
 from visitation_penalties import base_visistation_penalty
-
-from typing import List
 
 
 class HardCodedPenalty(base_visistation_penalty.BaseVisitationPenalty):
@@ -29,4 +29,7 @@ class HardCodedPenalty(base_visistation_penalty.BaseVisitationPenalty):
     def __call__(self, episode: int) -> float:
         if episode == self._next_switch_episode:
             self._get_next_penalty_set()
-        return self._current_penalty
+
+        penalty_info = {}
+
+        return self._current_penalty, penalty_info
