@@ -112,7 +112,7 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
                 size=self._grid_size,
                 state_action_values=self._learner.state_action_values,
             )
-            self._logger.write_scalar_df(
+            self._logger.write_scalar(
                 tag=constants.Constants.CYCLE_COUNT,
                 step=episode,
                 scalar=num_cycles,
@@ -145,9 +145,12 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
         else:
             train_fn = self._serial_train_episode
 
-        ensemble_rewards, ensemble_step_counts, ensemble_mean_penalties = train_fn(
-            episode=episode
-        )
+        (
+            ensemble_rewards,
+            ensemble_step_counts,
+            ensemble_mean_penalties,
+            ensemble_mean_penalty_infos,
+        ) = train_fn(episode=episode)
 
         mean_reward = np.mean(ensemble_rewards)
         mean_step_count = np.mean(ensemble_step_counts)
@@ -192,6 +195,13 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
             episode=episode,
             scalar=np.mean(ensemble_mean_penalties),
         )
+        for penalty_info, ensemble_penalty_info in ensemble_mean_penalty_infos.items():
+            self._write_scalar(
+                tag=constants.Constants.MEAN_PENALTY_INFO,
+                episode=episode,
+                scalar=np.mean(ensemble_penalty_info),
+                df_tag=penalty_info,
+            )
 
         return mean_reward, mean_step_count
 
@@ -207,9 +217,15 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
         ensemble_episode_rewards = []
         ensemble_episode_step_counts = []
         mean_penalties = []
+        mean_penalty_infos = {}
 
         for learner in self._learner.ensemble:
-            episode_reward, episode_count, mean_penalty = self._single_train_episode(
+            (
+                episode_reward,
+                episode_count,
+                mean_penalty,
+                mean_penalty_info,
+            ) = self._single_train_episode(
                 environment=self._environment,
                 learner=learner,
                 episode=episode,
@@ -218,8 +234,17 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
             ensemble_episode_rewards.append(episode_reward)
             ensemble_episode_step_counts.append(episode_count)
             mean_penalties.append(mean_penalty)
+            for info_key, mean_info in mean_penalty_info.items():
+                if info_key not in mean_penalty_infos:
+                    mean_penalty_infos[info_key] = []
+                mean_penalty_infos[info_key].append(mean_info)
 
-        return ensemble_episode_rewards, ensemble_episode_step_counts, mean_penalties
+        return (
+            ensemble_episode_rewards,
+            ensemble_episode_step_counts,
+            mean_penalties,
+            mean_penalty_infos,
+        )
 
     def _parallelised_train_episode(
         self,
@@ -241,11 +266,19 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
         processes_results = self._pool.starmap(
             self._single_train_episode, processes_arguments
         )
-        ensemble_episode_rewards, ensemble_episode_step_counts, mean_penalties = zip(
-            *processes_results
-        )
+        (
+            ensemble_episode_rewards,
+            ensemble_episode_step_counts,
+            mean_penalties,
+            mean_penalty_info,
+        ) = zip(*processes_results)
 
-        return ensemble_episode_rewards, ensemble_episode_step_counts, mean_penalties
+        return (
+            ensemble_episode_rewards,
+            ensemble_episode_step_counts,
+            mean_penalties,
+            mean_penalty_info,
+        )
 
     def _single_train_episode(
         self,
@@ -267,6 +300,7 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
         episode_reward = 0
 
         penalties = []
+        penalty_infos = {}
 
         state = environment.reset_environment(train=True)
 
@@ -274,18 +308,16 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
             action = learner.select_behaviour_action(state)
             reward, new_state = environment.step(action)
 
-            if isinstance(self._visitation_penalty, AdaptiveUncertaintyPenalty):
-                penalty = self._visitation_penalty(state=state, action=action)
-            elif isinstance(self._visitation_penalty, HardCodedPenalty):
-                penalty = self._visitation_penalty(episode=episode)
-            elif isinstance(
-                self._visitation_penalty, PotentialAdaptiveUncertaintyPenalty
-            ):
-                penalty = self._visitation_penalty(
-                    state=state, action=action, next_state=new_state
-                )
+            penalty, penalty_info = self._visitation_penalty(
+                episode=episode, state=state, action=action, next_state=new_state
+            )
 
             penalties.append(penalty)
+            for info_key, info in penalty_info.items():
+                if info_key not in penalty_infos.keys():
+                    penalty_infos[info_key] = []
+                penalty_infos[info_key].append(info)
+
             learner.step(
                 state,
                 action,
@@ -297,7 +329,15 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
             state = new_state
             episode_reward += reward
 
-        return episode_reward, environment.episode_step_count, np.mean(penalties)
+        mean_penalties = np.mean(penalties)
+        mean_penalty_info = {k: np.mean(v) for k, v in penalty_infos.items()}
+
+        return (
+            episode_reward,
+            environment.episode_step_count,
+            mean_penalties,
+            mean_penalty_info,
+        )
 
     def _run_specific_tests(self, episode: int):
         """Implement specific test runs for each runner.
