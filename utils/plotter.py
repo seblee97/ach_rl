@@ -83,6 +83,7 @@ class Plotter:
 
         save_path = os.path.join(self._save_folder, constants.Constants.PLOT_PDF)
         self.fig.savefig(save_path, dpi=100)
+        plt.close()
 
     def _plot_scalar(
         self,

@@ -72,20 +72,31 @@ def plot_all_multi_seed_multi_run(
 
     with a file called data_logger.csv in each leaf folder.
     """
-    experiment_folders = [os.path.join(folder_path, f) for f in exp_names]
+    experiment_folders = {
+        exp_name: os.path.join(folder_path, exp_name) for exp_name in exp_names
+    }
 
-    # arbitrarily select one dataframe to find column names
-    ex_seed = os.listdir(experiment_folders[0])[0]
-    ex_df = pd.read_csv(os.path.join(experiment_folders[0], ex_seed, "data_logger.csv"))
-    tags = list(ex_df.columns)
+    tag_set = {}
 
-    for tag in tags:
+    # arbitrarily select one seed's dataframe for each run to find set of column names
+    for exp, exp_path in experiment_folders.items():
+        ex_seed = os.listdir(exp)[0]
+        ex_df = pd.read_csv(os.path.join(exp_path, ex_seed, "data_logger.csv"))
+        tag_subset = list(ex_df.columns)
+        for tag in tag_subset:
+            if tag not in tag_set:
+                tag_set[tag] = []
+            tag_set[tag].append(exp)
+
+    for tag, relevant_experiments in tag_set.items():
         fig = plt.figure()
-        for i, exp in enumerate(experiment_folders):
+        for i, exp in enumerate(relevant_experiments):
             attribute_data = []
             seed_folders = [f for f in os.listdir(exp) if not f.startswith(".")]
             for seed in seed_folders:
-                df = pd.read_csv(os.path.join(exp, seed, "data_logger.csv"))
+                df = pd.read_csv(
+                    os.path.join(experiment_folders[exp], seed, "data_logger.csv")
+                )
                 tag_data = df[tag]
                 attribute_data.append(tag_data)
             mean_attribute_data = np.mean(attribute_data, axis=0)
