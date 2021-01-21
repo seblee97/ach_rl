@@ -80,7 +80,7 @@ def plot_all_multi_seed_multi_run(
 
     # arbitrarily select one seed's dataframe for each run to find set of column names
     for exp, exp_path in experiment_folders.items():
-        ex_seed = os.listdir(exp)[0]
+        ex_seed = os.listdir(exp_path)[0]
         ex_df = pd.read_csv(os.path.join(exp_path, ex_seed, "data_logger.csv"))
         tag_subset = list(ex_df.columns)
         for tag in tag_subset:
