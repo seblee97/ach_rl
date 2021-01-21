@@ -58,7 +58,10 @@ class Plotter:
     def plot_learning_curves(self) -> None:
 
         num_graphs = len(self._plot_tags)
-        graph_layout = constants.Constants.GRAPH_LAYOUTS[num_graphs]
+
+        default_layout = (round(np.sqrt(num_graphs)), round(np.sqrt(num_graphs)))
+        graph_layout = constants.Constants.GRAPH_LAYOUTS.get(num_graphs, default_layout)
+
         num_rows = graph_layout[0]
         num_columns = graph_layout[1]
 
