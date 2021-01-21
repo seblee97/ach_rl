@@ -90,9 +90,11 @@ def plot_all_multi_seed_multi_run(
 
     for tag, relevant_experiments in tag_set.items():
         fig = plt.figure()
-        for i, exp in enumerate(relevant_experiments):
+        for exp in relevant_experiments:
             attribute_data = []
-            seed_folders = [f for f in os.listdir(exp) if not f.startswith(".")]
+            seed_folders = [
+                f for f in os.listdir(experiment_folders[exp]) if not f.startswith(".")
+            ]
             for seed in seed_folders:
                 df = pd.read_csv(
                     os.path.join(experiment_folders[exp], seed, "data_logger.csv")
@@ -108,7 +110,7 @@ def plot_all_multi_seed_multi_run(
             plt.plot(
                 range(len(smooth_mean_data)),
                 smooth_mean_data,
-                label=exp_names[i],
+                label=exp,
             )
             plt.fill_between(
                 range(len(smooth_mean_data)),
