@@ -246,7 +246,7 @@ class AChConfigTemplate:
                 types=[float, int],
             ),
             config_field.Field(
-                name=constants.Constants.ACTION_FUNCTION,
+                name=constants.Constants.PRE_ACTION_FUNCTION,
                 types=[str],
                 requirements=[
                     lambda x: x
@@ -254,6 +254,17 @@ class AChConfigTemplate:
                         constants.Constants.MEAN,
                         constants.Constants.MAX,
                         constants.Constants.SELECT,
+                    ]
+                ],
+            ),
+            config_field.Field(
+                name=constants.Constants.POST_ACTION_FUNCTION,
+                types=[str],
+                requirements=[
+                    lambda x: x
+                    in [
+                        constants.Constants.MEAN,
+                        constants.Constants.MAX,
                     ]
                 ],
             ),

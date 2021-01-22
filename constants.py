@@ -201,10 +201,17 @@ class Constants:
     SELECT = "select"
     MEAN = "mean"
     ACTION_FUNCTION = "action_function"
+    PRE_ACTION_FUNCTION = "pre_action_function"
+    POST_ACTION_FUNCTION = "post_action_function"
     MEAN_PENALTY_INFO = "mean_penalty_info"
     UNCERTAINTY = "uncertainty"
     CURRENT_STATE_UNCERTAINTY = "current_state_uncertainty"
+    CURRENT_STATE_MAX_UNCERTAINTY = "current_state_max_uncertainty"
+    CURRENT_STATE_MEAN_UNCERTAINTY = "current_state_mean_uncertainty"
+    CURRENT_STATE_SELECT_UNCERTAINTY = "current_state_select_uncertainty"
     NEXT_STATE_UNCERTAINTY = "next_state_uncertainty"
+    NEXT_STATE_MEAN_UNCERTAINTY = "current_state_mean_uncertainty"
+    NEXT_STATE_MAX_UNCERTAINTY = "current_state_max_uncertainty"
     ADAPTIVE_ARRIVING_UNCERTAINTY = "adaptive_arriving_uncertainty"
 
     ATARI_ENVS = ["PongNoFrameskip-v4"]
