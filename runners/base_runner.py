@@ -198,7 +198,8 @@ class BaseRunner(abc.ABC):
             visitation_penalty = potential_adaptive_uncertainty_penalty.PotentialAdaptiveUncertaintyPenalty(
                 gamma=config.discount_factor,
                 multiplicative_factor=config.multiplicative_factor,
-                action_function=config.action_function,
+                pre_action_function=config.pre_action_function,
+                post_action_function=config.post_action_function,
             )
         else:
             raise ValueError(
