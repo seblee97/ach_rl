@@ -131,21 +131,9 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
             episode_reward: mean scalar reward accumulated over ensemble episodes.
             num_steps: mean number of steps taken for ensemble episodes.
         """
-        if isinstance(
-            self._visitation_penalty,
-            (
-                AdaptiveUncertaintyPenalty,
-                AdaptiveArrivingUncertaintyPenalty,
-                PotentialAdaptiveUncertaintyPenalty,
-            ),
-        ):
-            self._visitation_penalty.state_action_values = [
-                learner.state_action_values for learner in self._learner.ensemble
-            ]
-        elif isinstance(self._visitation_penalty, HardCodedPenalty):
-            pass
-        else:
-            raise ValueError("Unknown visitation penalty type.")
+        self._visitation_penalty.state_action_values = [
+            learner.state_action_values for learner in self._learner.ensemble
+        ]
 
         if self._parallelise_ensemble:
             train_fn = self._parallelised_train_episode
@@ -315,7 +303,7 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
             action = learner.select_behaviour_action(state)
             reward, next_state = environment.step(action)
 
-            penalty, penalty_info = self._get_visitation_penalty(
+            penalty, penalty_info = self._visitation_penalty(
                 episode=episode, state=state, action=action, next_state=next_state
             )
 
