@@ -129,6 +129,7 @@ def plot_all_multi_seed_multi_run(
             ),
             dpi=100,
         )
+        plt.close()
 
 
 def plot_multi_seed_multi_run(
@@ -219,6 +220,7 @@ def plot_multi_seed_multi_run(
             ),
             dpi=100,
         )
+        plt.close()
 
 
 def plot_value_function(
