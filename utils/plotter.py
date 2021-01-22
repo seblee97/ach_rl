@@ -1,3 +1,4 @@
+import math
 import os
 from typing import List
 from typing import Tuple
@@ -59,7 +60,10 @@ class Plotter:
 
         num_graphs = len(self._plot_tags)
 
-        default_layout = (round(np.sqrt(num_graphs)), round(np.sqrt(num_graphs)))
+        default_layout = (
+            math.ceil(np.sqrt(num_graphs)),
+            math.ceil(np.sqrt(num_graphs)),
+        )
         graph_layout = constants.Constants.GRAPH_LAYOUTS.get(num_graphs, default_layout)
 
         num_rows = graph_layout[0]
