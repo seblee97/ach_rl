@@ -1,3 +1,5 @@
+from typing import Any
+from typing import Dict
 from typing import List
 
 import numpy as np
@@ -16,6 +18,8 @@ class HardCodedPenalty(base_visistation_penalty.BaseVisitationPenalty):
         self._current_penalty = 0.0
         self._next_switch_episode = next(self._switch_episodes)
 
+        super().__init__()
+
     def _get_next_penalty_set(self):
         try:
             self._next_switch_episode = next(self._switch_episodes)
@@ -26,10 +30,8 @@ class HardCodedPenalty(base_visistation_penalty.BaseVisitationPenalty):
         except StopIteration:
             pass
 
-    def __call__(self, episode: int) -> float:
+    def _compute_penalty(self, episode: int, penalty_info: Dict[str, Any]) -> float:
         if episode == self._next_switch_episode:
             self._get_next_penalty_set()
 
-        penalty_info = {}
-
-        return self._current_penalty, penalty_info
+        return self._current_penalty

@@ -1,9 +1,6 @@
+from typing import Any
 from typing import Dict
-from typing import List
-from typing import Tuple
 from typing import Union
-
-import numpy as np
 
 import constants
 from visitation_penalties import base_visistation_penalty
@@ -15,30 +12,20 @@ class AdaptiveArrivingUncertaintyPenalty(
     """Visitation penalty tuned to uncertainty of NEXT state over an ensemble."""
 
     def __init__(self, multiplicative_factor: Union[float, int], action_function: str):
-        self._state_action_values: List[Dict[Tuple[int], List[float]]]
 
         self._multiplicative_factor = multiplicative_factor
         self._action_function = action_function
 
-    @property
-    def state_action_values(self):
-        return self._state_action_values
+        super().__init__()
 
-    @state_action_values.setter
-    def state_action_values(self, state_action_values: List[Dict[Tuple[int], float]]):
-        self._state_action_values = state_action_values
-
-    def __call__(self, next_state: Tuple) -> float:
-        current_state_values = [s[next_state] for s in self._state_action_values]
-
+    def _compute_penalty(self, episode: int, penalty_info: Dict[str, Any]):
         if self._action_function == constants.Constants.MAX:
-            # this option means uncertainty is only function of state, not action
-            uncertainty = np.std([np.max(s) for s in current_state_values])
+            return (
+                self._multiplicative_factor
+                * penalty_info[constants.Constants.NEXT_STATE_MAX_UNCERTAINTY]
+            )
         elif self._action_function == constants.Constants.MEAN:
-            uncertainty = np.mean(np.std(current_state_values, axis=0))
-
-        penalty = self._multiplicative_factor * uncertainty
-
-        penalty_info = {constants.Constants.NEXT_STATE_UNCERTAINTY: uncertainty}
-
-        return penalty, penalty_info
+            return (
+                self._multiplicative_factor
+                * penalty_info[constants.Constants.NEXT_STATE_MEAN_UNCERTAINTY]
+            )
