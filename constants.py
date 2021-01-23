@@ -210,8 +210,8 @@ class Constants:
     CURRENT_STATE_MEAN_UNCERTAINTY = "current_state_mean_uncertainty"
     CURRENT_STATE_SELECT_UNCERTAINTY = "current_state_select_uncertainty"
     NEXT_STATE_UNCERTAINTY = "next_state_uncertainty"
-    NEXT_STATE_MEAN_UNCERTAINTY = "current_state_mean_uncertainty"
-    NEXT_STATE_MAX_UNCERTAINTY = "current_state_max_uncertainty"
+    NEXT_STATE_MEAN_UNCERTAINTY = "next_state_mean_uncertainty"
+    NEXT_STATE_MAX_UNCERTAINTY = "next_state_max_uncertainty"
     ADAPTIVE_ARRIVING_UNCERTAINTY = "adaptive_arriving_uncertainty"
 
     ATARI_ENVS = ["PongNoFrameskip-v4"]
