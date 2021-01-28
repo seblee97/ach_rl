@@ -116,6 +116,8 @@ class AchConfig(base_configuration.BaseConfiguration):
                 constants.Constants.INDIVIDUAL_TRAIN_RUN,
                 constants.Constants.INDIVIDUAL_TEST_RUN,
                 constants.Constants.VALUE_FUNCTION,
+                constants.Constants.INDIVIDUAL_VALUE_FUNCTIONS,
+                constants.Constants.VALUE_FUNCTION_STD,
             ]
         for scalar in scalars:
             if isinstance(scalar[0], str):
