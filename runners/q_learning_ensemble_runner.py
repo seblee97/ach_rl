@@ -140,9 +140,9 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
             episode_reward: mean scalar reward accumulated over ensemble episodes.
             num_steps: mean number of steps taken for ensemble episodes.
         """
-        self._visitation_penalty.state_action_values = [
-            learner.state_action_values for learner in self._learner.ensemble
-        ]
+        self._visitation_penalty.state_action_values = (
+            self._learner.individual_learner_state_action_values
+        )
 
         if self._parallelise_ensemble:
             train_fn = self._parallelised_train_episode
