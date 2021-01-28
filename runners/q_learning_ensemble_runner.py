@@ -70,37 +70,57 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
 
     def _pre_episode_log(self, episode: int):
         """Logging pre-episode. Includes value-function, individual run."""
+        visualisation_configurations = [
+            (constants.Constants.MAX_VALUES_PDF, True, False),
+            (constants.Constants.QUIVER_VALUES_PDF, False, True),
+            (constants.Constants.QUIVER_MAX_VALUES_PDF, True, True),
+        ]
         if self._visualisation_iteration(constants.Constants.VALUE_FUNCTION, episode):
-            max_save_path = os.path.join(
-                self._checkpoint_path,
-                f"{episode}_{constants.Constants.MAX_VALUES_PDF}",
+            averaged_state_action_values = self._learner.state_action_values
+            # tuple of save_path_tag, plot_max_values (bool), quiver (bool)
+            for visualisation_configuration in visualisation_configurations:
+                self._environment.plot_value_function(
+                    values=averaged_state_action_values,
+                    save_path=os.path.join(
+                        self._checkpoint_path,
+                        f"{episode}_{visualisation_configuration[0]}",
+                    ),
+                    plot_max_values=visualisation_configuration[1],
+                    quiver=visualisation_configuration[2],
+                )
+
+        if self._visualisation_iteration(
+            constants.Constants.INDIVIDUAL_VALUE_FUNCTIONS, episode
+        ):
+            all_state_action_values = (
+                self._learner.individual_learner_state_action_values
             )
-            quiver_save_path = os.path.join(
-                self._checkpoint_path,
-                f"{episode}_{constants.Constants.QUIVER_VALUES_PDF}",
-            )
-            quiver_max_save_path = os.path.join(
-                self._checkpoint_path,
-                f"{episode}_{constants.Constants.QUIVER_MAX_VALUES_PDF}",
-            )
+            for i, individual_state_action_values in enumerate(all_state_action_values):
+                for visualisation_configuration in visualisation_configurations:
+                    self._environment.plot_value_function(
+                        values=individual_state_action_values,
+                        save_path=os.path.join(
+                            self._checkpoint_path,
+                            f"{episode}_{i}_{visualisation_configuration[0]}",
+                        ),
+                        plot_max_values=visualisation_configuration[1],
+                        quiver=visualisation_configuration[2],
+                    )
+
+        if self._visualisation_iteration(
+            constants.Constants.VALUE_FUNCTION_STD, episode
+        ):
+            state_action_values_std = self._learner.state_action_values_std
             self._environment.plot_value_function(
-                values=self._learner.state_action_values,
-                save_path=max_save_path,
-                plot_max_values=True,
+                values=state_action_values_std,
+                save_path=os.path.join(
+                    self._checkpoint_path,
+                    f"{episode}_{constants.Constants.VALUE_FUNCTION_STD}",
+                ),
+                plot_max_values=False,
                 quiver=False,
             )
-            self._environment.plot_value_function(
-                values=self._learner.state_action_values,
-                save_path=quiver_save_path,
-                plot_max_values=False,
-                quiver=True,
-            )
-            self._environment.plot_value_function(
-                values=self._learner.state_action_values,
-                save_path=quiver_max_save_path,
-                plot_max_values=True,
-                quiver=True,
-            )
+
         if episode != 0:
             if self._visualisation_iteration(
                 constants.Constants.INDIVIDUAL_TRAIN_RUN, episode
