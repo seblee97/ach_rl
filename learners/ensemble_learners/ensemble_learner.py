@@ -34,6 +34,28 @@ class EnsembleLearner(base_learner.BaseLearner):
         return averaged_values
 
     @property
+    def individual_learner_state_action_values(self):
+        all_state_action_values = [
+            learner.state_action_values for learner in self._learner_ensemble
+        ]
+        return all_state_action_values
+
+    @property
+    def state_action_values_std(self):
+        all_state_action_values = [
+            learner.state_action_values for learner in self._learner_ensemble
+        ]
+
+        values_std = {}
+
+        states = all_state_action_values[0].keys()
+        for state in states:
+            state_values = [values[state] for values in all_state_action_values]
+            state_values_std = np.std(state_values, axis=0)
+            values_std[state] = state_values_std
+        return values_std
+
+    @property
     def ensemble(self) -> List:
         return self._learner_ensemble
 
