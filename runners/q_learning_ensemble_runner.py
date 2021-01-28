@@ -130,17 +130,6 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
                     data=self._environment.plot_episode_history(),
                 )
 
-        if self._scalar_log_iteration(constants.Constants.CYCLE_COUNT, episode):
-            num_cycles = cycle_counter.evaluate_loops_on_value_function(
-                size=self._grid_size,
-                state_action_values=self._learner.state_action_values,
-            )
-            self._logger.write_scalar(
-                tag=constants.Constants.CYCLE_COUNT,
-                step=episode,
-                scalar=num_cycles,
-            )
-
     def _train_episode(self, episode: int) -> Tuple[float, int]:
         """Perform single training loop (per learner in ensemble).
 
