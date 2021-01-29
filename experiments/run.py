@@ -238,6 +238,8 @@ if __name__ == "__main__":
 
     base_configuration = ach_config.AchConfig(config=args.config)
 
+    base_configuration.add_property(MAIN_FILE_PATH, constants.Constants.RUN_PATH)
+
     timestamp = experiment_utils.get_experiment_timestamp()
     results_folder = os.path.join(MAIN_FILE_PATH, constants.Constants.RESULTS)
     experiment_path = os.path.join(results_folder, timestamp)
