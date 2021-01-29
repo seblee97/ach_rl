@@ -215,6 +215,7 @@ class Constants:
     ADAPTIVE_ARRIVING_UNCERTAINTY = "adaptive_arriving_uncertainty"
     INDIVIDUAL_VALUE_FUNCTIONS = "individual_value_functions"
     VALUE_FUNCTION_STD = "value_function_std"
+    VALUE_FUNCTION_STD_PDF = "value_function_std.pdf"
     NEXT_STATE_POLICY_ENTROPY = "next_state_policy_entropy"
     CURRENT_STATE_POLICY_ENTROPY = "current_state_policy_entropy"
     RUN_PATH = "run_path"
