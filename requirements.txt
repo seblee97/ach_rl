@@ -12,4 +12,4 @@ scipy==1.5.2
 torch==1.7.0
 torchvision==0.8.1
 
--e git://github.com/seblee97/config_package.git#egg=config-package
+-e git://github.com/seblee97/config_package.git#egg=config-manager-seblee97
