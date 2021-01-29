@@ -136,7 +136,9 @@ class BaseRunner(abc.ABC):
                 env_args[constants.Constants.PRE_PROCESSING] = config.pre_processing
         elif config.environment == constants.Constants.MULTIROOM:
             env_args = {
-                constants.Constants.ASCII_MAP_PATH: config.ascii_map_path,
+                constants.Constants.ASCII_MAP_PATH: os.path.join(
+                    constants.Constants.RUN_PATH, config.ascii_map_path
+                ),
                 constants.Constants.EPISODE_TIMEOUT: config.episode_timeout,
             }
         return env_args
