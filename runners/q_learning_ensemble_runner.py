@@ -115,7 +115,7 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
                 values=state_action_values_std,
                 save_path=os.path.join(
                     self._checkpoint_path,
-                    f"{episode}_{constants.Constants.VALUE_FUNCTION_STD}",
+                    f"{episode}_{constants.Constants.VALUE_FUNCTION_STD_PDF}",
                 ),
                 plot_max_values=False,
                 quiver=False,
