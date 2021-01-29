@@ -217,6 +217,7 @@ class Constants:
     VALUE_FUNCTION_STD = "value_function_std"
     NEXT_STATE_POLICY_ENTROPY = "next_state_policy_entropy"
     CURRENT_STATE_POLICY_ENTROPY = "current_state_policy_entropy"
+    RUN_PATH = "run_path"
 
     ATARI_ENVS = ["PongNoFrameskip-v4"]
 
