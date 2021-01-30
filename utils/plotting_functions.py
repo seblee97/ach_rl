@@ -24,11 +24,15 @@ def smooth_data(data: List[float], window_width: int) -> List[float]:
     """
 
     def _smooth(single_dataset):
-        cumulative_sum = np.cumsum(single_dataset, dtype=float)
+        cumulative_sum = np.cumsum(single_dataset, dtype=np.float32)
         cumulative_sum[window_width:] = (
             cumulative_sum[window_width:] - cumulative_sum[:-window_width]
         )
-        smoothed_values = cumulative_sum[window_width - 1 :] / window_width
+        # explicitly forcing data type to 32 bits avoids floating point errors
+        # with constant dat.
+        smoothed_values = np.array(
+            cumulative_sum[window_width - 1 :] / window_width, dtype=np.float32
+        )
         return smoothed_values
 
     if all(isinstance(d, list) for d in data):
