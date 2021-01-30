@@ -46,10 +46,9 @@ class BaseVisitationPenalty(abc.ABC):
         current_state_select_uncertainty = np.std(
             [s[action] for s in current_state_values]
         )
-        current_state_max_action_index_probabilities = (
-            np.bincount(current_state_max_action_indices, minlength=num_actions)
-            / num_actions
-        )
+        current_state_max_action_index_probabilities = np.bincount(
+            current_state_max_action_indices, minlength=num_actions
+        ) / len(current_state_max_action_indices)
         current_state_policy_entropy = -np.sum(
             [
                 (probability + self.EPSILON) * np.log(probability + self.EPSILON)
@@ -61,10 +60,9 @@ class BaseVisitationPenalty(abc.ABC):
         next_state_max_action_indices = [np.argmax(s) for s in next_state_values]
         next_state_max_uncertainty = np.std(next_state_max_action_values)
         next_state_mean_uncertainty = np.mean(np.std(next_state_values, axis=0))
-        next_state_max_action_index_probabilities = (
-            np.bincount(next_state_max_action_indices, minlength=num_actions)
-            / num_actions
-        )
+        next_state_max_action_index_probabilities = np.bincount(
+            next_state_max_action_indices, minlength=num_actions
+        ) / len(current_state_max_action_indices)
         next_state_policy_entropy = -np.sum(
             [
                 (probability + self.EPSILON) * np.log(probability + self.EPSILON)
