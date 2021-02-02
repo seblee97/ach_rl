@@ -99,6 +99,7 @@ q_learning:
 
 ensemble_q_learning:
     num_learners: 4
+    copy_learner_initialisation: False
     behaviour: epsilon_greedy
     targets: 
         - greedy_sample
@@ -180,8 +181,8 @@ logging:
         # - [average_action_value, 50]
         # - [loss, 1]
         # - [epsilon, 1]
-        - [[train_episode_reward_ensemble_runner, 10], 1]
-        - [[train_episode_length_ensemble_runner, 10], 1]
+        - [[train_episode_reward_ensemble_runner, 4], 1]
+        - [[train_episode_length_ensemble_runner, 4], 1]
         - [ensemble_episode_reward_std, 1]
         - [ensemble_episode_length_std, 1]
         - [mean_visitation_penalty, 1]
