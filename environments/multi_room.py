@@ -294,7 +294,12 @@ class MultiRoom(base_environment.BaseEnvironment):
         return value_combinations
 
     def plot_value_function(
-        self, values: Dict, plot_max_values: bool, quiver: bool, save_path: str
+        self,
+        values: Dict,
+        plot_max_values: bool,
+        quiver: bool,
+        over_actions: str,
+        save_path: str,
     ) -> None:
         """
         Plot value function over environment.
@@ -308,6 +313,7 @@ class MultiRoom(base_environment.BaseEnvironment):
             values: state-action values.
             plot_max_values: whether or not to plot colormap of values.
             quiver: whether or not to plot arrows with implied best action.
+            over_actions: 'mean' or 'max'; how to flatten action dimension.
             save_path: path to save graphs.
         """
         if len(self._key_positions) <= 2:
@@ -327,6 +333,7 @@ class MultiRoom(base_environment.BaseEnvironment):
             values=averaged_values,
             plot_max_values=plot_max_values,
             quiver=quiver,
+            over_actions=over_actions,
             subtitle="Positional Average",
         )
 
@@ -337,6 +344,7 @@ class MultiRoom(base_environment.BaseEnvironment):
                 values=value_combination,
                 plot_max_values=plot_max_values,
                 quiver=quiver,
+                over_actions=over_actions,
                 subtitle=f"Key State: {key_state}",
             )
 
@@ -344,11 +352,22 @@ class MultiRoom(base_environment.BaseEnvironment):
         plt.close()
 
     def _value_plot(
-        self, fig, ax, values: Dict, plot_max_values: bool, quiver: bool, subtitle: str
+        self,
+        fig,
+        ax,
+        values: Dict,
+        plot_max_values: bool,
+        quiver: bool,
+        over_actions: str,
+        subtitle: str,
     ):
         if plot_max_values:
-            image = self._get_value_heatmap(values=values)
-            im = ax.imshow(image, origin="lower", cmap=self._colormap)
+            image, min_val, max_val = self._get_value_heatmap(
+                values=values, over_actions=over_actions
+            )
+            im = ax.imshow(
+                image, origin="lower", cmap=self._colormap, vmin=min_val, vmax=max_val
+            )
             fig.colorbar(im, ax=ax)
         if quiver:
             map_shape = self._env_skeleton().shape
@@ -365,27 +384,33 @@ class MultiRoom(base_environment.BaseEnvironment):
         ax.title.set_text(subtitle)
         return ax
 
-    def _get_value_heatmap(self, values: Dict) -> np.ndarray:
+    def _get_value_heatmap(
+        self, values: Dict, over_actions: str
+    ) -> Tuple[np.ndarray, float, float]:
         """Heatmap of values over states."""
         environment_map = self._env_skeleton(
             show_rewards=False, show_doors=False, show_keys=False
         )
 
-        all_values = np.concatenate(list(values.values()))
+        if over_actions == constants.Constants.MAX:
+            values = {k: max(v) for k, v in values.items()}
+        elif over_actions == constants.Constants.MEAN:
+            values = {k: np.mean(v) for k, v in values.items()}
+        elif over_actions == constants.Constants.STD:
+            values = {k: np.std(v) for k, v in values.items()}
+
+        all_values = list(values.values())
         current_max_value = np.max(all_values)
         current_min_value = np.min(all_values)
 
         for state, value in values.items():
-            max_action_value = max(value)
-
             # remove alpha from rgba in colormap return
             # normalise value for color mapping
             environment_map[state[::-1]] = self._colormap(
-                max_action_value
-                - current_min_value / (current_max_value - current_min_value)
+                (value - current_min_value) / (current_max_value - current_min_value)
             )[:-1]
 
-        return environment_map
+        return environment_map, current_min_value, current_max_value
 
     def _get_quiver_data(self, map_shape: Tuple[int], values: Dict) -> Tuple:
         """Get data for arrow quiver plot.
