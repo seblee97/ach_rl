@@ -1,4 +1,5 @@
 import copy
+import itertools
 import multiprocessing
 import os
 from typing import Tuple
@@ -19,18 +20,18 @@ from learners.ensemble_learners.sample_greedy_ensemble_learner import (
     SampleGreedyEnsemble,
 )
 from learners.tabular_learners import q_learner
-from visitation_penalties.adaptive_uncertainty_visitation_penalty import (
-    AdaptiveUncertaintyPenalty,
-)
+from runners import base_runner
+from utils import cycle_counter
 from visitation_penalties.adaptive_arriving_uncertainty_visitation_penalty import (
     AdaptiveArrivingUncertaintyPenalty,
 )
+from visitation_penalties.adaptive_uncertainty_visitation_penalty import (
+    AdaptiveUncertaintyPenalty,
+)
+from visitation_penalties.hard_coded_visitation_penalty import HardCodedPenalty
 from visitation_penalties.potential_adaptive_uncertainty_penalty import (
     PotentialAdaptiveUncertaintyPenalty,
 )
-from visitation_penalties.hard_coded_visitation_penalty import HardCodedPenalty
-from runners import base_runner
-from utils import cycle_counter
 
 
 class EnsembleQLearningRunner(base_runner.BaseRunner):
@@ -43,7 +44,7 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
 
         self._parallelise_ensemble = config.parallelise_ensemble
         if self._parallelise_ensemble:
-            num_cores = min(len(self._learner.ensemble), multiprocessing.cpu_count())
+            num_cores = multiprocessing.cpu_count()
             self._pool = multiprocessing.Pool(processes=num_cores)
 
     def _setup_learner(self, config: ach_config.AchConfig):  # TODO: similar to envs
@@ -84,17 +85,35 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
         if self._visualisation_iteration(constants.Constants.VALUE_FUNCTION, episode):
             averaged_state_action_values = self._learner.state_action_values
             # tuple of save_path_tag, plot_max_values (bool), quiver (bool)
-            for visualisation_configuration in visualisation_configurations:
-                self._environment.plot_value_function(
-                    values=averaged_state_action_values,
-                    save_path=os.path.join(
-                        self._checkpoint_path,
-                        f"{episode}_{visualisation_configuration[0]}",
-                    ),
-                    plot_max_values=visualisation_configuration[1],
-                    quiver=visualisation_configuration[2],
-                    over_actions=constants.Constants.MAX,
+            if self._parallelise_ensemble:
+                processes_arguments = [
+                    (
+                        averaged_state_action_values,
+                        visualisation_configuration[1],
+                        visualisation_configuration[2],
+                        constants.Constants.MAX,
+                        os.path.join(
+                            self._checkpoint_path,
+                            f"{episode}_{visualisation_configuration[0]}",
+                        ),
+                    )
+                    for visualisation_configuration in visualisation_configurations
+                ]
+                self._pool.starmap(
+                    self._environment.plot_value_function, processes_arguments
                 )
+            else:
+                for visualisation_configuration in visualisation_configurations:
+                    self._environment.plot_value_function(
+                        values=averaged_state_action_values,
+                        save_path=os.path.join(
+                            self._checkpoint_path,
+                            f"{episode}_{visualisation_configuration[0]}",
+                        ),
+                        plot_max_values=visualisation_configuration[1],
+                        quiver=visualisation_configuration[2],
+                        over_actions=constants.Constants.MAX,
+                    )
 
         if self._visualisation_iteration(
             constants.Constants.INDIVIDUAL_VALUE_FUNCTIONS, episode
@@ -102,18 +121,44 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
             all_state_action_values = (
                 self._learner.individual_learner_state_action_values
             )
-            for i, individual_state_action_values in enumerate(all_state_action_values):
-                for visualisation_configuration in visualisation_configurations:
-                    self._environment.plot_value_function(
-                        values=individual_state_action_values,
-                        save_path=os.path.join(
+            learner_visual_configuration_combos = list(
+                itertools.product(
+                    np.arange(len(all_state_action_values)),
+                    visualisation_configurations,
+                )
+            )
+            if self._parallelise_ensemble:
+                processes_arguments = [
+                    (
+                        all_state_action_values[combo[0]],
+                        combo[1][1],
+                        combo[1][2],
+                        constants.Constants.MAX,
+                        os.path.join(
                             self._checkpoint_path,
-                            f"{episode}_{i}_{visualisation_configuration[0]}",
+                            f"{episode}_{combo[0]}_{combo[1][0]}",
                         ),
-                        plot_max_values=visualisation_configuration[1],
-                        quiver=visualisation_configuration[2],
-                        over_actions=constants.Constants.MAX,
                     )
+                    for combo in learner_visual_configuration_combos
+                ]
+                self._pool.starmap(
+                    self._environment.plot_value_function, processes_arguments
+                )
+            else:
+                for i, individual_state_action_values in enumerate(
+                    all_state_action_values
+                ):
+                    for visualisation_configuration in visualisation_configurations:
+                        self._environment.plot_value_function(
+                            values=individual_state_action_values,
+                            save_path=os.path.join(
+                                self._checkpoint_path,
+                                f"{episode}_{i}_{visualisation_configuration[0]}",
+                            ),
+                            plot_max_values=visualisation_configuration[1],
+                            quiver=visualisation_configuration[2],
+                            over_actions=constants.Constants.MAX,
+                        )
 
         if self._visualisation_iteration(
             constants.Constants.VALUE_FUNCTION_STD, episode
