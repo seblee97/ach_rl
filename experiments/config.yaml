@@ -56,7 +56,7 @@ learner:
     min_squared_gradient: 0.01
     discount_factor: 0.99 
     epsilon:
-        schedule: linear_decay
+        schedule: constant
 
         constant:
             value: 0.1
@@ -74,7 +74,7 @@ learner:
 
     hard_coded: 
         vp_schedule:
-            - [0, 0.25] # from step 0, 0 penalty
+            - [0, -0.05] # from step 0, 0 penalty
         
     adaptive_uncertainty:
         action_function: mean # mean or max or select
@@ -180,10 +180,10 @@ logging:
         # - [average_action_value, 50]
         # - [loss, 1]
         # - [epsilon, 1]
-        # - [[train_episode_reward_ensemble_runner, 4], 1]
-        # - [[train_episode_length_ensemble_runner, 4], 1]
-        # - [ensemble_episode_reward_std, 1]
-        # - [ensemble_episode_length_std, 1]
+        - [[train_episode_reward_ensemble_runner, 10], 1]
+        - [[train_episode_length_ensemble_runner, 10], 1]
+        - [ensemble_episode_reward_std, 1]
+        - [ensemble_episode_length_std, 1]
         - [mean_visitation_penalty, 1]
         - [mean_penalty_info, 1]
         # - [no_repeat_test_episode_reward, 1]
@@ -191,10 +191,12 @@ logging:
         # - [cycle_count, 1]
     visualisations:
         - [value_function, 50]
+        - [value_function_std, 50]
+        - [individual_value_functions, 50]
         # - visitation_count_heatmap
         - [individual_test_run, 200]
         - [individual_train_run, 200]
 
 post_processing:
-    smoothing: 1
+    smoothing: 40
         
