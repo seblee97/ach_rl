@@ -246,13 +246,14 @@ if __name__ == "__main__":
 
     os.makedirs(name=experiment_path, exist_ok=True)
 
-    save_config_changes(
-        config_changes=args.config_changes,
-        file_name=os.path.join(
-            experiment_path,
-            f"{constants.Constants.CONFIG_CHANGES}.json",
-        ),
-    )
+    if args.mode != constants.Constants.SINGLE:
+        save_config_changes(
+            config_changes=args.config_changes,
+            file_name=os.path.join(
+                experiment_path,
+                f"{constants.Constants.CONFIG_CHANGES}.json",
+            ),
+        )
 
     if args.mode == constants.Constants.PARALLEL:
         if base_configuration.use_gpu:
