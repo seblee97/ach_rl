@@ -48,10 +48,16 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
 
     def _setup_learner(self, config: ach_config.AchConfig):  # TODO: similar to envs
         """Initialise learner specified in configuration."""
-        learners = [
-            self._get_individual_q_learner(config=config)
-            for _ in range(self._num_learners)
-        ]
+        if config.copy_learner_initialisation:
+            single_learner = self._get_individual_q_learner(config=config)
+            learners = [
+                copy.deepcopy(single_learner) for _ in range(self._num_learners)
+            ]
+        else:
+            learners = [
+                self._get_individual_q_learner(config=config)
+                for _ in range(self._num_learners)
+            ]
         learner = ensemble_learner.EnsembleLearner(learner_ensemble=learners)
         return learner
 
@@ -87,6 +93,7 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
                     ),
                     plot_max_values=visualisation_configuration[1],
                     quiver=visualisation_configuration[2],
+                    over_actions=constants.Constants.MAX,
                 )
 
         if self._visualisation_iteration(
@@ -105,6 +112,7 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
                         ),
                         plot_max_values=visualisation_configuration[1],
                         quiver=visualisation_configuration[2],
+                        over_actions=constants.Constants.MAX,
                     )
 
         if self._visualisation_iteration(
@@ -117,8 +125,9 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
                     self._checkpoint_path,
                     f"{episode}_{constants.Constants.VALUE_FUNCTION_STD_PDF}",
                 ),
-                plot_max_values=False,
+                plot_max_values=True,
                 quiver=False,
+                over_actions=constants.Constants.MEAN,
             )
 
         if episode != 0:
