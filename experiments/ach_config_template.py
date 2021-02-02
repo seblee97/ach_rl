@@ -476,6 +476,10 @@ class AChConfigTemplate:
                 requirements=[lambda x: x >= 1],
             ),
             config_field.Field(
+                name=constants.Constants.COPY_LEARNER_INITIALISATION,
+                types=[bool],
+            ),
+            config_field.Field(
                 name=constants.Constants.BEHAVIOUR,
                 types=[str],
                 requirements=[
