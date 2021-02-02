@@ -219,6 +219,8 @@ class Constants:
     NEXT_STATE_POLICY_ENTROPY = "next_state_policy_entropy"
     CURRENT_STATE_POLICY_ENTROPY = "current_state_policy_entropy"
     RUN_PATH = "run_path"
+    STD = "std"
+    COPY_LEARNER_INITIALISATION = "copy_learner_initialisation"
 
     ATARI_ENVS = ["PongNoFrameskip-v4"]
 
