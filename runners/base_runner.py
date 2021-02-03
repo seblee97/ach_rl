@@ -29,6 +29,7 @@ from visitation_penalties import adaptive_uncertainty_visitation_penalty
 from visitation_penalties import base_visistation_penalty
 from visitation_penalties import hard_coded_visitation_penalty
 from visitation_penalties import potential_adaptive_uncertainty_penalty
+from visitation_penalties import policy_entropy_penalty
 
 
 class BaseRunner(abc.ABC):
@@ -204,6 +205,10 @@ class BaseRunner(abc.ABC):
                 multiplicative_factor=config.multiplicative_factor,
                 pre_action_function=config.pre_action_function,
                 post_action_function=config.post_action_function,
+            )
+        elif config.visitation_penalty_type == constants.Constants.POLICY_ENTROPY_PENALTY:
+            visitation_penalty = policy_entropy_penalty.PolicyEntropyPenalty(
+                multiplicative_factor=config.multiplicative_factor
             )
         else:
             raise ValueError(
