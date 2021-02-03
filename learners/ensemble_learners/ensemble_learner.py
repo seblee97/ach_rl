@@ -59,6 +59,10 @@ class EnsembleLearner(base_learner.BaseLearner):
     def ensemble(self) -> List:
         return self._learner_ensemble
 
+    @ensemble.setter
+    def ensemble(self, learner_ensemble: List[base_learner.BaseLearner]):
+        self._learner_ensemble = learner_ensemble
+
     def select_target_action(self, state: Any) -> None:
         pass
 
