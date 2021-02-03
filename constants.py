@@ -221,6 +221,7 @@ class Constants:
     RUN_PATH = "run_path"
     STD = "std"
     COPY_LEARNER_INITIALISATION = "copy_learner_initialisation"
+    POLICY_ENTROPY_PENALTY = "policy_entropy_penalty"
 
     ATARI_ENVS = ["PongNoFrameskip-v4"]
 
