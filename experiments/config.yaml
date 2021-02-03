@@ -69,8 +69,8 @@ learner:
     initialisation: random
 
     # hard_coded, adaptive_uncertainty, adaptive_arriving_uncertainty, 
-    # or potential_based_adaptive_uncertainty
-    visitation_penalty_type: hard_coded 
+    # policy_entropy_penalty or potential_based_adaptive_uncertainty
+    visitation_penalty_type: policy_entropy_penalty 
 
     hard_coded: 
         vp_schedule:
@@ -86,6 +86,9 @@ learner:
 
     potential_based_adaptive_uncertainty:
         action_function: mean # mean or max or select
+        multiplicative_factor: 0.5
+
+    policy_entropy_penalty:
         multiplicative_factor: 0.5
 
 sarsa_lambda:
