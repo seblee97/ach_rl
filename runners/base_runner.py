@@ -1,5 +1,6 @@
 import abc
 import os
+import time
 from typing import Any
 from typing import Callable
 from typing import Dict
@@ -263,14 +264,18 @@ class BaseRunner(abc.ABC):
         """Perform training (and validation) on given number of episodes."""
         train_reward: float = 0
         train_step_count: float = np.inf
+        episode_duration: float = 0
 
         print("Starting Training...")
 
         for i in range(self._num_episodes):
 
+            episode_start_time = time.time()
+
             if i % self._print_frequency == 0:
                 print(f"Episode {i}/{self._num_episodes}: ")
                 if i != 0:
+                    print(f"    Latest Episode Duration {episode_duration}")
                     print(f"    Latest Train Reward: {train_reward}")
                     print(f"    Latest Train Length: {train_step_count}")
 
@@ -296,6 +301,8 @@ class BaseRunner(abc.ABC):
                 episode=i,
                 scalar=train_reward,
             )
+
+            episode_duration = time.time() - episode_start_time
 
         if constants.Constants.VISITATION_COUNT_HEATMAP in self._visualisations:
             self._logger.plot_array_data(
