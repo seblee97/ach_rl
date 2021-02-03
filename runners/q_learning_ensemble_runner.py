@@ -279,6 +279,7 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
 
         for learner in self._learner.ensemble:
             (
+                _,
                 episode_reward,
                 episode_count,
                 mean_penalty,
@@ -327,11 +328,14 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
             self._single_train_episode, processes_arguments
         )
         (
+            learners,
             ensemble_episode_rewards,
             ensemble_episode_step_counts,
             mean_penalties,
             mean_penalty_info,
         ) = zip(*processes_results)
+
+        self._learner.ensemble = list(learners)
 
         mean_penalty_infos = {}
         for per_learner_mean_penalty_info in mean_penalty_info:
@@ -401,6 +405,7 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
         mean_penalty_info = {k: np.mean(v) for k, v in penalty_infos.items()}
 
         return (
+            learner,
             episode_reward,
             environment.episode_step_count,
             mean_penalties,
