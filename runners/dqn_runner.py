@@ -1,9 +1,8 @@
 import random
 from typing import Tuple
 
-import torch
-
 import constants
+import torch
 from experiments import ach_config
 from learners.deep_learners import dqn_learner
 from learners.deep_learners.components import replay_buffer
@@ -53,7 +52,7 @@ class DQNRunner(base_runner.BaseRunner):
         Args:
             num_trajectories: number of experience tuples to collect before training.
         """
-        print("Filling replay buffer...")
+        self._logger.info("Filling replay buffer...")
 
         state = self._environment.reset_environment(train=True)
         for _ in range(num_trajectories):
