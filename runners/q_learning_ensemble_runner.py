@@ -5,33 +5,28 @@ import os
 from typing import Tuple
 from typing import Union
 
-import numpy as np
-
 import constants
+import numpy as np
 from environments import base_environment
 from experiments import ach_config
 from learners import base_learner
 from learners.ensemble_learners import ensemble_learner
-from learners.ensemble_learners.majority_vote_ensemble_learner import (
-    MajorityVoteEnsemble,
-)
-from learners.ensemble_learners.mean_greedy_ensemble_learner import MeanGreedyEnsemble
-from learners.ensemble_learners.sample_greedy_ensemble_learner import (
-    SampleGreedyEnsemble,
-)
+from learners.ensemble_learners.majority_vote_ensemble_learner import \
+    MajorityVoteEnsemble
+from learners.ensemble_learners.mean_greedy_ensemble_learner import \
+    MeanGreedyEnsemble
+from learners.ensemble_learners.sample_greedy_ensemble_learner import \
+    SampleGreedyEnsemble
 from learners.tabular_learners import q_learner
 from runners import base_runner
 from utils import cycle_counter
-from visitation_penalties.adaptive_arriving_uncertainty_visitation_penalty import (
-    AdaptiveArrivingUncertaintyPenalty,
-)
-from visitation_penalties.adaptive_uncertainty_visitation_penalty import (
-    AdaptiveUncertaintyPenalty,
-)
+from visitation_penalties.adaptive_arriving_uncertainty_visitation_penalty import \
+    AdaptiveArrivingUncertaintyPenalty
+from visitation_penalties.adaptive_uncertainty_visitation_penalty import \
+    AdaptiveUncertaintyPenalty
 from visitation_penalties.hard_coded_visitation_penalty import HardCodedPenalty
-from visitation_penalties.potential_adaptive_uncertainty_penalty import (
-    PotentialAdaptiveUncertaintyPenalty,
-)
+from visitation_penalties.potential_adaptive_uncertainty_penalty import \
+    PotentialAdaptiveUncertaintyPenalty
 
 
 class EnsembleQLearningRunner(base_runner.BaseRunner):
@@ -77,6 +72,7 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
 
     def _pre_episode_log(self, episode: int):
         """Logging pre-episode. Includes value-function, individual run."""
+        self._logger.info(f"Episode {episode}: pre-episode data logging...")
         visualisation_configurations = [
             (constants.Constants.MAX_VALUES_PDF, True, False),
             (constants.Constants.QUIVER_VALUES_PDF, False, True),
@@ -86,6 +82,7 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
             averaged_state_action_values = self._learner.state_action_values
             # tuple of save_path_tag, plot_max_values (bool), quiver (bool)
             if self._parallelise_ensemble:
+                self._logger.info("Parallel value function visualisation...")
                 processes_arguments = [
                     (
                         averaged_state_action_values,
@@ -104,6 +101,10 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
                 )
             else:
                 for visualisation_configuration in visualisation_configurations:
+                    self._logger.info(
+                        "Serial value function visualisation: "
+                        f"{visualisation_configuration[0]}"
+                    )
                     self._environment.plot_value_function(
                         values=averaged_state_action_values,
                         save_path=os.path.join(
@@ -128,6 +129,7 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
                 )
             )
             if self._parallelise_ensemble:
+                self._logger.info("Parallel individual value function visualisation...")
                 processes_arguments = [
                     (
                         all_state_action_values[combo[0]],
@@ -149,6 +151,10 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
                     all_state_action_values
                 ):
                     for visualisation_configuration in visualisation_configurations:
+                        self._logger.info(
+                            "Serial individual value function visualisation: "
+                            f"learner {i}, {visualisation_configuration[0]}"
+                        )
                         self._environment.plot_value_function(
                             values=individual_state_action_values,
                             save_path=os.path.join(
@@ -163,6 +169,7 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
         if self._visualisation_iteration(
             constants.Constants.VALUE_FUNCTION_STD, episode
         ):
+            self._logger.info("Standard deviation value function visualisation...")
             state_action_values_std = self._learner.state_action_values_std
             self._environment.plot_value_function(
                 values=state_action_values_std,
