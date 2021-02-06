@@ -1,10 +1,10 @@
 import itertools
 from typing import Dict
+from typing import List
 from typing import Union
 
-from config_manager import base_configuration
-
 import constants
+from config_manager import base_configuration
 from experiments.ach_config_template import AChConfigTemplate
 
 
@@ -15,10 +15,11 @@ class AchConfig(base_configuration.BaseConfiguration):
     non-trivial associations that need checking in config.
     """
 
-    def __init__(self, config: Union[str, Dict]) -> None:
+    def __init__(self, config: Union[str, Dict], changes: List[Dict] = []) -> None:
         super().__init__(
             configuration=config,
             template=AChConfigTemplate.base_template,
+            changes=changes,
         )
 
         self._validate_config()
