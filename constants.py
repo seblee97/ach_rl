@@ -224,6 +224,7 @@ class Constants:
     POLICY_ENTROPY_PENALTY = "policy_entropy_penalty"
     LOG_FILE_NAME = "experiment.log"
     LOG_FORMAT = "%(asctime)s  %(name)8s  %(levelname)5s  %(message)s"
+    CLUSTER = "cluster"
 
     ATARI_ENVS = ["PongNoFrameskip-v4"]
 
