@@ -1,6 +1,7 @@
 import argparse
 import copy
 import json
+import logging
 import multiprocessing
 import os
 from multiprocessing import Process
@@ -9,15 +10,15 @@ from typing import Dict
 from typing import List
 from typing import Tuple
 
-import torch
-
 import constants
+import torch
 from experiments import ach_config
 from experiments.config_changes import ConfigChange
 from runners import dqn_runner
 from runners import q_learning_ensemble_runner
 from runners import q_learning_runner
 from runners import sarsa_lambda_runner
+from utils import experiment_logger
 from utils import experiment_utils
 from utils import plotting_functions
 
@@ -107,9 +108,9 @@ def serial_run(
         timestamp: experiment timestamp.
     """
     for run_name, changes in config_changes.items():
-        print(f"{run_name}")
+        logger.info(f"{run_name}")
         for seed in seeds:
-            print(f"Seed: {seed}")
+            logger.info(f"Seed: {seed}")
             single_run(
                 base_configuration=base_configuration,
                 seed=seed,
@@ -147,6 +148,8 @@ def single_run(
     checkpoint_path = experiment_utils.get_checkpoint_path(
         results_folder, timestamp, run_name, str(seed)
     )
+
+    os.makedirs(name=checkpoint_path, exist_ok=True)
 
     config.amend_property(
         property_name=constants.Constants.SEED, new_property_value=seed
@@ -245,6 +248,10 @@ if __name__ == "__main__":
     experiment_path = os.path.join(results_folder, timestamp)
 
     os.makedirs(name=experiment_path, exist_ok=True)
+
+    # logger at root of experiment i.e. not individual runs or seeds
+    logger = experiment_logger.get_logger(
+        experiment_path=experiment_path, name=__name__)
 
     if args.mode != constants.Constants.SINGLE:
         save_config_changes(
