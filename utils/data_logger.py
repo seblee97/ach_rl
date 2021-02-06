@@ -5,12 +5,11 @@ from typing import Union
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-
 from experiments import ach_config
 from utils import animator
 
 
-class Logger:
+class DataLogger:
     """Class for logging experimental data.
 
     Data can be stored in a csv. # TODO: add TensorBoard event file.
