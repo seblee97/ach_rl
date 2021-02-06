@@ -9,10 +9,9 @@ from typing import Optional
 from typing import Tuple
 from typing import Union
 
+import constants
 import numpy as np
 import torch
-
-import constants
 from curricula import base_curriculum
 from curricula import minigrid_curriculum
 from environments import atari
@@ -21,15 +20,17 @@ from environments import minigrid
 from environments import multi_room
 from environments import wrapper_atari
 from experiments import ach_config
+from utils import data_logger
 from utils import epsilon_schedules
-from utils import logger
+from utils import experiment_logger
 from utils import plotter
-from visitation_penalties import adaptive_arriving_uncertainty_visitation_penalty
+from visitation_penalties import \
+    adaptive_arriving_uncertainty_visitation_penalty
 from visitation_penalties import adaptive_uncertainty_visitation_penalty
 from visitation_penalties import base_visistation_penalty
 from visitation_penalties import hard_coded_visitation_penalty
-from visitation_penalties import potential_adaptive_uncertainty_penalty
 from visitation_penalties import policy_entropy_penalty
+from visitation_penalties import potential_adaptive_uncertainty_penalty
 
 
 class BaseRunner(abc.ABC):
@@ -40,7 +41,9 @@ class BaseRunner(abc.ABC):
         self._visitation_penalty = self._setup_visitation_penalty(config=config)
         self._epsilon_function = self._setup_epsilon_function(config=config)
         self._learner = self._setup_learner(config=config)
-        self._logger = self._setup_logger(config=config)
+        self._logger = experiment_logger.get_logger(
+            experiment_path=config.checkpoint_path, name=__name__)
+        self._data_logger = self._setup_data_logger(config=config)
 
         self._array_logging = self._setup_logging_frequencies(config.arrays)
         self._scalar_logging = self._setup_logging_frequencies(config.scalars)
@@ -104,6 +107,7 @@ class BaseRunner(abc.ABC):
                     environment = atari.AtariEnv(**environment_args)
             elif config.environment == constants.Constants.MULTIROOM:
                 environment = multi_room.MultiRoom(**environment_args)
+
         return environment
 
     def _get_environment_args(self, config: ach_config.AchConfig) -> Dict[str, Any]:
@@ -161,9 +165,9 @@ class BaseRunner(abc.ABC):
         if environment == constants.Constants.MINIGRID:
             return minigrid_curriculum.MinigridCurriculum
 
-    def _setup_logger(self, config: ach_config.AchConfig) -> logger.Logger:
+    def _setup_data_logger(self, config: ach_config.AchConfig) -> data_logger.DataLogger:
         """Initialise logger object to record data from experiment."""
-        return logger.Logger(config=config)
+        return data_logger.DataLogger(config=config)
 
     def _setup_plotter(self, config: ach_config.AchConfig) -> plotter.Plotter:
         """Initialise plotter object for use in post-processing run."""
@@ -263,7 +267,7 @@ class BaseRunner(abc.ABC):
         if tag in self._scalar_logging:
             if episode % self._scalar_logging[tag] == 0:
                 df_tag = df_tag or tag
-                self._logger.write_scalar(tag=df_tag, step=episode, scalar=scalar)
+                self._data_logger.write_scalar(tag=df_tag, step=episode, scalar=scalar)
 
     def train(self) -> None:
         """Perform training (and validation) on given number of episodes."""
@@ -271,21 +275,21 @@ class BaseRunner(abc.ABC):
         train_step_count: float = np.inf
         episode_duration: float = 0
 
-        print("Starting Training...")
+        self._logger.info("Starting Training...")
 
         for i in range(self._num_episodes):
 
             episode_start_time = time.time()
 
             if i % self._print_frequency == 0:
-                print(f"Episode {i}/{self._num_episodes}: ")
+                self._logger.info(f"Episode {i}/{self._num_episodes}: ")
                 if i != 0:
-                    print(f"    Latest Episode Duration {episode_duration}")
-                    print(f"    Latest Train Reward: {train_reward}")
-                    print(f"    Latest Train Length: {train_step_count}")
+                    self._logger.info(f"    Latest Episode Duration {episode_duration}")
+                    self._logger.info(f"    Latest Train Reward: {train_reward}")
+                    self._logger.info(f"    Latest Train Length: {train_step_count}")
 
             if i % self._checkpoint_frequency == 0 and i != 0:
-                self._logger.checkpoint()
+                self._data_logger.checkpoint()
 
             self._pre_episode_log(i)
             self._test_episode(episode=i)
@@ -310,12 +314,12 @@ class BaseRunner(abc.ABC):
             episode_duration = time.time() - episode_start_time
 
         if constants.Constants.VISITATION_COUNT_HEATMAP in self._visualisations:
-            self._logger.plot_array_data(
+            self._data_logger.plot_array_data(
                 name=constants.Constants.VISITATION_COUNT_HEATMAP,
                 data=self._environment.visitation_counts,
             )
 
-        self._logger.checkpoint()
+        self._data_logger.checkpoint()
 
     @abc.abstractmethod
     def _train_episode(self, episode: int) -> Tuple[float, int]:
@@ -384,12 +388,12 @@ class BaseRunner(abc.ABC):
             reward, state = self._environment.step(action)
             episode_reward += reward
 
-        self._logger.write_scalar(
+        self._data_logger.write_scalar(
             tag=constants.Constants.TEST_EPISODE_LENGTH + tag_,
             step=episode,
             scalar=self._environment.episode_step_count,
         )
-        self._logger.write_scalar(
+        self._data_logger.write_scalar(
             tag=constants.Constants.TEST_EPISODE_REWARD + tag_,
             step=episode,
             scalar=episode_reward,
@@ -399,7 +403,7 @@ class BaseRunner(abc.ABC):
             if self._visualisation_iteration(
                 constants.Constants.INDIVIDUAL_TEST_RUN + tag_, episode
             ):
-                self._logger.plot_array_data(
+                self._data_logger.plot_array_data(
                     name=f"{constants.Constants.INDIVIDUAL_TEST_RUN + tag_}_{episode}",
                     data=self._environment.plot_episode_history(),
                 )
@@ -442,12 +446,12 @@ class BaseRunner(abc.ABC):
             reward, state = self._environment.step(action)
             episode_reward += reward
 
-        self._logger.write_scalar_df(
+        self._data_logger.write_scalar_df(
             tag=constants.Constants.NO_REPEAT_TEST_EPISODE_LENGTH,
             step=episode,
             scalar=self._environment.episode_step_count,
         )
-        self._logger.write_scalar_df(
+        self._data_logger.write_scalar_df(
             tag=constants.Constants.NO_REPEAT_TEST_EPISODE_REWARD,
             step=episode,
             scalar=episode_reward,
@@ -457,7 +461,7 @@ class BaseRunner(abc.ABC):
             if self._visualisation_iteration(
                 constants.Constants.INDIVIDUAL_NO_REP_TEST_RUN, episode
             ):
-                self._logger.plot_array_data(
+                self._data_logger.plot_array_data(
                     name=f"{constants.Constants.INDIVIDUAL_NO_REP_TEST_RUN}_{episode}",
                     data=self._environment.plot_episode_history(),
                 )
