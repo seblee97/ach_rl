@@ -1,9 +1,12 @@
 import argparse
+import collections.abc
 import copy
 import json
 import logging
 import multiprocessing
 import os
+import subprocess
+import tempfile
 from multiprocessing import Process
 from typing import Any
 from typing import Dict
@@ -12,12 +15,15 @@ from typing import Tuple
 
 import constants
 import torch
+import yaml
 from experiments import ach_config
+from experiments import run_methods
 from experiments.config_changes import ConfigChange
 from runners import dqn_runner
 from runners import q_learning_ensemble_runner
 from runners import q_learning_runner
 from runners import sarsa_lambda_runner
+from utils import cluster_methods
 from utils import experiment_logger
 from utils import experiment_utils
 from utils import plotting_functions
@@ -31,9 +37,9 @@ parser.add_argument(
     "--mode",
     metavar="-M",
     default="parallel",
-    help="run in 'parallel' or 'serial', or 'single' (no changes)",
+    help="run in 'parallel' or 'serial', or 'single' (no changes), or 'cluster'",
 )
-parser.add_argument("--config", metavar="-C", default="config.yaml")
+parser.add_argument("--config_path", metavar="-C", default="config.yaml")
 parser.add_argument("--seeds", metavar="-S", default=range(1))
 parser.add_argument(
     "--config_changes", metavar="-CC", default=ConfigChange.config_changes
@@ -43,13 +49,7 @@ args = parser.parse_args()
 
 
 def parallel_run(
-    base_configuration: ach_config.AchConfig,
-    seeds: List[int],
-    config_changes: Dict[str, List[Tuple[str, Any, bool]]],
-    experiment_path: str,
-    results_folder: str,
-    timestamp: str,
-) -> None:
+        config_path: str, results_folder: str, timestamp: str, config_changes: Dict[str, List[Dict]], seeds: List[int])-> None:
     """Run experiments in parallel.
 
     Args:
@@ -65,20 +65,21 @@ def parallel_run(
 
     # macOS + python 3.8 change in multiprocessing defaults.
     # workaround: https://github.com/pytest-dev/pytest-flask/issues/104
-    multiprocessing.set_start_method("fork")
+    multiprocessing.set_start_method("spawn")
 
     for run_name, changes in config_changes.items():
+        logger.info(f"{run_name}")
         for seed in seeds:
+            logger.info(f"Seed: {seed}")
             p = Process(
-                target=single_run,
+                target=run_methods.single_run,
                 args=(
-                    base_configuration,
-                    run_name,
-                    seed,
+                    config_path,
                     results_folder,
-                    experiment_path,
                     timestamp,
+                    run_name,
                     changes,
+                    seed
                 ),
             )
             p.start()
@@ -89,13 +90,7 @@ def parallel_run(
 
 
 def serial_run(
-    base_configuration: ach_config.AchConfig,
-    seeds: List[int],
-    config_changes: Dict[str, List[Tuple[str, Any, bool]]],
-    experiment_path: str,
-    results_folder: str,
-    timestamp: str,
-):
+        config_path: str, results_folder: str, timestamp: str, config_changes: Dict[str, List[Dict]], seeds: List[int])-> None:
     """Run experiments in serial.
 
     Args:
@@ -111,137 +106,27 @@ def serial_run(
         logger.info(f"{run_name}")
         for seed in seeds:
             logger.info(f"Seed: {seed}")
-            single_run(
-                base_configuration=base_configuration,
-                seed=seed,
-                results_folder=results_folder,
-                experiment_path=experiment_path,
-                timestamp=timestamp,
-                run_name=run_name,
-                config_change=changes,
-            )
+            run_methods.single_run(config_path=config_path, results_folder=results_folder,
+                                   timestamp=timestamp, run_name=run_name, changes=changes, seed=seed)
 
 
-def single_run(
-    base_configuration: ach_config.AchConfig,
-    run_name: str,
-    seed: int,
-    results_folder: str,
-    experiment_path: str,
-    timestamp: str,
-    config_change: List[Tuple[str, Any, bool]],
-):
-    """Run single experiment.
-
-    Args:
-        base_configuration: config object.
-        seeds: list of seeds to run experiment over.
-        run_name: name of single experiment.
-        experiment_path: path to experiment.
-        results_folder: path to results.
-        timestamp: experiment timestamp.
-        config_change: change to make to base configuration.
-    """
-    config = copy.deepcopy(base_configuration)
-
-    experiment_utils.set_random_seeds(seed)
-    checkpoint_path = experiment_utils.get_checkpoint_path(
-        results_folder, timestamp, run_name, str(seed)
-    )
-
-    os.makedirs(name=checkpoint_path, exist_ok=True)
-
-    config.amend_property(
-        property_name=constants.Constants.SEED, new_property_value=seed
-    )
-
-    for change in config_change:
-        try:
-            config.amend_property(
-                property_name=change[0],
-                new_property_value=change[1],
-            )
-        except AssertionError:
-            if change[2]:
-                config.add_property(
-                    property_name=change[0],
-                    property_value=change[1],
-                )
-
-    config = experiment_utils.set_device(config)
-
-    config.add_property(constants.Constants.EXPERIMENT_TIMESTAMP, timestamp)
-    config.add_property(constants.Constants.CHECKPOINT_PATH, checkpoint_path)
-    config.add_property(
-        constants.Constants.LOGFILE_PATH,
-        os.path.join(checkpoint_path, "data_logger.csv"),
-    )
-
-    if config.type == constants.Constants.SARSA_LAMBDA:
-        r = sarsa_lambda_runner.SARSALambdaRunner(config=config)
-    elif config.type == constants.Constants.Q_LEARNING:
-        r = q_learning_runner.QLearningRunner(config=config)
-    elif config.type == constants.Constants.DQN:
-        r = dqn_runner.DQNRunner(config=config)
-    elif config.type == constants.Constants.ENSEMBLE_Q_LEARNING:
-        r = q_learning_ensemble_runner.EnsembleQLearningRunner(config=config)
-    else:
-        raise ValueError(f"Learner type {type} not recognised.")
-
-    r.train()
-    r.post_process()
-
-
-def summary_plot(
-    config: ach_config.AchConfig, exp_names: List[str], experiment_path: str
-):
-    """Plot summary of experiment."""
-    plotting_functions.plot_all_multi_seed_multi_run(
-        folder_path=experiment_path, exp_names=exp_names, window_width=config.smoothing
-    )
-
-
-def _distribute_over_gpus(config_changes: Dict[str, List[Tuple[Any]]]):
-    """If performing a parallel run with GPUs we want to split our processes evenly
-    over the available GPUs. This method allocates tasks (as evenly as possible)
-    over the GPUs.
-
-    Method changes config_changes object in-place.
-    """
-    num_runs = len(args.seeds) * len(config_changes)
-    num_gpus_available = torch.cuda.device_count()
-
-    if num_gpus_available > 0:
-        even_runs_per_gpu = num_runs // num_gpus_available
-        excess_runs = num_runs % num_gpus_available
-
-        gpu_ids = {}
-
-        for i in range(num_gpus_available):
-            jobs_with_id_i = {
-                j: i for j in range(i * even_runs_per_gpu, (i + 1) * even_runs_per_gpu)
-            }
-            gpu_ids.update(jobs_with_id_i)
-
-        for i in range(excess_runs):
-            gpu_ids[num_runs - excess_runs + i] = i
-
-        for i, config_change in enumerate(config_changes.values()):
-            config_change.append((constants.Constants.GPU_ID, gpu_ids[i]))
-
-
-def save_config_changes(
-    config_changes: Dict[str, List[Tuple[str, Any, bool]]], file_name: str
-) -> None:
-    with open(file_name, "w") as fp:
-        json.dump(config_changes, fp, indent=4)
+def cluster_run(
+        config_path: str, results_folder: str, timestamp: str, config_changes: Dict[str, List[Dict]], seeds: List[int])-> None:
+    for run_name, changes in config_changes.items():
+        print(run_name, seeds)
+        with tempfile.TemporaryDirectory() as tmpdir:
+            config_changes_path = os.path.join(tmpdir, "config_changes.json")
+            experiment_utils.config_changes_to_json(
+                config_changes=changes, json_path=config_changes_path)
+            job_script_path = os.path.join(tmpdir, "job_script")
+            run_command = f"python cluster_run.py --config_path {config_path} --seed {seeds} --config_changes {config_changes_path} --results_folder {results_folder} --timestamp {timestamp} --run_name {run_name} --mode parallel"
+            cluster_methods.create_job_script(
+                run_command=run_command, save_path=job_script_path, num_cpus=8, conda_env_name="ach", memory=60)
+            # subprocess.call(run_command, shell=True)
+            subprocess.call(f"qsub {job_script_path}", shell=True)
 
 
 if __name__ == "__main__":
-
-    base_configuration = ach_config.AchConfig(config=args.config)
-
-    base_configuration.add_property(constants.Constants.RUN_PATH, MAIN_FILE_PATH)
 
     timestamp = experiment_utils.get_experiment_timestamp()
     results_folder = os.path.join(MAIN_FILE_PATH, constants.Constants.RESULTS)
@@ -253,53 +138,177 @@ if __name__ == "__main__":
     logger = experiment_logger.get_logger(
         experiment_path=experiment_path, name=__name__)
 
-    if args.mode != constants.Constants.SINGLE:
-        save_config_changes(
+    if args.mode == constants.Constants.SINGLE:
+        single_run(config_path=args.config_path, results_folder=results_folder,
+                   timestamp=timestamp, run_name=constants.Constants.SINGLE)
+    else:
+        experiment_utils.save_config_changes(
             config_changes=args.config_changes,
             file_name=os.path.join(
                 experiment_path,
                 f"{constants.Constants.CONFIG_CHANGES}.json",
             ),
         )
+        if args.mode == constants.Constants.PARALLEL:
+            parallel_run(config_path=args.config_path, results_folder=results_folder,
+                         timestamp=timestamp, config_changes=args.config_changes, seeds=args.seeds)
+        elif args.mode == constants.Constants.CLUSTER:
+            cluster_run(config_path=args.config_path, results_folder=results_folder,
+                        timestamp=timestamp, config_changes=args.config_changes, seeds=args.seeds)
+        elif args.mode == constants.Constants.SERIAL:
+            serial_run(config_path=args.config_path, results_folder=results_folder,
+                       timestamp=timestamp, config_changes=args.config_changes, seeds=args.seeds)
 
-    if args.mode == constants.Constants.PARALLEL:
-        if base_configuration.use_gpu:
-            _distribute_over_gpus(args.config_changes)
 
-        parallel_run(
-            base_configuration=base_configuration,
-            config_changes=args.config_changes,
-            seeds=args.seeds,
-            experiment_path=experiment_path,
-            results_folder=results_folder,
-            timestamp=timestamp,
-        )
-        summary_plot(
-            config=base_configuration,
-            experiment_path=experiment_path,
-            exp_names=list(args.config_changes.keys()),
-        )
-    elif args.mode == constants.Constants.SERIAL:
-        serial_run(
-            base_configuration=base_configuration,
-            config_changes=args.config_changes,
-            seeds=args.seeds,
-            experiment_path=experiment_path,
-            results_folder=results_folder,
-            timestamp=timestamp,
-        )
-        summary_plot(
-            config=base_configuration,
-            experiment_path=experiment_path,
-            exp_names=list(args.config_changes.keys()),
-        )
-    elif args.mode == constants.Constants.SINGLE:
-        single_run(
-            base_configuration=base_configuration,
-            run_name=constants.Constants.SINGLE,
-            seed=base_configuration.seed,
-            results_folder=results_folder,
-            experiment_path=experiment_path,
-            timestamp=timestamp,
-            config_change=[],
-        )
+# def summary_plot(
+#     smoothng: int, exp_names: List[str], experiment_path: str
+# ):
+#     """Plot summary of experiment."""
+#     plotting_functions.plot_all_multi_seed_multi_run(
+#         folder_path=experiment_path, exp_names=exp_names, window_width=smoothng
+#     )
+
+
+# def single_run(
+#     config_path: str,
+#     run_name: str,
+#     seed: int,
+#     results_folder: str,
+#     experiment_path: str,
+#     timestamp: str,
+#     config_change: List[Tuple[str, Any, bool]],
+# ):
+#     """Run single experiment.
+
+#     Args:
+#         base_configuration: config object.
+#         seeds: list of seeds to run experiment over.
+#         run_name: name of single experiment.
+#         experiment_path: path to experiment.
+#         results_folder: path to results.
+#         timestamp: experiment timestamp.
+#         config_change: change to make to base configuration.
+#     """
+#     config = copy.deepcopy(base_configuration)
+
+#     experiment_utils.set_random_seeds(seed)
+#     checkpoint_path = experiment_utils.get_checkpoint_path(
+#         results_folder, timestamp, run_name, str(seed)
+#     )
+
+#     os.makedirs(name=checkpoint_path, exist_ok=True)
+
+#     config.amend_property(
+#         property_name=constants.Constants.SEED, new_property_value=seed
+#     )
+
+#     for change in config_change:
+#         try:
+#             config.amend_property(
+#                 property_name=change[0],
+#                 new_property_value=change[1],
+#             )
+#         except AssertionError:
+#             if change[2]:
+#                 config.add_property(
+#                     property_name=change[0],
+#                     property_value=change[1],
+#                 )
+
+#     config = experiment_utils.set_device(config)
+
+#     config.add_property(constants.Constants.EXPERIMENT_TIMESTAMP, timestamp)
+#     config.add_property(constants.Constants.CHECKPOINT_PATH, checkpoint_path)
+#     config.add_property(
+#         constants.Constants.LOGFILE_PATH,
+#         os.path.join(checkpoint_path, "data_logger.csv"),
+#     )
+
+#     if config.type == constants.Constants.SARSA_LAMBDA:
+#         r = sarsa_lambda_runner.SARSALambdaRunner(config=config)
+#     elif config.type == constants.Constants.Q_LEARNING:
+#         r = q_learning_runner.QLearningRunner(config=config)
+#     elif config.type == constants.Constants.DQN:
+#         r = dqn_runner.DQNRunner(config=config)
+#     elif config.type == constants.Constants.ENSEMBLE_Q_LEARNING:
+#         r = q_learning_ensemble_runner.EnsembleQLearningRunner(config=config)
+#     else:
+#         raise ValueError(f"Learner type {type} not recognised.")
+
+#     r.train()
+#     r.post_process()
+
+    # base_configuration = ach_config.AchConfig(config=args.config_path)
+
+    # base_configuration.add_property(constants.Constants.RUN_PATH, MAIN_FILE_PATH)
+
+    # timestamp = experiment_utils.get_experiment_timestamp()
+    # results_folder = os.path.join(MAIN_FILE_PATH, constants.Constants.RESULTS)
+    # experiment_path = os.path.join(results_folder, timestamp)
+
+    # os.makedirs(name=experiment_path, exist_ok=True)
+
+    # if args.mode != constants.Constants.SINGLE:
+    #     save_config_changes(
+    #         config_changes=args.config_changes,
+    #         file_name=os.path.join(
+    #             experiment_path,
+    #             f"{constants.Constants.CONFIG_CHANGES}.json",
+    #         ),
+    #     )
+
+    # if args.mode == constants.Constants.PARALLEL:
+    #     if base_configuration.use_gpu:
+    #         _distribute_over_gpus(args.config_changes)
+
+    #     parallel_run(
+    #         base_configuration=base_configuration,
+    #         config_changes=args.config_changes,
+    #         seeds=args.seeds,
+    #         experiment_path=experiment_path,
+    #         results_folder=results_folder,
+    #         timestamp=timestamp,
+    #     )
+    #     summary_plot(
+    #         config=base_configuration,
+    #         experiment_path=experiment_path,
+    #         exp_names=list(args.config_changes.keys()),
+    #     )
+    # if args.mode == constants.Constants.CLUSTER:
+    #     cluster_run(
+    #         configuration=args.config,
+    #         config_changes=args.config_changes,
+    #         seeds=args.seeds,
+    #         experiment_path=experiment_path,
+    #         results_folder=results_folder,
+    #         timestamp=timestamp,
+    #     )
+    #     summary_plot(
+    #         config=base_configuration,
+    #         experiment_path=experiment_path,
+    #         exp_names=list(args.config_changes.keys()),
+    #     )
+    # elif args.mode == constants.Constants.SERIAL:
+    #     serial_run(
+    #         base_configuration=base_configuration,
+    #         config_changes=args.config_changes,
+    #         seeds=args.seeds,
+    #         experiment_path=experiment_path,
+    #         results_folder=results_folder,
+    #         timestamp=timestamp,
+    #     )
+    #     summary_plot(
+    #         config=base_configuration,
+    #         experiment_path=experiment_path,
+    #         exp_names=list(args.config_changes.keys()),
+    #     )
+    # elif args.mode == constants.Constants.SINGLE:
+    #     single_run(
+    #         base_configuration=base_configuration,
+    #         run_name=constants.Constants.SINGLE,
+    #         seed=base_configuration.seed,
+    #         results_folder=results_folder,
+    #         experiment_path=experiment_path,
+    #         timestamp=timestamp,
+    #         config_change=[],
+    #     )
