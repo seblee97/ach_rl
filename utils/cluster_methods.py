@@ -1,13 +1,11 @@
-def create_job_script(
-        run_command: str,
-        save_path: str,
-        num_cpus: int,
-        conda_env_name: str,
-        memory: int,
-        error_path: str,
-        output_path: str,
-        walltime: str = "24:0:0"
-) -> None:
+def create_job_script(run_command: str,
+                      save_path: str,
+                      num_cpus: int,
+                      conda_env_name: str,
+                      memory: int,
+                      error_path: str,
+                      output_path: str,
+                      walltime: str = "24:0:0") -> None:
     """Create a job script for use on HPC.
 
     Args:
@@ -32,5 +30,5 @@ def create_job_script(
         # job script
         file.write(f"{run_command}\n")
         # move files back to permanent
-        file.write("mkdir $WORK/$PBS_JOBID\n")
-        file.write("cp * $WORK/$PBS_JOBID\n")
+        #file.write("mkdir $WORK/$PBS_JOBID\n")
+        #file.write("cp * $WORK/$PBS_JOBID\n")
