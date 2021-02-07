@@ -27,7 +27,8 @@ parser.add_argument("--mode")
 args = parser.parse_args()
 
 
-def parallel_run(config_path: str, seeds: List[int], results_folder: str, timestamp: str, run_name: str, changes: List[Dict]):
+def parallel_run(config_path: str, seeds: List[int], results_folder: str,
+                 timestamp: str, run_name: str, changes: List[Dict]):
     procs = []
 
     # macOS + python 3.8 change in multiprocessing defaults.
@@ -36,16 +37,16 @@ def parallel_run(config_path: str, seeds: List[int], results_folder: str, timest
 
     for seed in seeds:
         p = Process(
-                target=run_methods.single_run,
-                args=(
-                    config_path,
-                    results_folder, 
-                    timestamp,
-                    run_name,
-                    changes,
-                    seed,
-                ),
-            )
+            target=run_methods.single_run,
+            args=(
+                config_path,
+                results_folder,
+                timestamp,
+                run_name,
+                changes,
+                seed,
+            ),
+        )
         p.start()
         procs.append(p)
 
@@ -53,10 +54,14 @@ def parallel_run(config_path: str, seeds: List[int], results_folder: str, timest
         p.join()
 
 
-def serial_run(config_path: str, seeds: List[int], results_folder: str, timestamp: str, run_name: str, changes: List[Dict]):
+def serial_run(config_path: str, seeds: List[int], results_folder: str,
+               timestamp: str, run_name: str, changes: List[Dict]):
     for seed in seeds:
-        run_methods.single_run(config_path=config_path, seed=seed,
-                   results_folder=results_folder, timestamp=timestamp, run_name=run_name)  
+        run_methods.single_run(config_path=config_path,
+                               seed=seed,
+                               results_folder=results_folder,
+                               timestamp=timestamp,
+                               run_name=run_name)
 
 
 if __name__ == '__main__':
@@ -65,22 +70,33 @@ if __name__ == '__main__':
     except ValueError:
         seeds = [int(i) for i in args.seed.strip("[]").split(",")]
 
-    config_changes = experiment_utils.json_to_config_changes(args.config_changes)
+    config_changes = experiment_utils.json_to_config_changes(
+        args.config_changes)
 
     print(config_changes)
 
     if isinstance(seeds, int):
-        run_methods.single_run(config_path=args.config_path, seed=seeds,
-                   results_folder=args.results_folder, timestamp=args.timestamp, run_name=args.run_name, changes=config_changes)
+        run_methods.single_run(config_path=args.config_path,
+                               seed=seeds,
+                               results_folder=args.results_folder,
+                               timestamp=args.timestamp,
+                               run_name=args.run_name,
+                               changes=config_changes)
     elif isinstance(seeds, list):
         if args.mode == constants.Constants.PARALLEL:
-            parallel_run(config_path=args.config_path, seeds=seeds,
-                   results_folder=args.results_folder, timestamp=args.timestamp, run_name=args.run_name, changes=config_changes)
+            parallel_run(config_path=args.config_path,
+                         seeds=seeds,
+                         results_folder=args.results_folder,
+                         timestamp=args.timestamp,
+                         run_name=args.run_name,
+                         changes=config_changes)
         elif args.mode == constants.Constants.SERIAL:
-            serial_run(config_path=args.config_path, seeds=args.seed,
-                   results_folder=args.results_folder, timestamp=args.timestamp, run_name=args.run_name, changes=config_changes)
-
-
+            serial_run(config_path=args.config_path,
+                       seeds=args.seed,
+                       results_folder=args.results_folder,
+                       timestamp=args.timestamp,
+                       run_name=args.run_name,
+                       changes=config_changes)
 
 # def single_run(config_path: str, seed: int, results_folder: str, timestamp: str, run_name: str, changes: List[Dict]):
 
