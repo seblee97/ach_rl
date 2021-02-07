@@ -30,26 +30,27 @@ from utils import plotting_functions
 
 MAIN_FILE_PATH = os.path.dirname(os.path.realpath(__file__))
 
-
 parser = argparse.ArgumentParser()
 
 parser.add_argument(
     "--mode",
     metavar="-M",
     default="parallel",
-    help="run in 'parallel' or 'serial', or 'single' (no changes), or 'cluster'",
+    help=
+    "run in 'parallel' or 'serial', or 'single' (no changes), or 'cluster'",
 )
 parser.add_argument("--config_path", metavar="-C", default="config.yaml")
-parser.add_argument("--seeds", metavar="-S", default=list(range(1)))
-parser.add_argument(
-    "--config_changes", metavar="-CC", default=ConfigChange.config_changes
-)
+parser.add_argument("--seeds", metavar="-S", default=list(range(3)))
+parser.add_argument("--config_changes",
+                    metavar="-CC",
+                    default=ConfigChange.config_changes)
 
 args = parser.parse_args()
 
 
-def parallel_run(
-        config_path: str, results_folder: str, timestamp: str, config_changes: Dict[str, List[Dict]], seeds: List[int])-> None:
+def parallel_run(config_path: str, results_folder: str, timestamp: str,
+                 config_changes: Dict[str,
+                                      List[Dict]], seeds: List[int]) -> None:
     """Run experiments in parallel.
 
     Args:
@@ -73,14 +74,8 @@ def parallel_run(
             logger.info(f"Seed: {seed}")
             p = Process(
                 target=run_methods.single_run,
-                args=(
-                    config_path,
-                    results_folder,
-                    timestamp,
-                    run_name,
-                    changes,
-                    seed
-                ),
+                args=(config_path, results_folder, timestamp, run_name,
+                      changes, seed),
             )
             p.start()
             procs.append(p)
@@ -89,8 +84,9 @@ def parallel_run(
         p.join()
 
 
-def serial_run(
-        config_path: str, results_folder: str, timestamp: str, config_changes: Dict[str, List[Dict]], seeds: List[int])-> None:
+def serial_run(config_path: str, results_folder: str, timestamp: str,
+               config_changes: Dict[str,
+                                    List[Dict]], seeds: List[int]) -> None:
     """Run experiments in serial.
 
     Args:
@@ -106,39 +102,52 @@ def serial_run(
         logger.info(f"{run_name}")
         for seed in seeds:
             logger.info(f"Seed: {seed}")
-            run_methods.single_run(config_path=config_path, results_folder=results_folder,
-                                   timestamp=timestamp, run_name=run_name, changes=changes, seed=seed)
+            run_methods.single_run(config_path=config_path,
+                                   results_folder=results_folder,
+                                   timestamp=timestamp,
+                                   run_name=run_name,
+                                   changes=changes,
+                                   seed=seed)
 
 
-def cluster_run(
-        config_path: str, results_folder: str, timestamp: str, config_changes: Dict[str, List[Dict]], seeds: List[int])-> None:
+def cluster_run(config_path: str, results_folder: str, timestamp: str,
+                config_changes: Dict[str,
+                                     List[Dict]], seeds: List[int]) -> None:
     for run_name, changes in config_changes.items():
         logger.info(f"Run name: {run_name}, seed: {seeds}")
-        
+
         # if seeds a list, do x; if seeds an int, do y; if seeds nothing, do z;
         # no tmpdir, save job script and config changes json in experiment_path
         checkpoint_path = os.path.join(results_folder, timestamp, run_name)
-        config_changes_path = os.path.join(checkpoint_path, "config_changes.json")
+        config_changes_path = os.path.join(checkpoint_path,
+                                           "config_changes.json")
         job_script_path = os.path.join(checkpoint_path, "job_script")
-        error_path = os.path.join(checkpoint_path, constants.Constants.ERROR_FILE_NAME)
-        output_path = os.path.join(checkpoint_path, constants.Constants.OUTPUT_FILE_NAME)
+        error_path = os.path.join(checkpoint_path,
+                                  constants.Constants.ERROR_FILE_NAME)
+        output_path = os.path.join(checkpoint_path,
+                                   constants.Constants.OUTPUT_FILE_NAME)
 
         os.makedirs(name=checkpoint_path, exist_ok=True)
-        
-        experiment_utils.config_changes_to_json(
-            config_changes=changes, json_path=config_changes_path)
-        
+
+        experiment_utils.config_changes_to_json(config_changes=changes,
+                                                json_path=config_changes_path)
+
         run_command = (
             f"python cluster_run.py --config_path {config_path} "
-            f"--seed {seeds} --config_changes {config_changes_path} "
+            f"--seed '{seeds}' --config_changes {config_changes_path} "
             f"--results_folder {results_folder} --timestamp {timestamp} "
-            f"--run_name {run_name} --mode parallel"
-            )
-        
-        cluster_methods.create_job_script(
-            run_command=run_command, save_path=job_script_path, num_cpus=8, conda_env_name="ach", memory=60, error_path=error_path, output_path=output_path)
-        
-        subprocess.call(f"qsub {job_script_path}", shell=True)
+            f"--run_name {run_name} --mode parallel")
+
+        cluster_methods.create_job_script(run_command=run_command,
+                                          save_path=job_script_path,
+                                          num_cpus=8,
+                                          conda_env_name="ach",
+                                          memory=60,
+                                          error_path=error_path,
+                                          output_path=output_path)
+
+        subprocess.call(run_command, shell=True)
+        # subprocess.call(f"qsub {job_script_path}", shell=True)
 
 
 if __name__ == "__main__":
@@ -150,12 +159,14 @@ if __name__ == "__main__":
     os.makedirs(name=experiment_path, exist_ok=True)
 
     # logger at root of experiment i.e. not individual runs or seeds
-    logger = experiment_logger.get_logger(
-        experiment_path=experiment_path, name=__name__)
+    logger = experiment_logger.get_logger(experiment_path=experiment_path,
+                                          name=__name__)
 
     if args.mode == constants.Constants.SINGLE:
-        single_run(config_path=args.config_path, results_folder=results_folder,
-                   timestamp=timestamp, run_name=constants.Constants.SINGLE)
+        single_run(config_path=args.config_path,
+                   results_folder=results_folder,
+                   timestamp=timestamp,
+                   run_name=constants.Constants.SINGLE)
     else:
         experiment_utils.save_config_changes(
             config_changes=args.config_changes,
@@ -165,15 +176,23 @@ if __name__ == "__main__":
             ),
         )
         if args.mode == constants.Constants.PARALLEL:
-            parallel_run(config_path=args.config_path, results_folder=results_folder,
-                         timestamp=timestamp, config_changes=args.config_changes, seeds=args.seeds)
+            parallel_run(config_path=args.config_path,
+                         results_folder=results_folder,
+                         timestamp=timestamp,
+                         config_changes=args.config_changes,
+                         seeds=args.seeds)
         elif args.mode == constants.Constants.CLUSTER:
-            cluster_run(config_path=args.config_path, results_folder=results_folder,
-                        timestamp=timestamp, config_changes=args.config_changes, seeds=args.seeds)
+            cluster_run(config_path=args.config_path,
+                        results_folder=results_folder,
+                        timestamp=timestamp,
+                        config_changes=args.config_changes,
+                        seeds=args.seeds)
         elif args.mode == constants.Constants.SERIAL:
-            serial_run(config_path=args.config_path, results_folder=results_folder,
-                       timestamp=timestamp, config_changes=args.config_changes, seeds=args.seeds)
-
+            serial_run(config_path=args.config_path,
+                       results_folder=results_folder,
+                       timestamp=timestamp,
+                       config_changes=args.config_changes,
+                       seeds=args.seeds)
 
 # def summary_plot(
 #     smoothng: int, exp_names: List[str], experiment_path: str
@@ -182,7 +201,6 @@ if __name__ == "__main__":
 #     plotting_functions.plot_all_multi_seed_multi_run(
 #         folder_path=experiment_path, exp_names=exp_names, window_width=smoothng
 #     )
-
 
 # def single_run(
 #     config_path: str,
@@ -253,77 +271,77 @@ if __name__ == "__main__":
 #     r.train()
 #     r.post_process()
 
-    # base_configuration = ach_config.AchConfig(config=args.config_path)
+# base_configuration = ach_config.AchConfig(config=args.config_path)
 
-    # base_configuration.add_property(constants.Constants.RUN_PATH, MAIN_FILE_PATH)
+# base_configuration.add_property(constants.Constants.RUN_PATH, MAIN_FILE_PATH)
 
-    # timestamp = experiment_utils.get_experiment_timestamp()
-    # results_folder = os.path.join(MAIN_FILE_PATH, constants.Constants.RESULTS)
-    # experiment_path = os.path.join(results_folder, timestamp)
+# timestamp = experiment_utils.get_experiment_timestamp()
+# results_folder = os.path.join(MAIN_FILE_PATH, constants.Constants.RESULTS)
+# experiment_path = os.path.join(results_folder, timestamp)
 
-    # os.makedirs(name=experiment_path, exist_ok=True)
+# os.makedirs(name=experiment_path, exist_ok=True)
 
-    # if args.mode != constants.Constants.SINGLE:
-    #     save_config_changes(
-    #         config_changes=args.config_changes,
-    #         file_name=os.path.join(
-    #             experiment_path,
-    #             f"{constants.Constants.CONFIG_CHANGES}.json",
-    #         ),
-    #     )
+# if args.mode != constants.Constants.SINGLE:
+#     save_config_changes(
+#         config_changes=args.config_changes,
+#         file_name=os.path.join(
+#             experiment_path,
+#             f"{constants.Constants.CONFIG_CHANGES}.json",
+#         ),
+#     )
 
-    # if args.mode == constants.Constants.PARALLEL:
-    #     if base_configuration.use_gpu:
-    #         _distribute_over_gpus(args.config_changes)
+# if args.mode == constants.Constants.PARALLEL:
+#     if base_configuration.use_gpu:
+#         _distribute_over_gpus(args.config_changes)
 
-    #     parallel_run(
-    #         base_configuration=base_configuration,
-    #         config_changes=args.config_changes,
-    #         seeds=args.seeds,
-    #         experiment_path=experiment_path,
-    #         results_folder=results_folder,
-    #         timestamp=timestamp,
-    #     )
-    #     summary_plot(
-    #         config=base_configuration,
-    #         experiment_path=experiment_path,
-    #         exp_names=list(args.config_changes.keys()),
-    #     )
-    # if args.mode == constants.Constants.CLUSTER:
-    #     cluster_run(
-    #         configuration=args.config,
-    #         config_changes=args.config_changes,
-    #         seeds=args.seeds,
-    #         experiment_path=experiment_path,
-    #         results_folder=results_folder,
-    #         timestamp=timestamp,
-    #     )
-    #     summary_plot(
-    #         config=base_configuration,
-    #         experiment_path=experiment_path,
-    #         exp_names=list(args.config_changes.keys()),
-    #     )
-    # elif args.mode == constants.Constants.SERIAL:
-    #     serial_run(
-    #         base_configuration=base_configuration,
-    #         config_changes=args.config_changes,
-    #         seeds=args.seeds,
-    #         experiment_path=experiment_path,
-    #         results_folder=results_folder,
-    #         timestamp=timestamp,
-    #     )
-    #     summary_plot(
-    #         config=base_configuration,
-    #         experiment_path=experiment_path,
-    #         exp_names=list(args.config_changes.keys()),
-    #     )
-    # elif args.mode == constants.Constants.SINGLE:
-    #     single_run(
-    #         base_configuration=base_configuration,
-    #         run_name=constants.Constants.SINGLE,
-    #         seed=base_configuration.seed,
-    #         results_folder=results_folder,
-    #         experiment_path=experiment_path,
-    #         timestamp=timestamp,
-    #         config_change=[],
-    #     )
+#     parallel_run(
+#         base_configuration=base_configuration,
+#         config_changes=args.config_changes,
+#         seeds=args.seeds,
+#         experiment_path=experiment_path,
+#         results_folder=results_folder,
+#         timestamp=timestamp,
+#     )
+#     summary_plot(
+#         config=base_configuration,
+#         experiment_path=experiment_path,
+#         exp_names=list(args.config_changes.keys()),
+#     )
+# if args.mode == constants.Constants.CLUSTER:
+#     cluster_run(
+#         configuration=args.config,
+#         config_changes=args.config_changes,
+#         seeds=args.seeds,
+#         experiment_path=experiment_path,
+#         results_folder=results_folder,
+#         timestamp=timestamp,
+#     )
+#     summary_plot(
+#         config=base_configuration,
+#         experiment_path=experiment_path,
+#         exp_names=list(args.config_changes.keys()),
+#     )
+# elif args.mode == constants.Constants.SERIAL:
+#     serial_run(
+#         base_configuration=base_configuration,
+#         config_changes=args.config_changes,
+#         seeds=args.seeds,
+#         experiment_path=experiment_path,
+#         results_folder=results_folder,
+#         timestamp=timestamp,
+#     )
+#     summary_plot(
+#         config=base_configuration,
+#         experiment_path=experiment_path,
+#         exp_names=list(args.config_changes.keys()),
+#     )
+# elif args.mode == constants.Constants.SINGLE:
+#     single_run(
+#         base_configuration=base_configuration,
+#         run_name=constants.Constants.SINGLE,
+#         seed=base_configuration.seed,
+#         results_folder=results_folder,
+#         experiment_path=experiment_path,
+#         timestamp=timestamp,
+#         config_change=[],
+#     )
