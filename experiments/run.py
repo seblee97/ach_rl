@@ -163,10 +163,11 @@ if __name__ == "__main__":
                                           name=__name__)
 
     if args.mode == constants.Constants.SINGLE:
-        single_run(config_path=args.config_path,
-                   results_folder=results_folder,
-                   timestamp=timestamp,
-                   run_name=constants.Constants.SINGLE)
+        run_methods.single_run(config_path=args.config_path,
+                               results_folder=results_folder,
+                               timestamp=timestamp,
+                               run_name=constants.Constants.SINGLE,
+                               changes=[])
     else:
         experiment_utils.save_config_changes(
             config_changes=args.config_changes,
