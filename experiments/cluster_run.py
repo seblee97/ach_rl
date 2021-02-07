@@ -1,5 +1,7 @@
 import argparse
+import multiprocessing
 import os
+from multiprocessing import Process
 from typing import Dict
 from typing import List
 
@@ -25,22 +27,23 @@ parser.add_argument("--mode")
 args = parser.parse_args()
 
 
-def parallel_run(config_path: str, seed: List[int], results_folder: str, timestamp: str, run_name: str):
+def parallel_run(config_path: str, seeds: List[int], results_folder: str, timestamp: str, run_name: str, changes: List[Dict]):
     procs = []
 
     # macOS + python 3.8 change in multiprocessing defaults.
     # workaround: https://github.com/pytest-dev/pytest-flask/issues/104
-    multiprocessing.set_start_method("fork")
+    multiprocessing.set_start_method("spawn")
 
-    for s in seed:
+    for seed in seeds:
         p = Process(
                 target=run_methods.single_run,
                 args=(
                     config_path,
-                    seed,
                     results_folder, 
                     timestamp,
-                    run_name
+                    run_name,
+                    changes,
+                    seed,
                 ),
             )
         p.start()
@@ -50,9 +53,9 @@ def parallel_run(config_path: str, seed: List[int], results_folder: str, timesta
         p.join()
 
 
-def serial_run(config_path: str, seed: List[int], results_folder: str, timestamp: str, run_name: str):
-    for s in seed:
-        single_run(config_path=config_path, seed=s,
+def serial_run(config_path: str, seeds: List[int], results_folder: str, timestamp: str, run_name: str, changes: List[Dict]):
+    for seed in seeds:
+        run_methods.single_run(config_path=config_path, seed=seed,
                    results_folder=results_folder, timestamp=timestamp, run_name=run_name)  
 
 
@@ -60,7 +63,7 @@ if __name__ == '__main__':
     try:
         seeds = int(args.seed)
     except ValueError:
-        seeds = [int(i) for i in s.strip("[]").split(",")]
+        seeds = [int(i) for i in args.seed.strip("[]").split(",")]
 
     config_changes = experiment_utils.json_to_config_changes(args.config_changes)
 
@@ -72,10 +75,10 @@ if __name__ == '__main__':
     elif isinstance(seeds, list):
         if args.mode == constants.Constants.PARALLEL:
             parallel_run(config_path=args.config_path, seeds=seeds,
-                   results_folder=args.results_folder, timestamp=args.timestamp, run_name=args.run_name)
+                   results_folder=args.results_folder, timestamp=args.timestamp, run_name=args.run_name, changes=config_changes)
         elif args.mode == constants.Constants.SERIAL:
             serial_run(config_path=args.config_path, seeds=args.seed,
-                   results_folder=args.results_folder, timestamp=args.timestamp, run_name=args.run_name)
+                   results_folder=args.results_folder, timestamp=args.timestamp, run_name=args.run_name, changes=config_changes)
 
 
 
