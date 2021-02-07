@@ -4,6 +4,8 @@ def create_job_script(
         num_cpus: int,
         conda_env_name: str,
         memory: int,
+        error_path: str,
+        output_path: str,
         walltime: str = "24:0:0"
 ) -> None:
     """Create a job script for use on HPC.
@@ -19,6 +21,9 @@ def create_job_script(
     with open(save_path, 'w') as file:
         file.write(f"#PBS -lselect=1:ncpus={num_cpus}:mem={memory}gb\n")
         file.write(f"#PBS -lwalltime={walltime}\n")
+        # output/error file paths
+        file.write(f"#PBS -e {error_path}\n")
+        file.write(f"#PBS -o {output_path}\n")
         # initialise conda env
         file.write("module load anaconda3/personal\n")
         file.write(f"source activate {conda_env_name}\n")
