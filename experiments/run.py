@@ -120,6 +120,8 @@ def cluster_run(
         checkpoint_path = os.path.join(results_folder, timestamp, run_name)
         config_changes_path = os.path.join(checkpoint_path, "config_changes.json")
         job_script_path = os.path.join(checkpoint_path, "job_script")
+        error_path = os.path.join(checkpoint_path, constants.Constants.ERROR_FILE_NAME)
+        output_path = os.path.join(checkpoint_path, constants.Constants.OUTPUT_FILE_NAME)
 
         os.makedirs(name=checkpoint_path, exist_ok=True)
         
@@ -134,7 +136,7 @@ def cluster_run(
             )
         
         cluster_methods.create_job_script(
-            run_command=run_command, save_path=job_script_path, num_cpus=8, conda_env_name="ach", memory=60)
+            run_command=run_command, save_path=job_script_path, num_cpus=8, conda_env_name="ach", memory=60, error_path=error_path, output_path=output_path)
         
         subprocess.call(f"qsub {job_script_path}", shell=True)
 
