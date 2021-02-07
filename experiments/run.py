@@ -40,7 +40,7 @@ parser.add_argument(
     help="run in 'parallel' or 'serial', or 'single' (no changes), or 'cluster'",
 )
 parser.add_argument("--config_path", metavar="-C", default="config.yaml")
-parser.add_argument("--seeds", metavar="-S", default=range(1))
+parser.add_argument("--seeds", metavar="-S", default=list(range(1)))
 parser.add_argument(
     "--config_changes", metavar="-CC", default=ConfigChange.config_changes
 )
@@ -113,17 +113,30 @@ def serial_run(
 def cluster_run(
         config_path: str, results_folder: str, timestamp: str, config_changes: Dict[str, List[Dict]], seeds: List[int])-> None:
     for run_name, changes in config_changes.items():
-        print(run_name, seeds)
-        with tempfile.TemporaryDirectory() as tmpdir:
-            config_changes_path = os.path.join(tmpdir, "config_changes.json")
-            experiment_utils.config_changes_to_json(
-                config_changes=changes, json_path=config_changes_path)
-            job_script_path = os.path.join(tmpdir, "job_script")
-            run_command = f"python cluster_run.py --config_path {config_path} --seed {seeds} --config_changes {config_changes_path} --results_folder {results_folder} --timestamp {timestamp} --run_name {run_name} --mode parallel"
-            cluster_methods.create_job_script(
-                run_command=run_command, save_path=job_script_path, num_cpus=8, conda_env_name="ach", memory=60)
-            # subprocess.call(run_command, shell=True)
-            subprocess.call(f"qsub {job_script_path}", shell=True)
+        logger.info(f"Run name: {run_name}, seed: {seeds}")
+        
+        # if seeds a list, do x; if seeds an int, do y; if seeds nothing, do z;
+        # no tmpdir, save job script and config changes json in experiment_path
+        checkpoint_path = os.path.join(results_folder, timestamp, run_name)
+        config_changes_path = os.path.join(checkpoint_path, "config_changes.json")
+        job_script_path = os.path.join(checkpoint_path, "job_script")
+
+        os.makedirs(name=checkpoint_path, exist_ok=True)
+        
+        experiment_utils.config_changes_to_json(
+            config_changes=changes, json_path=config_changes_path)
+        
+        run_command = (
+            f"python cluster_run.py --config_path {config_path} "
+            f"--seed {seeds} --config_changes {config_changes_path} "
+            f"--results_folder {results_folder} --timestamp {timestamp} "
+            f"--run_name {run_name} --mode parallel"
+            )
+        
+        cluster_methods.create_job_script(
+            run_command=run_command, save_path=job_script_path, num_cpus=8, conda_env_name="ach", memory=60)
+        
+        subprocess.call(f"qsub {job_script_path}", shell=True)
 
 
 if __name__ == "__main__":
