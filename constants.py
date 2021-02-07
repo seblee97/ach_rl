@@ -225,6 +225,8 @@ class Constants:
     LOG_FILE_NAME = "experiment.log"
     LOG_FORMAT = "%(asctime)s  %(name)8s  %(levelname)5s  %(message)s"
     CLUSTER = "cluster"
+    ERROR_FILE_NAME = "error.txt"
+    OUTPUT_FILE_NAME = "output.txt"
 
     ATARI_ENVS = ["PongNoFrameskip-v4"]
 
