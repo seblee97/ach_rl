@@ -220,10 +220,6 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
                 self._pool.close()
                 self._pool.join()
 
-        self._logger.info(ensemble_mean_penalties)
-        import pdb
-        pdb.set_trace()
-
         # log data from individual runners in ensemble
         for i in range(len(self._learner.ensemble)):
             self._write_scalar(
@@ -327,7 +323,7 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
         processes_arguments = [
             (copy.deepcopy(self._environment), learner,
              self._visitation_penalty, episode, i)
-            for i, learner in ensemble(self._learner.ensemble)
+            for i, learner in enumerate(self._learner.ensemble)
         ]
         processes_results = self._pool.starmap(self._single_train_episode,
                                                processes_arguments)
