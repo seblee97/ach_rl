@@ -210,6 +210,7 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
             ensemble_step_counts,
             ensemble_mean_penalties,
             ensemble_mean_penalty_infos,
+            ensemble_std_penalty_infos,
         ) = train_fn(episode=episode, rng_state=rng_state)
 
         # set again, to ensure serial/parallel consistency
@@ -268,7 +269,15 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
                 tag=constants.Constants.MEAN_PENALTY_INFO,
                 episode=episode,
                 scalar=np.mean(ensemble_penalty_info),
-                df_tag=penalty_info,
+                df_tag=f"{penalty_info}_mean",
+            )
+        for penalty_info, ensemble_penalty_info in ensemble_std_penalty_infos.items(
+        ):
+            self._write_scalar(
+                tag=constants.Constants.STD_PENALTY_INFO,
+                episode=episode,
+                scalar=np.mean(ensemble_penalty_info),
+                df_tag=f"{penalty_info}_std",
             )
 
         return mean_reward, mean_step_count
@@ -287,22 +296,18 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
         ensemble_episode_step_counts = []
         mean_penalties = []
         mean_penalty_infos = {}
+        std_penalty_infos = {}
 
         for i, learner in enumerate(self._learner.ensemble):
             self._logger.info(
                 f"Training learner {i}/{len(self._learner.ensemble)}...")
-            (
-                _,
-                episode_reward,
-                episode_count,
-                mean_penalty,
-                mean_penalty_info,
-            ) = self._single_train_episode(
-                environment=copy.deepcopy(self._environment),
-                learner=learner,
-                visitation_penalty=self._visitation_penalty,
-                episode=episode,
-                learner_seed=i * rng_state)
+            (_, episode_reward, episode_count, mean_penalty, mean_penalty_info,
+             std_penalty_info) = self._single_train_episode(
+                 environment=copy.deepcopy(self._environment),
+                 learner=learner,
+                 visitation_penalty=self._visitation_penalty,
+                 episode=episode,
+                 learner_seed=i * rng_state)
 
             ensemble_episode_rewards.append(episode_reward)
             ensemble_episode_step_counts.append(episode_count)
@@ -311,13 +316,13 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
                 if info_key not in mean_penalty_infos:
                     mean_penalty_infos[info_key] = []
                 mean_penalty_infos[info_key].append(mean_info)
+            for info_key, std_info in std_penalty_info.items():
+                if info_key not in std_penalty_infos:
+                    std_penalty_infos[info_key] = []
+                std_penalty_infos[info_key].append(std_info)
 
-        return (
-            ensemble_episode_rewards,
-            ensemble_episode_step_counts,
-            mean_penalties,
-            mean_penalty_infos,
-        )
+        return (ensemble_episode_rewards, ensemble_episode_step_counts,
+                mean_penalties, mean_penalty_infos, std_penalty_infos)
 
     def _parallelised_train_episode(
         self,
@@ -336,22 +341,24 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
         ]
         processes_results = self._pool.starmap(self._single_train_episode,
                                                processes_arguments)
-        (
-            learners,
-            ensemble_episode_rewards,
-            ensemble_episode_step_counts,
-            mean_penalties,
-            mean_penalty_info,
-        ) = zip(*processes_results)
+        (learners, ensemble_episode_rewards, ensemble_episode_step_counts,
+         mean_penalties, mean_penalty_info,
+         std_penalty_info) = zip(*processes_results)
 
         self._learner.ensemble = list(learners)
 
         mean_penalty_infos = {}
+        std_penalty_infos = {}
         for per_learner_mean_penalty_info in mean_penalty_info:
             for info_key, mean_info in per_learner_mean_penalty_info.items():
                 if info_key not in mean_penalty_infos:
                     mean_penalty_infos[info_key] = []
                 mean_penalty_infos[info_key].append(mean_info)
+        for per_learner_std_penalty_info in std_penalty_info:
+            for info_key, std_info in per_learner_std_penalty_info.items():
+                if info_key not in std_penalty_infos:
+                    std_penalty_infos[info_key] = []
+                std_penalty_infos[info_key].append(std_info)
 
         return (
             ensemble_episode_rewards,
@@ -417,14 +424,10 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
 
         mean_penalties = np.mean(penalties)
         mean_penalty_info = {k: np.mean(v) for k, v in penalty_infos.items()}
+        std_penalty_info = {k: np.std(v) for k, v in penalty_infos.items()}
 
-        return (
-            learner,
-            episode_reward,
-            environment.episode_step_count,
-            mean_penalties,
-            mean_penalty_info,
-        )
+        return (learner, episode_reward, environment.episode_step_count,
+                mean_penalties, mean_penalty_info, std_penalty_info)
 
     def _get_visitation_penalty(self, episode: int, state, action: int,
                                 next_state):
