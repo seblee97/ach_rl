@@ -6,7 +6,6 @@ from typing import Tuple
 
 import constants
 import numpy as np
-from utils import decorators
 
 
 class BaseVisitationPenalty(abc.ABC):
@@ -32,7 +31,6 @@ class BaseVisitationPenalty(abc.ABC):
                                                                  float]]):
         self._state_action_values = state_action_values
 
-    @decorators.timer
     def _get_penalty_info(
         self,
         state,
