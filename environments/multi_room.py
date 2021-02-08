@@ -5,12 +5,11 @@ from typing import List
 from typing import Optional
 from typing import Tuple
 
+import constants
 import numpy as np
+from environments import base_environment
 from matplotlib import cm
 from matplotlib import pyplot as plt
-
-import constants
-from environments import base_environment
 
 
 class MultiRoom(base_environment.BaseEnvironment):
@@ -56,22 +55,21 @@ class MultiRoom(base_environment.BaseEnvironment):
 
         state_indices = np.where(self._map == 0)
         wall_indices = np.where(self._map == 1)
-        self._positional_state_space = list(zip(state_indices[1], state_indices[0]))
+        self._positional_state_space = list(
+            zip(state_indices[1], state_indices[0]))
         self._key_possession_state_space = list(
-            itertools.product([0, 1], repeat=len(self._key_positions))
-        )
+            itertools.product([0, 1], repeat=len(self._key_positions)))
         self._state_space = [
-            i[0] + i[1]
-            for i in itertools.product(
-                self._positional_state_space, self._key_possession_state_space
-            )
+            i[0] + i[1] for i in itertools.product(
+                self._positional_state_space, self._key_possession_state_space)
         ]
 
         self._walls = list(zip(wall_indices[1], wall_indices[0]))
 
         # TODO: make more flexible
         self._rewards = {
-            tuple(reward_position): 1.0 for reward_position in reward_positions
+            tuple(reward_position): 1.0
+            for reward_position in reward_positions
         }
         self._total_rewards = sum(self._rewards.values())
 
@@ -87,8 +85,8 @@ class MultiRoom(base_environment.BaseEnvironment):
         self._key_collection_times: Dict[int, int]
 
     def _parse_map(
-        self, map_file_path: str
-    ) -> Tuple[np.ndarray, List, List, List, List]:
+            self,
+            map_file_path: str) -> Tuple[np.ndarray, List, List, List, List]:
         """Method to parse ascii map.
 
         Args:
@@ -127,24 +125,20 @@ class MultiRoom(base_environment.BaseEnvironment):
                 map_rows.append(map_row)
                 if constants.Constants.REWARD_CHARACTER in line:
                     reward_positions.append(
-                        (line.index(constants.Constants.REWARD_CHARACTER), i)
-                    )
+                        (line.index(constants.Constants.REWARD_CHARACTER), i))
                 if constants.Constants.KEY_CHARACTER in line:
                     key_positions.append(
-                        (line.index(constants.Constants.KEY_CHARACTER), i)
-                    )
+                        (line.index(constants.Constants.KEY_CHARACTER), i))
                 if constants.Constants.START_CHARACTER in line:
                     start_positions.append(
-                        (line.index(constants.Constants.START_CHARACTER), i)
-                    )
+                        (line.index(constants.Constants.START_CHARACTER), i))
                 if constants.Constants.DOOR_CHARACTER in line:
                     door_positions.append(
-                        (line.index(constants.Constants.DOOR_CHARACTER), i)
-                    )
+                        (line.index(constants.Constants.DOOR_CHARACTER), i))
 
         assert all(
-            len(i) == len(map_rows[0]) for i in map_rows
-        ), "ASCII map must specify rectangular grid."
+            len(i) == len(map_rows[0])
+            for i in map_rows), "ASCII map must specify rectangular grid."
 
         assert (
             len(start_positions) == 1
@@ -192,9 +186,10 @@ class MultiRoom(base_environment.BaseEnvironment):
     def episode_history(self) -> np.ndarray:
         return np.array(self._episode_history)
 
-    def _env_skeleton(
-        self, show_rewards: bool = True, show_doors: bool = True, show_keys: bool = True
-    ) -> np.ndarray:
+    def _env_skeleton(self,
+                      show_rewards: bool = True,
+                      show_doors: bool = True,
+                      show_keys: bool = True) -> np.ndarray:
         """Get a 'skeleton' of map e.g. for visualisation purposes.
 
         Does not include agent position.
@@ -208,7 +203,7 @@ class MultiRoom(base_environment.BaseEnvironment):
             skeleton: np array of map.
         """
         # flip size so indexing is consistent with axis dimensions
-        skeleton = np.ones(self._map.shape + (3,))
+        skeleton = np.ones(self._map.shape + (3, ))
 
         # make walls black
         skeleton[self._map == 1] = np.zeros(3)
@@ -249,8 +244,7 @@ class MultiRoom(base_environment.BaseEnvironment):
         return state_rgb_images
 
     def _average_values_over_key_states(
-        self, values: Dict[Tuple[int], float]
-    ) -> Dict[Tuple[int], float]:
+            self, values: Dict[Tuple[int], float]) -> Dict[Tuple[int], float]:
         """For certain analyses (e.g. plotting value functions) we want to
         average the values for each position over all non-positional state information--
         in this case the key posessions.
@@ -316,12 +310,19 @@ class MultiRoom(base_environment.BaseEnvironment):
             over_actions: 'mean' or 'max'; how to flatten action dimension.
             save_path: path to save graphs.
         """
-        if len(self._key_positions) <= 2:
+        if len(self._key_positions) <= 0:
+            value_combinations = {}
+            fig, axes = plt.subplots(nrows=1, ncols=1)
+            averaged_values_axis = axes
+        elif len(self._key_positions) <= 2:
             value_combinations = self._get_value_combinations(values=values)
-            fig, axes = plt.subplots(nrows=1 + 2 * len(self._key_positions), ncols=1)
+            fig, axes = plt.subplots(nrows=1 + 2 * len(self._key_positions),
+                                     ncols=1)
+            averaged_values_axis = axes[0]
         else:
-            value_combinations = []
-            fig, axes = plt.subplot(nrows=1, ncols=1)
+            value_combinations = {}
+            fig, axes = plt.subplots(nrows=1, ncols=1)
+            averaged_values_axis = axes
 
         fig.subplots_adjust(hspace=0.5)
 
@@ -329,7 +330,7 @@ class MultiRoom(base_environment.BaseEnvironment):
 
         self._value_plot(
             fig=fig,
-            ax=axes[0],
+            ax=averaged_values_axis,
             values=averaged_values,
             plot_max_values=plot_max_values,
             quiver=quiver,
@@ -337,7 +338,8 @@ class MultiRoom(base_environment.BaseEnvironment):
             subtitle="Positional Average",
         )
 
-        for i, (key_state, value_combination) in enumerate(value_combinations.items()):
+        for i, (key_state,
+                value_combination) in enumerate(value_combinations.items()):
             self._value_plot(
                 fig=fig,
                 ax=axes[i + 1],
@@ -363,17 +365,17 @@ class MultiRoom(base_environment.BaseEnvironment):
     ):
         if plot_max_values:
             image, min_val, max_val = self._get_value_heatmap(
-                values=values, over_actions=over_actions
-            )
-            im = ax.imshow(
-                image, origin="lower", cmap=self._colormap, vmin=min_val, vmax=max_val
-            )
+                values=values, over_actions=over_actions)
+            im = ax.imshow(image,
+                           origin="lower",
+                           cmap=self._colormap,
+                           vmin=min_val,
+                           vmax=max_val)
             fig.colorbar(im, ax=ax)
         if quiver:
             map_shape = self._env_skeleton().shape
-            X, Y, arrow_x, arrow_y = self._get_quiver_data(
-                map_shape=map_shape, values=values
-            )
+            X, Y, arrow_x, arrow_y = self._get_quiver_data(map_shape=map_shape,
+                                                           values=values)
             ax.quiver(
                 X,
                 Y,
@@ -385,12 +387,12 @@ class MultiRoom(base_environment.BaseEnvironment):
         return ax
 
     def _get_value_heatmap(
-        self, values: Dict, over_actions: str
-    ) -> Tuple[np.ndarray, float, float]:
+            self, values: Dict,
+            over_actions: str) -> Tuple[np.ndarray, float, float]:
         """Heatmap of values over states."""
-        environment_map = self._env_skeleton(
-            show_rewards=False, show_doors=False, show_keys=False
-        )
+        environment_map = self._env_skeleton(show_rewards=False,
+                                             show_doors=False,
+                                             show_keys=False)
 
         if over_actions == constants.Constants.MAX:
             values = {k: max(v) for k, v in values.items()}
@@ -407,8 +409,8 @@ class MultiRoom(base_environment.BaseEnvironment):
             # remove alpha from rgba in colormap return
             # normalise value for color mapping
             environment_map[state[::-1]] = self._colormap(
-                (value - current_min_value) / (current_max_value - current_min_value)
-            )[:-1]
+                (value - current_min_value) /
+                (current_max_value - current_min_value))[:-1]
 
         return environment_map, current_min_value, current_max_value
 
@@ -459,7 +461,8 @@ class MultiRoom(base_environment.BaseEnvironment):
         locked_door = tuple(provisional_new_position) in self._door_positions
 
         if locked_door:
-            door_index = self._door_positions.index(tuple(provisional_new_position))
+            door_index = self._door_positions.index(
+                tuple(provisional_new_position))
             if self._keys_state[door_index]:
                 locked_door = False
 
@@ -470,7 +473,8 @@ class MultiRoom(base_environment.BaseEnvironment):
             key_index = self._key_positions.index(tuple(self._agent_position))
             if not self._keys_state[key_index]:
                 self._keys_state[key_index] = 1
-                self._key_collection_times[key_index] = self._episode_step_count
+                self._key_collection_times[
+                    key_index] = self._episode_step_count
 
     def step(self, action: int) -> Tuple[float, Tuple[int, int]]:
         """Take step in environment according to action of agent.
@@ -492,13 +496,13 @@ class MultiRoom(base_environment.BaseEnvironment):
 
         if self._training:
             self._visitation_counts[self._agent_position[1]][
-                self._agent_position[0]
-            ] += 1
+                self._agent_position[0]] += 1
 
         reward = self._compute_reward()
         self._active = self._remain_active(reward=reward)
 
-        self._episode_history.append(copy.deepcopy(tuple(self._agent_position)))
+        self._episode_history.append(copy.deepcopy(tuple(
+            self._agent_position)))
 
         new_state = tuple(self._agent_position) + tuple(self._keys_state)
 
@@ -508,10 +512,8 @@ class MultiRoom(base_environment.BaseEnvironment):
         """Check for reward, i.e. whether agent position is equal to a reward position.
         If reward is found, add to rewards received log.
         """
-        if (
-            tuple(self._agent_position) in self._rewards
-            and tuple(self._agent_position) not in self._rewards_received
-        ):
+        if (tuple(self._agent_position) in self._rewards
+                and tuple(self._agent_position) not in self._rewards_received):
             reward = self._rewards.get(tuple(self._agent_position))
             self._rewards_received.append(tuple(self._agent_position))
         else:
