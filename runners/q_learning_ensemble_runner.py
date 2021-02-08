@@ -201,12 +201,19 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
             train_fn = self._serial_train_episode
             self._logger.info("Training ensemble of learners in serial...")
 
+        # get proxy for rng state
+        rng_state = int(np.mean(np.random.get_state()[1])) % (2**30)
+        self._logger.info(rng_state)
+
         (
             ensemble_rewards,
             ensemble_step_counts,
             ensemble_mean_penalties,
             ensemble_mean_penalty_infos,
-        ) = train_fn(episode=episode)
+        ) = train_fn(episode=episode, rng_state=rng_state)
+
+        # set again, to ensure serial/parallel consistency
+        experiment_utils.set_random_seeds(rng_state)
 
         mean_reward = np.mean(ensemble_rewards)
         mean_step_count = np.mean(ensemble_step_counts)
@@ -269,6 +276,7 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
     def _serial_train_episode(
         self,
         episode: int,
+        rng_state: int,
     ) -> Tuple[float, int]:
         """Perform the train episode for each learner in ensemble serially.
 
@@ -294,7 +302,7 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
                 learner=learner,
                 visitation_penalty=self._visitation_penalty,
                 episode=episode,
-                learner_id=i)
+                learner_seed=i * rng_state)
 
             ensemble_episode_rewards.append(episode_reward)
             ensemble_episode_step_counts.append(episode_count)
@@ -314,6 +322,7 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
     def _parallelised_train_episode(
         self,
         episode: int,
+        rng_state: int,
     ) -> Tuple[float, int]:
         """Perform the train episode for each learner in ensemble in parallel.
 
@@ -322,7 +331,7 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
         """
         processes_arguments = [
             (copy.deepcopy(self._environment), learner,
-             self._visitation_penalty, episode, i)
+             self._visitation_penalty, episode, i * rng_state)
             for i, learner in enumerate(self._learner.ensemble)
         ]
         processes_results = self._pool.starmap(self._single_train_episode,
@@ -355,7 +364,7 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
     def _single_train_episode(
             environment: base_environment.BaseEnvironment,
             learner: base_learner.BaseLearner, visitation_penalty,
-            episode: int, learner_id: int) -> Union[None, Tuple[float, int]]:
+            episode: int, learner_seed: int) -> Union[None, Tuple[float, int]]:
         """Single learner train episode.
 
         Args:
@@ -371,7 +380,7 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
         # to guarantee independently random sub-processes, we reset seeds here
         # based on learner id.
 
-        experiment_utils.set_random_seeds(learner_id)
+        experiment_utils.set_random_seeds(learner_seed)
 
         episode_reward = 0
 
