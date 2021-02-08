@@ -195,10 +195,10 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
 
         if self._parallelise_ensemble:
             train_fn = self._parallelised_train_episode
-            self._logger("Training ensemble of learners in parallel...")
+            self._logger.info("Training ensemble of learners in parallel...")
         else:
             train_fn = self._serial_train_episode
-            self._logger("Training ensemble of learners in serial...")
+            self._logger.info("Training ensemble of learners in serial...")
 
         (
             ensemble_rewards,
