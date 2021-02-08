@@ -12,6 +12,7 @@ from typing import Any
 from typing import Dict
 from typing import List
 from typing import Tuple
+from typing import Union
 
 import constants
 import torch
@@ -44,6 +45,9 @@ parser.add_argument("--seeds", metavar="-S", default=list(range(3)))
 parser.add_argument("--config_changes",
                     metavar="-CC",
                     default=ConfigChange.config_changes)
+parser.add_argument("--num_cpus", metavar="-NC", default=8)
+parser.add_argument("--memory", metavar="-MEM", default=60)
+parser.add_argument("--cluster_mode", metavar="-CM", default="individual")
 
 args = parser.parse_args()
 
@@ -110,44 +114,76 @@ def serial_run(config_path: str, results_folder: str, timestamp: str,
                                    seed=seed)
 
 
+def _submit_job(config_path: str,
+                results_folder: str,
+                run_name: str,
+                timestamp: str,
+                num_cpus: int,
+                memory: int,
+                changes: List[Dict],
+                seeds: Union[int, List[int]],
+                cluster_mode: str = ""):
+    checkpoint_path = os.path.join(results_folder, timestamp, run_name)
+    config_changes_path = os.path.join(checkpoint_path, "config_changes.json")
+    job_script_path = os.path.join(checkpoint_path, "job_script")
+    error_path = os.path.join(checkpoint_path,
+                              constants.Constants.ERROR_FILE_NAME)
+    output_path = os.path.join(checkpoint_path,
+                               constants.Constants.OUTPUT_FILE_NAME)
+
+    os.makedirs(name=checkpoint_path, exist_ok=True)
+
+    experiment_utils.config_changes_to_json(config_changes=changes,
+                                            json_path=config_changes_path)
+
+    run_command = (
+        f"python cluster_run.py --config_path {config_path} "
+        f"--seed '{seeds}' --config_changes {config_changes_path} "
+        f"--results_folder {results_folder} --timestamp {timestamp} "
+        f"--run_name {run_name}")
+
+    if cluster_mode:
+        run_command = f"{run_command} --mode {cluster_mode}"
+
+    cluster_methods.create_job_script(run_command=run_command,
+                                      save_path=job_script_path,
+                                      num_cpus=num_cpus,
+                                      conda_env_name="ach",
+                                      memory=memory,
+                                      error_path=error_path,
+                                      output_path=output_path)
+
+    # subprocess.call(run_command, shell=True)
+    subprocess.call(f"qsub {job_script_path}", shell=True)
+
+
 def cluster_run(config_path: str, results_folder: str, timestamp: str,
-                config_changes: Dict[str,
-                                     List[Dict]], seeds: List[int]) -> None:
+                config_changes: Dict[str, List[Dict]], seeds: List[int],
+                num_cpus: int, memory: int, cluster_mode: str) -> None:
+
     for run_name, changes in config_changes.items():
-        logger.info(f"Run name: {run_name}, seed: {seeds}")
-
-        # if seeds a list, do x; if seeds an int, do y; if seeds nothing, do z;
-        # no tmpdir, save job script and config changes json in experiment_path
-        checkpoint_path = os.path.join(results_folder, timestamp, run_name)
-        config_changes_path = os.path.join(checkpoint_path,
-                                           "config_changes.json")
-        job_script_path = os.path.join(checkpoint_path, "job_script")
-        error_path = os.path.join(checkpoint_path,
-                                  constants.Constants.ERROR_FILE_NAME)
-        output_path = os.path.join(checkpoint_path,
-                                   constants.Constants.OUTPUT_FILE_NAME)
-
-        os.makedirs(name=checkpoint_path, exist_ok=True)
-
-        experiment_utils.config_changes_to_json(config_changes=changes,
-                                                json_path=config_changes_path)
-
-        run_command = (
-            f"python cluster_run.py --config_path {config_path} "
-            f"--seed '{seeds}' --config_changes {config_changes_path} "
-            f"--results_folder {results_folder} --timestamp {timestamp} "
-            f"--run_name {run_name} --mode parallel")
-
-        cluster_methods.create_job_script(run_command=run_command,
-                                          save_path=job_script_path,
-                                          num_cpus=8,
-                                          conda_env_name="ach",
-                                          memory=60,
-                                          error_path=error_path,
-                                          output_path=output_path)
-
-        subprocess.call(run_command, shell=True)
-        # subprocess.call(f"qsub {job_script_path}", shell=True)
+        if cluster_mode == constants.Constants.INDIVIDUAL:
+            for seed in seeds:
+                logger.info(f"Run name: {run_name}, seed: {seed}")
+                _submit_job(config_path=config_path,
+                            results_folder=results_folder,
+                            run_name=run_name,
+                            timestamp=timestamp,
+                            num_cpus=num_cpus,
+                            memory=memory,
+                            changes=changes,
+                            seeds=seed)
+        else:
+            logger.info(f"Run name: {run_name}, seed: {seeds}")
+            _submit_job(config_path=config_path,
+                        results_folder=results_folder,
+                        run_name=run_name,
+                        timestamp=timestamp,
+                        num_cpus=num_cpus,
+                        memory=memory,
+                        changes=changes,
+                        seeds=seeds,
+                        cluster_mode=cluster_mode)
 
 
 if __name__ == "__main__":
@@ -187,7 +223,10 @@ if __name__ == "__main__":
                         results_folder=results_folder,
                         timestamp=timestamp,
                         config_changes=args.config_changes,
-                        seeds=args.seeds)
+                        seeds=args.seeds,
+                        num_cpus=args.num_cpus,
+                        memory=args.memory,
+                        cluster_mode=args.cluster_mode)
         elif args.mode == constants.Constants.SERIAL:
             serial_run(config_path=args.config_path,
                        results_folder=results_folder,
