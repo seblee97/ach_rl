@@ -14,8 +14,9 @@ class AchConfig(base_configuration.BaseConfiguration):
     Implements a specific validate configuration method for
     non-trivial associations that need checking in config.
     """
-
-    def __init__(self, config: Union[str, Dict], changes: List[Dict] = []) -> None:
+    def __init__(self,
+                 config: Union[str, Dict],
+                 changes: List[Dict] = []) -> None:
         super().__init__(
             configuration=config,
             template=AChConfigTemplate.base_template,
@@ -32,10 +33,14 @@ class AchConfig(base_configuration.BaseConfiguration):
         """
         environment = getattr(self, constants.Constants.ENVIRONMENT)
         if environment == constants.Constants.MINIGRID:
-            reward_positions = getattr(self, constants.Constants.REWARD_POSITIONS)
+            reward_positions = getattr(self,
+                                       constants.Constants.REWARD_POSITIONS)
             num_rewards = getattr(self, constants.Constants.NUM_REWARDS)
-            reward_magnitudes = getattr(self, constants.Constants.REWARD_MAGNITUDES)
-            assert reward_positions is None or len(reward_positions) == num_rewards, (
+            reward_magnitudes = getattr(self,
+                                        constants.Constants.REWARD_MAGNITUDES)
+            assert reward_positions is None or len(
+                reward_positions
+            ) == num_rewards, (
                 "Number of reward positions must match number of rewards,"
                 "or reward positions must be set to None for random placement."
             )
@@ -67,22 +72,19 @@ class AchConfig(base_configuration.BaseConfiguration):
                 constants.Constants.TRAIN_EPISODE_LENGTH,
                 constants.Constants.TEST_EPISODE_REWARD,
                 constants.Constants.TEST_EPISODE_LENGTH,
-                "_".join(
-                    [
-                        constants.Constants.TRAIN_EPISODE_REWARD,
-                        constants.Constants.ENSEMBLE_RUNNER,
-                    ]
-                ),
-                "_".join(
-                    [
-                        constants.Constants.TRAIN_EPISODE_LENGTH,
-                        constants.Constants.ENSEMBLE_RUNNER,
-                    ]
-                ),
+                "_".join([
+                    constants.Constants.TRAIN_EPISODE_REWARD,
+                    constants.Constants.ENSEMBLE_RUNNER,
+                ]),
+                "_".join([
+                    constants.Constants.TRAIN_EPISODE_LENGTH,
+                    constants.Constants.ENSEMBLE_RUNNER,
+                ]),
                 constants.Constants.ENSEMBLE_EPISODE_REWARD_STD,
                 constants.Constants.ENSEMBLE_EPISODE_LENGTH_STD,
                 constants.Constants.MEAN_VISITATION_PENALTY,
                 constants.Constants.MEAN_PENALTY_INFO,
+                constants.Constants.STD_PENALTY_INFO,
                 constants.Constants.NO_REPEAT_TEST_EPISODE_REWARD,
                 constants.Constants.NO_REPEAT_TEST_EPISODE_LENGTH,
                 constants.Constants.CYCLE_COUNT,
@@ -96,22 +98,16 @@ class AchConfig(base_configuration.BaseConfiguration):
                 constants.Constants.GREEDY_VOTE,
                 constants.Constants.GREEDY_MEAN,
             ]
-            permitted_scalars.extend(
-                [
-                    "_".join([test_constant, constants.Constants.NO_REP, target])
-                    for test_constant, target in itertools.product(
-                        test_constants, targets
-                    )
-                ]
-            )
-            permitted_scalars.extend(
-                [
-                    "_".join([test_constant, target])
-                    for test_constant, target in itertools.product(
-                        test_constants, targets
-                    )
-                ]
-            )
+            permitted_scalars.extend([
+                "_".join([test_constant, constants.Constants.NO_REP, target])
+                for test_constant, target in itertools.product(
+                    test_constants, targets)
+            ])
+            permitted_scalars.extend([
+                "_".join([test_constant, target])
+                for test_constant, target in itertools.product(
+                    test_constants, targets)
+            ])
 
             permitted_visuals = [
                 constants.Constants.INDIVIDUAL_TRAIN_RUN,
@@ -127,8 +123,7 @@ class AchConfig(base_configuration.BaseConfiguration):
                 scalar_str = scalar[0][0]
             assert scalar_str in permitted_scalars, (
                 f"Scalar {scalar} specified in config logging, "
-                f"is not compatible with learner {learner}."
-            )
+                f"is not compatible with learner {learner}.")
         for visual in visuals:
             if isinstance(visual[0], str):
                 visual_str = visual[0]
@@ -136,14 +131,15 @@ class AchConfig(base_configuration.BaseConfiguration):
                 visual_str = visual[0][0]
             assert visual_str in permitted_visuals, (
                 f"Visual {visual} specified in config logging, "
-                f"is not compatible with learner {learner}."
-            )
+                f"is not compatible with learner {learner}.")
 
         # check testing procedures are compatible with alg/env etc.
         if learner == constants.Constants.DQN:
             permitted_tests = [constants.Constants.GREEDY]
         elif learner == constants.Constants.ENSEMBLE_Q_LEARNING:
-            permitted_tests = [constants.Constants.GREEDY, constants.Constants.NO_REP]
+            permitted_tests = [
+                constants.Constants.GREEDY, constants.Constants.NO_REP
+            ]
 
         test_types = getattr(self, constants.Constants.TESTING)
         if test_types:
