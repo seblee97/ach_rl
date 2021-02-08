@@ -228,6 +228,7 @@ class Constants:
     ERROR_FILE_NAME = "error.txt"
     OUTPUT_FILE_NAME = "output.txt"
     INDIVIDUAL = "individual"
+    STD_PENALTY_INFO = "std_penalty_info"
 
     ATARI_ENVS = ["PongNoFrameskip-v4"]
 
