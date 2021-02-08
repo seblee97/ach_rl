@@ -20,6 +20,7 @@ from learners.ensemble_learners.sample_greedy_ensemble_learner import \
 from learners.tabular_learners import q_learner
 from runners import base_runner
 from utils import cycle_counter
+from utils import experiment_utils
 from visitation_penalties.adaptive_arriving_uncertainty_visitation_penalty import \
     AdaptiveArrivingUncertaintyPenalty
 from visitation_penalties.adaptive_uncertainty_visitation_penalty import \
@@ -219,6 +220,10 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
                 self._pool.close()
                 self._pool.join()
 
+        self._logger.info(ensemble_mean_penalties)
+        import pdb
+        pdb.set_trace()
+
         # log data from individual runners in ensemble
         for i in range(len(self._learner.ensemble)):
             self._write_scalar(
@@ -289,11 +294,11 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
                 mean_penalty,
                 mean_penalty_info,
             ) = self._single_train_episode(
-                environment=self._environment,
+                environment=copy.deepcopy(self._environment),
                 learner=learner,
                 visitation_penalty=self._visitation_penalty,
                 episode=episode,
-            )
+                learner_id=i)
 
             ensemble_episode_rewards.append(episode_reward)
             ensemble_episode_step_counts.append(episode_count)
@@ -319,12 +324,11 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
         Args:
             episode: index of episode
         """
-        processes_arguments = [(
-            copy.deepcopy(self._environment),
-            learner,
-            self._visitation_penalty,
-            episode,
-        ) for learner in self._learner.ensemble]
+        processes_arguments = [
+            (copy.deepcopy(self._environment), learner,
+             self._visitation_penalty, episode, i)
+            for i, learner in ensemble(self._learner.ensemble)
+        ]
         processes_results = self._pool.starmap(self._single_train_episode,
                                                processes_arguments)
         (
@@ -353,11 +357,9 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
 
     @staticmethod
     def _single_train_episode(
-        environment: base_environment.BaseEnvironment,
-        learner: base_learner.BaseLearner,
-        visitation_penalty,
-        episode: int,
-    ) -> Union[None, Tuple[float, int]]:
+            environment: base_environment.BaseEnvironment,
+            learner: base_learner.BaseLearner, visitation_penalty,
+            episode: int, learner_id: int) -> Union[None, Tuple[float, int]]:
         """Single learner train episode.
 
         Args:
@@ -369,6 +371,12 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
             episode_reward: single episode, single learner episode reward
             num_steps: single episode, single learner episode duration
         """
+        # in parallel processing each sub-process inherits rng of parent.
+        # to guarantee independently random sub-processes, we reset seeds here
+        # based on learner id.
+
+        experiment_utils.set_random_seeds(learner_id)
+
         episode_reward = 0
 
         penalties = []
