@@ -227,6 +227,7 @@ class Constants:
     CLUSTER = "cluster"
     ERROR_FILE_NAME = "error.txt"
     OUTPUT_FILE_NAME = "output.txt"
+    INDIVIDUAL = "individual"
 
     ATARI_ENVS = ["PongNoFrameskip-v4"]
 
