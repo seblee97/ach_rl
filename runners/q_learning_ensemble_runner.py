@@ -195,8 +195,10 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
 
         if self._parallelise_ensemble:
             train_fn = self._parallelised_train_episode
+            self._logger("Training ensemble of learners in parallel...")
         else:
             train_fn = self._serial_train_episode
+            self._logger("Training ensemble of learners in serial...")
 
         (
             ensemble_rewards,
@@ -277,7 +279,9 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
         mean_penalties = []
         mean_penalty_infos = {}
 
-        for learner in self._learner.ensemble:
+        for i, learner in enumerate(self._learner.ensemble):
+            self._logger.info(
+                f"Training learner {i}/{len(self._learner.ensemble)}...")
             (
                 _,
                 episode_reward,
