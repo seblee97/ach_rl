@@ -202,7 +202,7 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
             self._logger.info("Training ensemble of learners in serial...")
 
         # get proxy for rng state
-        rng_state = int(np.mean(np.random.get_state()[1])) % (2**32 - 1)
+        rng_state = int(np.mean(np.random.get_state()[1])) % (10000)
         self._logger.info(rng_state)
 
         (
