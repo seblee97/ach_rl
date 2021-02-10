@@ -157,6 +157,37 @@ def _submit_job(config_path: str,
     subprocess.call(f"qsub {job_script_path}", shell=True)
 
 
+def _submit_array_job(config_path: str,
+                      results_folder: str,
+                      run_name: str,
+                      timestamp: str,
+                      num_cpus: int,
+                      memory: int,
+                      changes: List[Dict],
+                      seeds: Union[int, List[int]],
+                      cluster_mode: str = ""):
+
+    run_command = (
+        f"python cluster_array_run.py --config_path {config_path} "
+        f"--seed '{seeds}' --config_changes {config_changes_path} "
+        f"--results_folder {results_folder} --timestamp {timestamp} "
+        f"--run_name {run_name}")
+
+    if cluster_mode:
+        run_command = f"{run_command} --mode {cluster_mode}"
+
+    cluster_methods.create_job_script(run_command=run_command,
+                                      save_path=job_script_path,
+                                      num_cpus=num_cpus,
+                                      conda_env_name="ach",
+                                      memory=memory,
+                                      error_path=error_path,
+                                      output_path=output_path)
+
+    # subprocess.call(run_command, shell=True)
+    subprocess.call(f"qsub {job_script_path}", shell=True)
+
+
 def cluster_run(config_path: str, results_folder: str, timestamp: str,
                 config_changes: Dict[str, List[Dict]], seeds: List[int],
                 num_cpus: int, memory: int, cluster_mode: str) -> None:
@@ -184,6 +215,97 @@ def cluster_run(config_path: str, results_folder: str, timestamp: str,
                         changes=changes,
                         seeds=seeds,
                         cluster_mode=cluster_mode)
+
+
+def cluster_array_run(config_path: str, results_folder: str, timestamp: str,
+                      config_changes: Dict[str, List[Dict]], seeds: List[int],
+                      num_cpus: int, memory: int, cluster_mode: str) -> None:
+
+    config_changes_dir = os.path.join(
+        results_folder, timestamp, constants.Constants.CONFIG_CHANGES_SYM_PATH)
+    error_files_dir = os.path.join(results_folder, timestamp,
+                                   constants.Constants.ERROR_SYM_FILES)
+    output_files_dir = os.path.join(results_folder, timestamp,
+                                    constants.Constants.OUTPUT_SYM_FILES)
+    checkpoint_paths_dir = os.path.join(
+        results_folder, timestamp, constants.Constants.CHECKPOINT_PATH_SYM_DIR)
+
+    os.makedirs(config_changes_dir, exist_ok=True)
+    os.makedirs(error_files_dir, exist_ok=True)
+    os.makedirs(output_files_dir, exist_ok=True)
+    os.makedirs(checkpoint_paths_dir, exist_ok=True)
+
+    job_script_path = os.path.join(results_folder, timestamp, "job_script")
+
+    num_configurations = len(config_changes)
+    num_seeds = len(seeds)
+
+    for i, (run_name, changes) in enumerate(config_changes.items()):
+        for j, seed in enumerate(seeds):
+
+            array_job_index = i * num_seeds + j
+
+            logger.info(
+                f"Run name: {run_name}, seed: {seed}, array_job_index: {array_job_index}"
+            )
+
+            checkpoint_path = os.path.join(results_folder, timestamp, run_name,
+                                           seed)
+            checkpoint_sym_path = os.path.join(checkpoint_paths_dir,
+                                               array_job_index)
+            os.makedirs(name=checkpoint_path, exist_ok=True)
+
+            config_changes_path = os.path.join(checkpoint_path,
+                                               "config_changes.json")
+            config_changes_sym_path = os.path.join(
+                config_changes_dir, f"config_changes_{array_job_index}.json")
+
+            error_path = os.path.join(checkpoint_path,
+                                      constants.Constants.ERROR_FILE_NAME)
+            error_sym_path = os.path.join(error_files_dir,
+                                          f"error_{array_job_index}.txt")
+            output_path = os.path.join(checkpoint_path,
+                                       constants.Constants.OUTPUT_FILE_NAME)
+            output_sym_path = os.path.join(output_files_dir,
+                                           f"output_{array_job_index}.txt")
+
+            os.symlink(config_changes_path, config_changes_sym_path)
+            os.symlink(checkpoint_path, checkpoint_paths_dir)
+            os.symlink(error_path, error_sym_path)
+            os.symlink(output_path, output_sym_path)
+
+            # add seed to config changes
+            changes.append({constants.Constants.SEED: seed})
+
+            experiment_utils.config_changes_to_json(
+                config_changes=changes, json_path=config_changes_path)
+
+    run_command = (
+        f"python cluster_array_run.py --config_path {config_path} "
+        f"--seed '{seeds}' --config_changes {os.path.join(config_changes_dir, f'${PBS_ARRAY_INDEX}')} "
+        f"--checkpoint_path {os.path.join(checkpoint_paths_dir, f'${PBS_ARRAY_INDEX}')} "
+    )
+
+    cluster_methods.create_job_script(
+        run_command=run_command,
+        save_path=job_script_path,
+        num_cpus=num_cpus,
+        conda_env_name="ach",
+        memory=memory,
+        error_path=os.path.join(error_files_dir, PBS_ARRAY_INDEX),
+        output_path=os.path.join(output_files_dir, PBS_ARRAY_INDEX))
+
+    # subprocess.call(run_command, shell=True)
+    subprocess.call(f"qsub {job_script_path}", shell=True)
+
+    # _submit_array_job(config_path=config_path,
+    #                   results_folder=results_folder,
+    #                   run_name=run_name,
+    #                   timestamp=timestamp,
+    #                   num_cpus=num_cpus,
+    #                   memory=memory,
+    #                   changes=changes,
+    #                   seeds=seed)
 
 
 if __name__ == "__main__":
