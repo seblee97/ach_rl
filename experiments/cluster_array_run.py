@@ -54,8 +54,6 @@ def single_run(config_path: str,
 
 
 if __name__ == '__main__':
-
-    print(args.config_changes)
     config_changes = experiment_utils.json_to_config_changes(
         args.config_changes)
     single_run(config_path=args.config_path,
