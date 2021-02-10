@@ -21,7 +21,7 @@ def create_job_script(run_command: str,
         file.write(f"#PBS -lselect=1:ncpus={num_cpus}:mem={memory}gb\n")
         file.write(f"#PBS -lwalltime={walltime}\n")
         if array_job_length:
-            file.write(f"#PBS -J 1-{array_job_length}")
+            file.write(f"#PBS -J 1-{array_job_length}\n")
         # output/error file paths
         file.write(f"#PBS -e {error_path}\n")
         file.write(f"#PBS -o {output_path}\n")
