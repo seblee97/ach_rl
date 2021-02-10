@@ -229,6 +229,11 @@ class Constants:
     OUTPUT_FILE_NAME = "output.txt"
     INDIVIDUAL = "individual"
     STD_PENALTY_INFO = "std_penalty_info"
+    CLUSTER_ARRAY = "cluster_array"
+    CONFIG_CHANGES_SYM_PATH = "config_changes_symbolic_dir"
+    ERROR_FILES_SYM_PATH = "error_files_symbolic_dir"
+    OUTPUT_FILES_SYM_PATH = "output_files_symbolic_dir"
+    CHECKPOINTS_SYM_PATH = "checkpoints_symbolic_dir"
 
     ATARI_ENVS = ["PongNoFrameskip-v4"]
 
