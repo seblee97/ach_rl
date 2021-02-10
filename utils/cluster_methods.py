@@ -5,6 +5,7 @@ def create_job_script(run_command: str,
                       memory: int,
                       error_path: str,
                       output_path: str,
+                      array_job_length: int = 0,
                       walltime: str = "24:0:0") -> None:
     """Create a job script for use on HPC.
 
@@ -19,6 +20,8 @@ def create_job_script(run_command: str,
     with open(save_path, 'w') as file:
         file.write(f"#PBS -lselect=1:ncpus={num_cpus}:mem={memory}gb\n")
         file.write(f"#PBS -lwalltime={walltime}\n")
+        if array_job_length:
+            file.write(f"#PBS -J 1-{array_job_length}")
         # output/error file paths
         file.write(f"#PBS -e {error_path}\n")
         file.write(f"#PBS -o {output_path}\n")
@@ -29,6 +32,3 @@ def create_job_script(run_command: str,
         file.write("cd $PBS_O_WORKDIR\n")
         # job script
         file.write(f"{run_command}\n")
-        # move files back to permanent
-        #file.write("mkdir $WORK/$PBS_JOBID\n")
-        #file.write("cp * $WORK/$PBS_JOBID\n")
