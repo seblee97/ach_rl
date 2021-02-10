@@ -280,10 +280,12 @@ def cluster_array_run(config_path: str, results_folder: str, timestamp: str,
             experiment_utils.config_changes_to_json(
                 config_changes=changes, json_path=config_changes_path)
 
+    pbs_array_index = "$PBS_ARRAY_INDEX"
+
     run_command = (
         f'python cluster_array_run.py --config_path {config_path} '
-        f'--seed "{seeds}" --config_changes {os.path.join(config_changes_dir, "$PBS_ARRAY_INDEX")} '
-        f'--checkpoint_path {os.path.join(checkpoint_paths_dir, "$PBS_ARRAY_INDEX")} '
+        f'--config_changes "{os.path.join(config_changes_dir, pbs_array_index)}" '
+        f'--checkpoint_path "{os.path.join(checkpoint_paths_dir, pbs_array_index)}" '
     )
 
     cluster_methods.create_job_script(
