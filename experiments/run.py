@@ -219,16 +219,16 @@ def cluster_run(config_path: str, results_folder: str, timestamp: str,
 
 def cluster_array_run(config_path: str, results_folder: str, timestamp: str,
                       config_changes: Dict[str, List[Dict]], seeds: List[int],
-                      num_cpus: int, memory: int, cluster_mode: str) -> None:
+                      num_cpus: int, memory: int) -> None:
 
     config_changes_dir = os.path.join(
         results_folder, timestamp, constants.Constants.CONFIG_CHANGES_SYM_PATH)
     error_files_dir = os.path.join(results_folder, timestamp,
-                                   constants.Constants.ERROR_SYM_FILES)
+                                   constants.Constants.ERROR_FILES_SYM_PATH)
     output_files_dir = os.path.join(results_folder, timestamp,
-                                    constants.Constants.OUTPUT_SYM_FILES)
+                                    constants.Constants.OUTPUT_FILES_SYM_PATH)
     checkpoint_paths_dir = os.path.join(
-        results_folder, timestamp, constants.Constants.CHECKPOINT_PATH_SYM_DIR)
+        results_folder, timestamp, constants.Constants.CHECKPOINTS_SYM_PATH)
 
     os.makedirs(config_changes_dir, exist_ok=True)
     os.makedirs(error_files_dir, exist_ok=True)
@@ -250,9 +250,9 @@ def cluster_array_run(config_path: str, results_folder: str, timestamp: str,
             )
 
             checkpoint_path = os.path.join(results_folder, timestamp, run_name,
-                                           seed)
+                                           str(seed))
             checkpoint_sym_path = os.path.join(checkpoint_paths_dir,
-                                               array_job_index)
+                                               str(array_job_index))
             os.makedirs(name=checkpoint_path, exist_ok=True)
 
             config_changes_path = os.path.join(checkpoint_path,
@@ -270,7 +270,7 @@ def cluster_array_run(config_path: str, results_folder: str, timestamp: str,
                                            f"output_{array_job_index}.txt")
 
             os.symlink(config_changes_path, config_changes_sym_path)
-            os.symlink(checkpoint_path, checkpoint_paths_dir)
+            os.symlink(checkpoint_path, checkpoint_sym_path)
             os.symlink(error_path, error_sym_path)
             os.symlink(output_path, output_sym_path)
 
@@ -282,8 +282,8 @@ def cluster_array_run(config_path: str, results_folder: str, timestamp: str,
 
     run_command = (
         f"python cluster_array_run.py --config_path {config_path} "
-        f"--seed '{seeds}' --config_changes {os.path.join(config_changes_dir, f'${PBS_ARRAY_INDEX}')} "
-        f"--checkpoint_path {os.path.join(checkpoint_paths_dir, f'${PBS_ARRAY_INDEX}')} "
+        f"--seed '{seeds}' --config_changes {os.path.join(config_changes_dir, '$PBS_ARRAY_INDEX')} "
+        f"--checkpoint_path {os.path.join(checkpoint_paths_dir, '$PBS_ARRAY_INDEX')} "
     )
 
     cluster_methods.create_job_script(
@@ -292,12 +292,12 @@ def cluster_array_run(config_path: str, results_folder: str, timestamp: str,
         num_cpus=num_cpus,
         conda_env_name="ach",
         memory=memory,
-        error_path=os.path.join(error_files_dir, PBS_ARRAY_INDEX),
-        output_path=os.path.join(output_files_dir, PBS_ARRAY_INDEX),
+        error_path=os.path.join(error_files_dir, "$PBS_ARRAY_INDEX"),
+        output_path=os.path.join(output_files_dir, "$PBS_ARRAY_INDEX"),
         array_job_length=num_configurations * num_seeds)
 
-    # subprocess.call(run_command, shell=True)
-    subprocess.call(f"qsub {job_script_path}", shell=True)
+    subprocess.call(run_command, shell=True)
+    # subprocess.call(f"qsub {job_script_path}", shell=True)
 
     # _submit_array_job(config_path=config_path,
     #                   results_folder=results_folder,
@@ -356,6 +356,14 @@ if __name__ == "__main__":
                        timestamp=timestamp,
                        config_changes=args.config_changes,
                        seeds=args.seeds)
+        elif args.mode == constants.Constants.CLUSTER_ARRAY:
+            cluster_array_run(config_path=args.config_path,
+                              results_folder=results_folder,
+                              timestamp=timestamp,
+                              config_changes=args.config_changes,
+                              seeds=args.seeds,
+                              num_cpus=args.num_cpus,
+                              memory=args.memory)
 
 # def summary_plot(
 #     smoothng: int, exp_names: List[str], experiment_path: str
