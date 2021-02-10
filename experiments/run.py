@@ -293,7 +293,8 @@ def cluster_array_run(config_path: str, results_folder: str, timestamp: str,
         conda_env_name="ach",
         memory=memory,
         error_path=os.path.join(error_files_dir, PBS_ARRAY_INDEX),
-        output_path=os.path.join(output_files_dir, PBS_ARRAY_INDEX))
+        output_path=os.path.join(output_files_dir, PBS_ARRAY_INDEX),
+        array_job_length=num_configurations * num_seeds)
 
     # subprocess.call(run_command, shell=True)
     subprocess.call(f"qsub {job_script_path}", shell=True)
