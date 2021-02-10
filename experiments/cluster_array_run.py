@@ -7,7 +7,6 @@ from utils import experiment_utils
 parser = argparse.ArgumentParser()
 
 parser.add_argument("--config_path", metavar="-C")
-parser.add_argument("--seed", metavar="-S", default=0)
 parser.add_argument("--config_changes")
 parser.add_argument("--checkpoint_path")
 
@@ -16,12 +15,11 @@ args = parser.parse_args()
 
 def single_run(config_path: str,
                checkpoint_path: str,
-               changes: List[Dict] = [],
-               seed: int = None):
+               changes: List[Dict] = []):
 
     config = ach_config.AchConfig(config=config_path, changes=changes)
 
-    seed = seed or config.seed
+    seed = config.seed
 
     experiment_utils.set_random_seeds(seed)
     config = experiment_utils.set_device(config)
