@@ -157,37 +157,6 @@ def _submit_job(config_path: str,
     subprocess.call(f"qsub {job_script_path}", shell=True)
 
 
-def _submit_array_job(config_path: str,
-                      results_folder: str,
-                      run_name: str,
-                      timestamp: str,
-                      num_cpus: int,
-                      memory: int,
-                      changes: List[Dict],
-                      seeds: Union[int, List[int]],
-                      cluster_mode: str = ""):
-
-    run_command = (
-        f"python cluster_array_run.py --config_path {config_path} "
-        f"--seed '{seeds}' --config_changes {config_changes_path} "
-        f"--results_folder {results_folder} --timestamp {timestamp} "
-        f"--run_name {run_name}")
-
-    if cluster_mode:
-        run_command = f"{run_command} --mode {cluster_mode}"
-
-    cluster_methods.create_job_script(run_command=run_command,
-                                      save_path=job_script_path,
-                                      num_cpus=num_cpus,
-                                      conda_env_name="ach",
-                                      memory=memory,
-                                      error_path=error_path,
-                                      output_path=output_path)
-
-    # subprocess.call(run_command, shell=True)
-    subprocess.call(f"qsub {job_script_path}", shell=True)
-
-
 def cluster_run(config_path: str, results_folder: str, timestamp: str,
                 config_changes: Dict[str, List[Dict]], seeds: List[int],
                 num_cpus: int, memory: int, cluster_mode: str) -> None:
@@ -281,6 +250,10 @@ def cluster_array_run(config_path: str, results_folder: str, timestamp: str,
                 config_changes=changes, json_path=config_changes_path)
 
     pbs_array_index = "$PBS_ARRAY_INDEX"
+    error_pbs_array_index = "error_$PBS_ARRAY_INDEX.txt"
+    output_pbs_array_index = "output_$PBS_ARRAY_INDEX.txt"
+    error_path_string = f'"{os.path.join(error_files_dir, error_pbs_array_index)}"'
+    output_path_string = f'"{os.path.join(output_files_dir, output_pbs_array_index)}"'
 
     run_command = (
         f'python cluster_array_run.py --config_path {config_path} '
@@ -288,27 +261,17 @@ def cluster_array_run(config_path: str, results_folder: str, timestamp: str,
         f'--checkpoint_path "{os.path.join(checkpoint_paths_dir, pbs_array_index)}" '
     )
 
-    cluster_methods.create_job_script(
-        run_command=run_command,
-        save_path=job_script_path,
-        num_cpus=num_cpus,
-        conda_env_name="ach",
-        memory=memory,
-        error_path=os.path.join(error_files_dir, "$PBS_ARRAY_INDEX"),
-        output_path=os.path.join(output_files_dir, "$PBS_ARRAY_INDEX"),
-        array_job_length=num_configurations * num_seeds)
+    cluster_methods.create_job_script(run_command=run_command,
+                                      save_path=job_script_path,
+                                      num_cpus=num_cpus,
+                                      conda_env_name="ach",
+                                      memory=memory,
+                                      error_path=f'{error_path_string}',
+                                      output_path=f'{output_path_string}',
+                                      array_job_length=num_configurations *
+                                      num_seeds)
 
-    subprocess.call(run_command, shell=True)
-    # subprocess.call(f"qsub {job_script_path}", shell=True)
-
-    # _submit_array_job(config_path=config_path,
-    #                   results_folder=results_folder,
-    #                   run_name=run_name,
-    #                   timestamp=timestamp,
-    #                   num_cpus=num_cpus,
-    #                   memory=memory,
-    #                   changes=changes,
-    #                   seeds=seed)
+    subprocess.call(f"qsub {job_script_path}", shell=True)
 
 
 if __name__ == "__main__":
@@ -366,155 +329,3 @@ if __name__ == "__main__":
                               seeds=args.seeds,
                               num_cpus=args.num_cpus,
                               memory=args.memory)
-
-# def summary_plot(
-#     smoothng: int, exp_names: List[str], experiment_path: str
-# ):
-#     """Plot summary of experiment."""
-#     plotting_functions.plot_all_multi_seed_multi_run(
-#         folder_path=experiment_path, exp_names=exp_names, window_width=smoothng
-#     )
-
-# def single_run(
-#     config_path: str,
-#     run_name: str,
-#     seed: int,
-#     results_folder: str,
-#     experiment_path: str,
-#     timestamp: str,
-#     config_change: List[Tuple[str, Any, bool]],
-# ):
-#     """Run single experiment.
-
-#     Args:
-#         base_configuration: config object.
-#         seeds: list of seeds to run experiment over.
-#         run_name: name of single experiment.
-#         experiment_path: path to experiment.
-#         results_folder: path to results.
-#         timestamp: experiment timestamp.
-#         config_change: change to make to base configuration.
-#     """
-#     config = copy.deepcopy(base_configuration)
-
-#     experiment_utils.set_random_seeds(seed)
-#     checkpoint_path = experiment_utils.get_checkpoint_path(
-#         results_folder, timestamp, run_name, str(seed)
-#     )
-
-#     os.makedirs(name=checkpoint_path, exist_ok=True)
-
-#     config.amend_property(
-#         property_name=constants.Constants.SEED, new_property_value=seed
-#     )
-
-#     for change in config_change:
-#         try:
-#             config.amend_property(
-#                 property_name=change[0],
-#                 new_property_value=change[1],
-#             )
-#         except AssertionError:
-#             if change[2]:
-#                 config.add_property(
-#                     property_name=change[0],
-#                     property_value=change[1],
-#                 )
-
-#     config = experiment_utils.set_device(config)
-
-#     config.add_property(constants.Constants.EXPERIMENT_TIMESTAMP, timestamp)
-#     config.add_property(constants.Constants.CHECKPOINT_PATH, checkpoint_path)
-#     config.add_property(
-#         constants.Constants.LOGFILE_PATH,
-#         os.path.join(checkpoint_path, "data_logger.csv"),
-#     )
-
-#     if config.type == constants.Constants.SARSA_LAMBDA:
-#         r = sarsa_lambda_runner.SARSALambdaRunner(config=config)
-#     elif config.type == constants.Constants.Q_LEARNING:
-#         r = q_learning_runner.QLearningRunner(config=config)
-#     elif config.type == constants.Constants.DQN:
-#         r = dqn_runner.DQNRunner(config=config)
-#     elif config.type == constants.Constants.ENSEMBLE_Q_LEARNING:
-#         r = q_learning_ensemble_runner.EnsembleQLearningRunner(config=config)
-#     else:
-#         raise ValueError(f"Learner type {type} not recognised.")
-
-#     r.train()
-#     r.post_process()
-
-# base_configuration = ach_config.AchConfig(config=args.config_path)
-
-# base_configuration.add_property(constants.Constants.RUN_PATH, MAIN_FILE_PATH)
-
-# timestamp = experiment_utils.get_experiment_timestamp()
-# results_folder = os.path.join(MAIN_FILE_PATH, constants.Constants.RESULTS)
-# experiment_path = os.path.join(results_folder, timestamp)
-
-# os.makedirs(name=experiment_path, exist_ok=True)
-
-# if args.mode != constants.Constants.SINGLE:
-#     save_config_changes(
-#         config_changes=args.config_changes,
-#         file_name=os.path.join(
-#             experiment_path,
-#             f"{constants.Constants.CONFIG_CHANGES}.json",
-#         ),
-#     )
-
-# if args.mode == constants.Constants.PARALLEL:
-#     if base_configuration.use_gpu:
-#         _distribute_over_gpus(args.config_changes)
-
-#     parallel_run(
-#         base_configuration=base_configuration,
-#         config_changes=args.config_changes,
-#         seeds=args.seeds,
-#         experiment_path=experiment_path,
-#         results_folder=results_folder,
-#         timestamp=timestamp,
-#     )
-#     summary_plot(
-#         config=base_configuration,
-#         experiment_path=experiment_path,
-#         exp_names=list(args.config_changes.keys()),
-#     )
-# if args.mode == constants.Constants.CLUSTER:
-#     cluster_run(
-#         configuration=args.config,
-#         config_changes=args.config_changes,
-#         seeds=args.seeds,
-#         experiment_path=experiment_path,
-#         results_folder=results_folder,
-#         timestamp=timestamp,
-#     )
-#     summary_plot(
-#         config=base_configuration,
-#         experiment_path=experiment_path,
-#         exp_names=list(args.config_changes.keys()),
-#     )
-# elif args.mode == constants.Constants.SERIAL:
-#     serial_run(
-#         base_configuration=base_configuration,
-#         config_changes=args.config_changes,
-#         seeds=args.seeds,
-#         experiment_path=experiment_path,
-#         results_folder=results_folder,
-#         timestamp=timestamp,
-#     )
-#     summary_plot(
-#         config=base_configuration,
-#         experiment_path=experiment_path,
-#         exp_names=list(args.config_changes.keys()),
-#     )
-# elif args.mode == constants.Constants.SINGLE:
-#     single_run(
-#         base_configuration=base_configuration,
-#         run_name=constants.Constants.SINGLE,
-#         seed=base_configuration.seed,
-#         results_folder=results_folder,
-#         experiment_path=experiment_path,
-#         timestamp=timestamp,
-#         config_change=[],
-#     )
