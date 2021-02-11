@@ -264,8 +264,8 @@ def cluster_array_run(config_path: str, results_folder: str, timestamp: str,
                                       num_cpus=num_cpus,
                                       conda_env_name="ach",
                                       memory=memory,
-                                      error_path=f'{error_path_string}',
-                                      output_path=f'{output_path_string}',
+                                      error_path=f'{error_files_dir}',
+                                      output_path=f'{output_files_dir}',
                                       array_job_length=num_configurations *
                                       num_seeds)
 
