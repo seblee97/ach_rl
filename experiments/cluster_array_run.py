@@ -1,9 +1,14 @@
 import argparse
+import os
 from typing import Dict
 from typing import List
 
 import constants
 from experiments import ach_config
+from runners import dqn_runner
+from runners import q_learning_ensemble_runner
+from runners import q_learning_runner
+from runners import sarsa_lambda_runner
 from utils import experiment_utils
 
 parser = argparse.ArgumentParser()
@@ -13,6 +18,8 @@ parser.add_argument("--config_changes")
 parser.add_argument("--checkpoint_path")
 
 args = parser.parse_args()
+
+MAIN_FILE_PATH = os.path.dirname(os.path.realpath(__file__))
 
 
 def single_run(config_path: str,
