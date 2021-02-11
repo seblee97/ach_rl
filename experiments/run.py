@@ -240,7 +240,9 @@ def cluster_array_run(config_path: str, results_folder: str, timestamp: str,
             # f"output_{array_job_index}.txt")
 
             os.symlink(config_changes_path, config_changes_sym_path)
-            os.symlink(checkpoint_path, checkpoint_sym_path)
+            os.symlink(checkpoint_path,
+                       checkpoint_sym_path,
+                       target_is_directory=True)
             # os.symlink(error_path, error_sym_path)
             # os.symlink(output_path, output_sym_path)
 
