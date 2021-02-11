@@ -228,10 +228,14 @@ def cluster_array_run(config_path: str, results_folder: str, timestamp: str,
 
             error_path = os.path.join(checkpoint_path,
                                       constants.Constants.ERROR_FILE_NAME)
+            with open(error_path, "w") as empty:
+                pass
             error_sym_path = os.path.join(error_files_dir,
                                           f"error_{array_job_index}.txt")
             output_path = os.path.join(checkpoint_path,
                                        constants.Constants.OUTPUT_FILE_NAME)
+            with open(output_path, "w") as empty:
+                pass
             output_sym_path = os.path.join(output_files_dir,
                                            f"output_{array_job_index}.txt")
 
@@ -264,8 +268,8 @@ def cluster_array_run(config_path: str, results_folder: str, timestamp: str,
                                       num_cpus=num_cpus,
                                       conda_env_name="ach",
                                       memory=memory,
-                                      error_path=f'{error_files_dir}',
-                                      output_path=f'{output_files_dir}',
+                                      error_path=f'{error_path_string}',
+                                      output_path=f'{output_path_string}',
                                       array_job_length=num_configurations *
                                       num_seeds)
 
