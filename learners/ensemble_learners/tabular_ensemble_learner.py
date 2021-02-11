@@ -1,15 +1,12 @@
-import abc
 from typing import Any
 from typing import List
 
 import numpy as np
-
 from learners import base_learner
 
 
-class EnsembleLearner(base_learner.BaseLearner):
+class TabularEnsembleLearner(base_learner.BaseLearner):
     """Learner consisting of ensemble."""
-
     def __init__(self, learner_ensemble: List[base_learner.BaseLearner]):
         """Class constructor.
 
@@ -28,7 +25,9 @@ class EnsembleLearner(base_learner.BaseLearner):
 
         states = all_state_action_values[0].keys()
         for state in states:
-            state_values = [values[state] for values in all_state_action_values]
+            state_values = [
+                values[state] for values in all_state_action_values
+            ]
             mean_state_values = np.mean(state_values, axis=0)
             averaged_values[state] = mean_state_values
         return averaged_values
@@ -50,7 +49,9 @@ class EnsembleLearner(base_learner.BaseLearner):
 
         states = all_state_action_values[0].keys()
         for state in states:
-            state_values = [values[state] for values in all_state_action_values]
+            state_values = [
+                values[state] for values in all_state_action_values
+            ]
             state_values_std = np.std(state_values, axis=0)
             values_std[state] = state_values_std
         return values_std
