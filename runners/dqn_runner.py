@@ -20,9 +20,11 @@ class DQNRunner(base_runner.BaseRunner):
         self._batch_size = config.batch_size
         self._replay_buffer = self._setup_replay_buffer(config=config)
 
-        self._fill_replay_buffer(num_trajectories=config.num_replay_fill_trajectories)
+        self._fill_replay_buffer(
+            num_trajectories=config.num_replay_fill_trajectories)
 
-    def _setup_learner(self, config: ach_config.AchConfig):  # TODO: similar to envs
+    def _setup_learner(self,
+                       config: ach_config.AchConfig):  # TODO: similar to envs
         """Initialise learner specified in configuration."""
         learner = dqn_learner.DQNLearner(
             action_space=self._environment.action_space,
@@ -40,11 +42,13 @@ class DQNRunner(base_runner.BaseRunner):
         )
         return learner
 
-    def _setup_replay_buffer(self, config: ach_config.AchConfig):
+    def _setup_replay_buffer(
+            self, config: ach_config.AchConfig) -> replay_buffer.ReplayBuffer:
         """Instantiate replay buffer object to store experiences."""
         state_dim = tuple(config.encoded_state_dimensions)
         replay_size = config.replay_buffer_size
-        return replay_buffer.ReplayBuffer(replay_size=replay_size, state_dim=state_dim)
+        return replay_buffer.ReplayBuffer(replay_size=replay_size,
+                                          state_dim=state_dim)
 
     def _fill_replay_buffer(self, num_trajectories: int):
         """Build up store of experiences before training begins.
@@ -73,8 +77,7 @@ class DQNRunner(base_runner.BaseRunner):
     def _pre_episode_log(self, episode: int):
         if episode != 0:
             if self._visualisation_iteration(
-                constants.Constants.INDIVIDUAL_TRAIN_RUN, episode
-            ):
+                    constants.Constants.INDIVIDUAL_TRAIN_RUN, episode):
                 self._logger.plot_array_data(
                     name=f"{constants.Constants.INDIVIDUAL_TRAIN_RUN}_{episode}",
                     data=self._environment.plot_episode_history(),
@@ -115,20 +118,15 @@ class DQNRunner(base_runner.BaseRunner):
 
             loss, epsilon = self._learner.step(
                 state=torch.from_numpy(experience_sample[0]).to(
-                    device=self._device, dtype=torch.float
-                ),
+                    device=self._device, dtype=torch.float),
                 action=torch.from_numpy(experience_sample[1]).to(
-                    device=self._device, dtype=torch.int
-                ),
+                    device=self._device, dtype=torch.int),
                 reward=torch.from_numpy(experience_sample[2]).to(
-                    device=self._device, dtype=torch.float
-                ),
+                    device=self._device, dtype=torch.float),
                 next_state=torch.from_numpy(experience_sample[3]).to(
-                    device=self._device, dtype=torch.float
-                ),
+                    device=self._device, dtype=torch.float),
                 active=torch.from_numpy(experience_sample[4]).to(
-                    device=self._device, dtype=torch.int
-                ),
+                    device=self._device, dtype=torch.int),
                 visitation_penalty=visitation_penalty,
             )
 
@@ -137,9 +135,8 @@ class DQNRunner(base_runner.BaseRunner):
             episode_loss += loss
             episode_steps += 1
 
-        if self._scalar_log_iteration(
-            constants.Constants.AVERAGE_ACTION_VALUE, episode
-        ):
+        if self._scalar_log_iteration(constants.Constants.AVERAGE_ACTION_VALUE,
+                                      episode):
             average_action_value = self._compute_average_action_value()
             self._logger.write_scalar(
                 tag=constants.Constants.AVERAGE_ACTION_VALUE,
@@ -151,9 +148,9 @@ class DQNRunner(base_runner.BaseRunner):
             episode=episode,
             scalar=episode_loss / episode_steps,
         )
-        self._write_scalar(
-            tag=constants.Constants.EPSILON, episode=episode, scalar=epsilon
-        )
+        self._write_scalar(tag=constants.Constants.EPSILON,
+                           episode=episode,
+                           scalar=epsilon)
 
         return episode_reward, self._environment.episode_step_count
 
@@ -171,8 +168,7 @@ class DQNRunner(base_runner.BaseRunner):
 
         with torch.no_grad():
             states = torch.from_numpy(self._replay_buffer.states)[:256].to(
-                dtype=torch.float, device=self._device
-            )
+                dtype=torch.float, device=self._device)
             action_values_over_states = self._learner.q_network(states)
             average_value = torch.mean(action_values_over_states).item()
 
