@@ -14,6 +14,7 @@ import constants
 import torch
 from experiments import ach_config
 from experiments.config_changes import ConfigChange
+from runners import dqn_ensemble_runner
 from runners import dqn_runner
 from runners import q_learning_ensemble_runner
 from runners import q_learning_runner
@@ -23,7 +24,6 @@ from utils import experiment_utils
 from utils import plotting_functions
 
 MAIN_FILE_PATH = os.path.dirname(os.path.realpath(__file__))
-
 
 parser = argparse.ArgumentParser()
 
@@ -35,9 +35,9 @@ parser.add_argument(
 )
 parser.add_argument("--config", metavar="-C", default="config.yaml")
 parser.add_argument("--seeds", metavar="-S", default=range(1))
-parser.add_argument(
-    "--config_changes", metavar="-CC", default=ConfigChange.config_changes
-)
+parser.add_argument("--config_changes",
+                    metavar="-CC",
+                    default=ConfigChange.config_changes)
 
 args = parser.parse_args()
 
@@ -146,14 +146,12 @@ def single_run(
 
     experiment_utils.set_random_seeds(seed)
     checkpoint_path = experiment_utils.get_checkpoint_path(
-        results_folder, timestamp, run_name, str(seed)
-    )
+        results_folder, timestamp, run_name, str(seed))
 
     os.makedirs(name=checkpoint_path, exist_ok=True)
 
-    config.amend_property(
-        property_name=constants.Constants.SEED, new_property_value=seed
-    )
+    config.amend_property(property_name=constants.Constants.SEED,
+                          new_property_value=seed)
 
     for change in config_change:
         try:
@@ -185,6 +183,8 @@ def single_run(
         r = dqn_runner.DQNRunner(config=config)
     elif config.type == constants.Constants.ENSEMBLE_Q_LEARNING:
         r = q_learning_ensemble_runner.EnsembleQLearningRunner(config=config)
+    elif config.type == constants.Constants.ENSEMBLE_DQN:
+        r = dqn_ensemble_runner.EnsembleDQNRunner(config=config)
     else:
         raise ValueError(f"Learner type {type} not recognised.")
 
@@ -192,13 +192,13 @@ def single_run(
     r.post_process()
 
 
-def summary_plot(
-    config: ach_config.AchConfig, exp_names: List[str], experiment_path: str
-):
+def summary_plot(config: ach_config.AchConfig, exp_names: List[str],
+                 experiment_path: str):
     """Plot summary of experiment."""
     plotting_functions.plot_all_multi_seed_multi_run(
-        folder_path=experiment_path, exp_names=exp_names, window_width=config.smoothing
-    )
+        folder_path=experiment_path,
+        exp_names=exp_names,
+        window_width=config.smoothing)
 
 
 def _distribute_over_gpus(config_changes: Dict[str, List[Tuple[Any]]]):
@@ -219,7 +219,8 @@ def _distribute_over_gpus(config_changes: Dict[str, List[Tuple[Any]]]):
 
         for i in range(num_gpus_available):
             jobs_with_id_i = {
-                j: i for j in range(i * even_runs_per_gpu, (i + 1) * even_runs_per_gpu)
+                j: i for j in range(i * even_runs_per_gpu, (i + 1) *
+                                    even_runs_per_gpu)
             }
             gpu_ids.update(jobs_with_id_i)
 
@@ -230,9 +231,8 @@ def _distribute_over_gpus(config_changes: Dict[str, List[Tuple[Any]]]):
             config_change.append((constants.Constants.GPU_ID, gpu_ids[i]))
 
 
-def save_config_changes(
-    config_changes: Dict[str, List[Tuple[str, Any, bool]]], file_name: str
-) -> None:
+def save_config_changes(config_changes: Dict[str, List[Tuple[str, Any, bool]]],
+                        file_name: str) -> None:
     with open(file_name, "w") as fp:
         json.dump(config_changes, fp, indent=4)
 
@@ -241,7 +241,8 @@ if __name__ == "__main__":
 
     base_configuration = ach_config.AchConfig(config=args.config)
 
-    base_configuration.add_property(constants.Constants.RUN_PATH, MAIN_FILE_PATH)
+    base_configuration.add_property(constants.Constants.RUN_PATH,
+                                    MAIN_FILE_PATH)
 
     timestamp = experiment_utils.get_experiment_timestamp()
     results_folder = os.path.join(MAIN_FILE_PATH, constants.Constants.RESULTS)
@@ -250,8 +251,8 @@ if __name__ == "__main__":
     os.makedirs(name=experiment_path, exist_ok=True)
 
     # logger at root of experiment i.e. not individual runs or seeds
-    logger = experiment_logger.get_logger(
-        experiment_path=experiment_path, name=__name__)
+    logger = experiment_logger.get_logger(experiment_path=experiment_path,
+                                          name=__name__)
 
     if args.mode != constants.Constants.SINGLE:
         save_config_changes(
