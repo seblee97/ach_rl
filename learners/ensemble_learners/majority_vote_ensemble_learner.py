@@ -1,15 +1,12 @@
-import copy
 from typing import List
 from typing import Optional
 from typing import Tuple
 
 import numpy as np
-
 from learners import base_learner
-from learners.ensemble_learners import ensemble_learner
 
 
-class MajorityVoteEnsemble(ensemble_learner.EnsembleLearner):
+class MajorityVoteEnsemble:
     """Ensemble learner where action in a given state
     is selected based on most common argmax of state-action
     values in ensemble.
@@ -17,7 +14,9 @@ class MajorityVoteEnsemble(ensemble_learner.EnsembleLearner):
 
     @staticmethod
     def weighted_state_action_values(learners: List[base_learner.BaseLearner]):
-        all_state_action_values = [learner.state_action_values for learner in learners]
+        all_state_action_values = [
+            learner.state_action_values for learner in learners
+        ]
 
         possible_actions = learners[0].action_space
         states = all_state_action_values[0].keys()
@@ -27,10 +26,10 @@ class MajorityVoteEnsemble(ensemble_learner.EnsembleLearner):
             state_values = [values[state] for values in all_state_action_values]
             max_indices = np.argmax(state_values, axis=1)
             max_index_counts = np.bincount(
-                max_indices, minlength=len(possible_actions)
-            ) / len(max_indices)
+                max_indices, minlength=len(possible_actions)) / len(max_indices)
 
-            values[state] = np.mean(state_values, axis=0)[np.argmax(max_index_counts)]
+            values[state] = np.mean(state_values,
+                                    axis=0)[np.argmax(max_index_counts)]
 
         return values
 
@@ -60,9 +59,8 @@ class MajorityVoteEnsemble(ensemble_learner.EnsembleLearner):
                     state_action_values[action] = -np.inf
             max_action_values.append(np.argmax(state_action_values))
 
-        max_action_value_counts = np.bincount(
-            max_action_values, minlength=len(possible_actions)
-        )
+        max_action_value_counts = np.bincount(max_action_values,
+                                              minlength=len(possible_actions))
         action = np.argmax(max_action_value_counts)
 
         return action
