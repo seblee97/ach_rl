@@ -43,7 +43,7 @@ def single_run(config_path: str,
     )
     config.add_property(constants.Constants.RUN_PATH, MAIN_FILE_PATH)
 
-    os.makedirs(name=checkpoint_path, exist_ok=True)
+    # os.makedirs(name=checkpoint_path, exist_ok=True)
 
     if config.type == constants.Constants.SARSA_LAMBDA:
         r = sarsa_lambda_runner.SARSALambdaRunner(config=config)
