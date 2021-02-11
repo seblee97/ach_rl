@@ -23,8 +23,8 @@ def create_job_script(run_command: str,
         if array_job_length:
             file.write(f"#PBS -J 1-{array_job_length}\n")
         # output/error file paths
-        file.write(f"#PBS -e {error_path}\n")
-        file.write(f"#PBS -o {output_path}\n")
+        file.write(f"#PBS -e error.txt\n")
+        file.write(f"#PBS -o output.txt\n")
         # initialise conda env
         file.write("module load anaconda3/personal\n")
         file.write(f"source activate {conda_env_name}\n")
@@ -32,3 +32,6 @@ def create_job_script(run_command: str,
         file.write("cd $PBS_O_WORKDIR\n")
         # job script
         file.write(f"{run_command}\n")
+        # copy error/output files to permanent
+        file.write(f"cp error.txt {error_path}")
+        file.write(f"cp output.txt {output_path}")
