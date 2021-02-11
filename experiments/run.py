@@ -37,8 +37,7 @@ parser.add_argument(
     "--mode",
     metavar="-M",
     default="parallel",
-    help=
-    "run in 'parallel' or 'serial', or 'single' (no changes), or 'cluster'",
+    help="run in 'parallel' or 'serial', or 'single' (no changes), or 'cluster'",
 )
 parser.add_argument("--config_path", metavar="-C", default="config.yaml")
 parser.add_argument("--seeds", metavar="-S", default=list(range(3)))
@@ -78,8 +77,8 @@ def parallel_run(config_path: str, results_folder: str, timestamp: str,
             logger.info(f"Seed: {seed}")
             p = Process(
                 target=run_methods.single_run,
-                args=(config_path, results_folder, timestamp, run_name,
-                      changes, seed),
+                args=(config_path, results_folder, timestamp, run_name, changes,
+                      seed),
             )
             p.start()
             procs.append(p)
@@ -89,8 +88,7 @@ def parallel_run(config_path: str, results_folder: str, timestamp: str,
 
 
 def serial_run(config_path: str, results_folder: str, timestamp: str,
-               config_changes: Dict[str,
-                                    List[Dict]], seeds: List[int]) -> None:
+               config_changes: Dict[str, List[Dict]], seeds: List[int]) -> None:
     """Run experiments in serial.
 
     Args:
@@ -136,11 +134,10 @@ def _submit_job(config_path: str,
     experiment_utils.config_changes_to_json(config_changes=changes,
                                             json_path=config_changes_path)
 
-    run_command = (
-        f"python cluster_run.py --config_path {config_path} "
-        f"--seed '{seeds}' --config_changes {config_changes_path} "
-        f"--results_folder {results_folder} --timestamp {timestamp} "
-        f"--run_name {run_name}")
+    run_command = (f"python cluster_run.py --config_path {config_path} "
+                   f"--seed '{seeds}' --config_changes {config_changes_path} "
+                   f"--results_folder {results_folder} --timestamp {timestamp} "
+                   f"--run_name {run_name}")
 
     if cluster_mode:
         run_command = f"{run_command} --mode {cluster_mode}"
@@ -212,7 +209,7 @@ def cluster_array_run(config_path: str, results_folder: str, timestamp: str,
     for i, (run_name, changes) in enumerate(config_changes.items()):
         for j, seed in enumerate(seeds):
 
-            array_job_index = i * num_seeds + j
+            array_job_index = i * num_seeds + j + 1
 
             logger.info(
                 f"Run name: {run_name}, seed: {seed}, array_job_index: {array_job_index}"
