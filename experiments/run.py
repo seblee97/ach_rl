@@ -249,12 +249,13 @@ def cluster_array_run(config_path: str, results_folder: str, timestamp: str,
     pbs_array_index = "$PBS_ARRAY_INDEX"
     error_pbs_array_index = "error_$PBS_ARRAY_INDEX.txt"
     output_pbs_array_index = "output_$PBS_ARRAY_INDEX.txt"
+    config_changes_pbs_array_index = "config_changes_$PBS_ARRAY_INDEX.json"
     error_path_string = f'"{os.path.join(error_files_dir, error_pbs_array_index)}"'
     output_path_string = f'"{os.path.join(output_files_dir, output_pbs_array_index)}"'
 
     run_command = (
         f'python cluster_array_run.py --config_path {config_path} '
-        f'--config_changes "{os.path.join(config_changes_dir, pbs_array_index)}" '
+        f'--config_changes "{os.path.join(config_changes_dir, config_changes_pbs_array_index)}" '
         f'--checkpoint_path "{os.path.join(checkpoint_paths_dir, pbs_array_index)}" '
     )
 
