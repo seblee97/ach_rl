@@ -34,7 +34,10 @@ def create_job_script(run_command: str,
         # job script
         file.write(f"{run_command}\n")
         # copy error/output files to permanent
+        file.write("STRIPPED_JOBID=`echo ${PBS_JOBID} | cut -d'[' -f1`")
         file.write(
-            f"mv $PBS_JOBNAME.e$PBS_JOBID$PBS_ARRAY_INDEX {checkpoint_path}")
+            f"mv $PBS_JOBNAME.e$STRIPPED_JOBID$PBS_ARRAY_INDEX {checkpoint_path}"
+        )
         file.write(
-            f"mv $PBS_JOBNAME.o$PBS_JOBID$PBS_ARRAY_INDEX {checkpoint_path}")
+            f"mv $PBS_JOBNAME.o$STRIPPED_JOBID$PBS_ARRAY_INDEX {checkpoint_path}"
+        )
