@@ -35,6 +35,6 @@ def create_job_script(run_command: str,
         file.write(f"{run_command}\n")
         # copy error/output files to permanent
         file.write(
-            f"mv $PBS_JOBNAME.e$PBS_JOB_ID$PBS_ARRAY_INDEX {checkpoint_path}")
+            f"mv $PBS_JOBNAME.e$PBS_JOBID$PBS_ARRAY_INDEX {checkpoint_path}")
         file.write(
-            f"mv $PBS_JOBNAME.o$PBS_JOB_ID$PBS_ARRAY_INDEX {checkpoint_path}")
+            f"mv $PBS_JOBNAME.o$PBS_JOBID$PBS_ARRAY_INDEX {checkpoint_path}")
