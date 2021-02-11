@@ -5,33 +5,28 @@ import os
 from typing import Tuple
 from typing import Union
 
-import numpy as np
-
 import constants
+import numpy as np
 from environments import base_environment
 from experiments import ach_config
 from learners import base_learner
-from learners.ensemble_learners import ensemble_learner
-from learners.ensemble_learners.majority_vote_ensemble_learner import (
-    MajorityVoteEnsemble,
-)
-from learners.ensemble_learners.mean_greedy_ensemble_learner import MeanGreedyEnsemble
-from learners.ensemble_learners.sample_greedy_ensemble_learner import (
-    SampleGreedyEnsemble,
-)
+from learners.ensemble_learners import tabular_ensemble_learner
+from learners.ensemble_learners.majority_vote_ensemble_learner import \
+    MajorityVoteEnsemble
+from learners.ensemble_learners.mean_greedy_ensemble_learner import \
+    MeanGreedyEnsemble
+from learners.ensemble_learners.sample_greedy_ensemble_learner import \
+    SampleGreedyEnsemble
 from learners.tabular_learners import q_learner
 from runners import base_runner
 from utils import cycle_counter
-from visitation_penalties.adaptive_arriving_uncertainty_visitation_penalty import (
-    AdaptiveArrivingUncertaintyPenalty,
-)
-from visitation_penalties.adaptive_uncertainty_visitation_penalty import (
-    AdaptiveUncertaintyPenalty,
-)
+from visitation_penalties.adaptive_arriving_uncertainty_visitation_penalty import \
+    AdaptiveArrivingUncertaintyPenalty
+from visitation_penalties.adaptive_uncertainty_visitation_penalty import \
+    AdaptiveUncertaintyPenalty
 from visitation_penalties.hard_coded_visitation_penalty import HardCodedPenalty
-from visitation_penalties.potential_adaptive_uncertainty_penalty import (
-    PotentialAdaptiveUncertaintyPenalty,
-)
+from visitation_penalties.potential_adaptive_uncertainty_penalty import \
+    PotentialAdaptiveUncertaintyPenalty
 
 
 class EnsembleQLearningRunner(base_runner.BaseRunner):
@@ -47,7 +42,8 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
             num_cores = multiprocessing.cpu_count()
             self._pool = multiprocessing.Pool(processes=num_cores)
 
-    def _setup_learner(self, config: ach_config.AchConfig):  # TODO: similar to envs
+    def _setup_learner(self,
+                       config: ach_config.AchConfig):  # TODO: similar to envs
         """Initialise learner specified in configuration."""
         if config.copy_learner_initialisation:
             single_learner = self._get_individual_q_learner(config=config)
@@ -59,7 +55,8 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
                 self._get_individual_q_learner(config=config)
                 for _ in range(self._num_learners)
             ]
-        learner = ensemble_learner.EnsembleLearner(learner_ensemble=learners)
+        learner = tabular_ensemble_learner.TabularEnsembleLearner(
+            learner_ensemble=learners)
         return learner
 
     def _get_individual_q_learner(self, config: ach_config.AchConfig):
@@ -82,26 +79,24 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
             (constants.Constants.QUIVER_VALUES_PDF, False, True),
             (constants.Constants.QUIVER_MAX_VALUES_PDF, True, True),
         ]
-        if self._visualisation_iteration(constants.Constants.VALUE_FUNCTION, episode):
+        if self._visualisation_iteration(constants.Constants.VALUE_FUNCTION,
+                                         episode):
             averaged_state_action_values = self._learner.state_action_values
             # tuple of save_path_tag, plot_max_values (bool), quiver (bool)
             if self._parallelise_ensemble:
-                processes_arguments = [
-                    (
-                        averaged_state_action_values,
-                        visualisation_configuration[1],
-                        visualisation_configuration[2],
-                        constants.Constants.MAX,
-                        os.path.join(
-                            self._checkpoint_path,
-                            f"{episode}_{visualisation_configuration[0]}",
-                        ),
-                    )
-                    for visualisation_configuration in visualisation_configurations
-                ]
-                self._pool.starmap(
-                    self._environment.plot_value_function, processes_arguments
-                )
+                processes_arguments = [(
+                    averaged_state_action_values,
+                    visualisation_configuration[1],
+                    visualisation_configuration[2],
+                    constants.Constants.MAX,
+                    os.path.join(
+                        self._checkpoint_path,
+                        f"{episode}_{visualisation_configuration[0]}",
+                    ),
+                ) for visualisation_configuration in
+                                       visualisation_configurations]
+                self._pool.starmap(self._environment.plot_value_function,
+                                   processes_arguments)
             else:
                 for visualisation_configuration in visualisation_configurations:
                     self._environment.plot_value_function(
@@ -116,38 +111,30 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
                     )
 
         if self._visualisation_iteration(
-            constants.Constants.INDIVIDUAL_VALUE_FUNCTIONS, episode
-        ):
+                constants.Constants.INDIVIDUAL_VALUE_FUNCTIONS, episode):
             all_state_action_values = (
-                self._learner.individual_learner_state_action_values
-            )
+                self._learner.individual_learner_state_action_values)
             learner_visual_configuration_combos = list(
                 itertools.product(
                     np.arange(len(all_state_action_values)),
                     visualisation_configurations,
-                )
-            )
+                ))
             if self._parallelise_ensemble:
-                processes_arguments = [
-                    (
-                        all_state_action_values[combo[0]],
-                        combo[1][1],
-                        combo[1][2],
-                        constants.Constants.MAX,
-                        os.path.join(
-                            self._checkpoint_path,
-                            f"{episode}_{combo[0]}_{combo[1][0]}",
-                        ),
-                    )
-                    for combo in learner_visual_configuration_combos
-                ]
-                self._pool.starmap(
-                    self._environment.plot_value_function, processes_arguments
-                )
+                processes_arguments = [(
+                    all_state_action_values[combo[0]],
+                    combo[1][1],
+                    combo[1][2],
+                    constants.Constants.MAX,
+                    os.path.join(
+                        self._checkpoint_path,
+                        f"{episode}_{combo[0]}_{combo[1][0]}",
+                    ),
+                ) for combo in learner_visual_configuration_combos]
+                self._pool.starmap(self._environment.plot_value_function,
+                                   processes_arguments)
             else:
                 for i, individual_state_action_values in enumerate(
-                    all_state_action_values
-                ):
+                        all_state_action_values):
                     for visualisation_configuration in visualisation_configurations:
                         self._environment.plot_value_function(
                             values=individual_state_action_values,
@@ -160,9 +147,8 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
                             over_actions=constants.Constants.MAX,
                         )
 
-        if self._visualisation_iteration(
-            constants.Constants.VALUE_FUNCTION_STD, episode
-        ):
+        if self._visualisation_iteration(constants.Constants.VALUE_FUNCTION_STD,
+                                         episode):
             state_action_values_std = self._learner.state_action_values_std
             self._environment.plot_value_function(
                 values=state_action_values_std,
@@ -177,8 +163,7 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
 
         if episode != 0:
             if self._visualisation_iteration(
-                constants.Constants.INDIVIDUAL_TRAIN_RUN, episode
-            ):
+                    constants.Constants.INDIVIDUAL_TRAIN_RUN, episode):
                 self._logger.plot_array_data(
                     name=f"{constants.Constants.INDIVIDUAL_TRAIN_RUN}_{episode}",
                     data=self._environment.plot_episode_history(),
@@ -195,8 +180,7 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
             num_steps: mean number of steps taken for ensemble episodes.
         """
         self._visitation_penalty.state_action_values = (
-            self._learner.individual_learner_state_action_values
-        )
+            self._learner.individual_learner_state_action_values)
 
         if self._parallelise_ensemble:
             train_fn = self._parallelised_train_episode
@@ -225,16 +209,20 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
         # log data from individual runners in ensemble
         for i in range(len(self._learner.ensemble)):
             self._write_scalar(
-                tag=f"{constants.Constants.TRAIN_EPISODE_REWARD}_{constants.Constants.ENSEMBLE_RUNNER}",
+                tag=
+                f"{constants.Constants.TRAIN_EPISODE_REWARD}_{constants.Constants.ENSEMBLE_RUNNER}",
                 episode=episode,
                 scalar=ensemble_rewards[i],
-                df_tag=f"{constants.Constants.TRAIN_EPISODE_REWARD}_{constants.Constants.ENSEMBLE_RUNNER}_{i}",
+                df_tag=
+                f"{constants.Constants.TRAIN_EPISODE_REWARD}_{constants.Constants.ENSEMBLE_RUNNER}_{i}",
             )
             self._write_scalar(
-                tag=f"{constants.Constants.TRAIN_EPISODE_LENGTH}_{constants.Constants.ENSEMBLE_RUNNER}",
+                tag=
+                f"{constants.Constants.TRAIN_EPISODE_LENGTH}_{constants.Constants.ENSEMBLE_RUNNER}",
                 episode=episode,
                 scalar=ensemble_step_counts[i],
-                df_tag=f"{constants.Constants.TRAIN_EPISODE_LENGTH}_{constants.Constants.ENSEMBLE_RUNNER}_{i}",
+                df_tag=
+                f"{constants.Constants.TRAIN_EPISODE_LENGTH}_{constants.Constants.ENSEMBLE_RUNNER}_{i}",
             )
 
         # averages over ensemble
@@ -253,7 +241,8 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
             episode=episode,
             scalar=np.mean(ensemble_mean_penalties),
         )
-        for penalty_info, ensemble_penalty_info in ensemble_mean_penalty_infos.items():
+        for penalty_info, ensemble_penalty_info in ensemble_mean_penalty_infos.items(
+        ):
             self._write_scalar(
                 tag=constants.Constants.MEAN_PENALTY_INFO,
                 episode=episode,
@@ -315,18 +304,14 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
         Args:
             episode: index of episode
         """
-        processes_arguments = [
-            (
-                copy.deepcopy(self._environment),
-                learner,
-                self._visitation_penalty,
-                episode,
-            )
-            for learner in self._learner.ensemble
-        ]
-        processes_results = self._pool.starmap(
-            self._single_train_episode, processes_arguments
-        )
+        processes_arguments = [(
+            copy.deepcopy(self._environment),
+            learner,
+            self._visitation_penalty,
+            episode,
+        ) for learner in self._learner.ensemble]
+        processes_results = self._pool.starmap(self._single_train_episode,
+                                               processes_arguments)
         (
             learners,
             ensemble_episode_rewards,
@@ -380,9 +365,10 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
             action = learner.select_behaviour_action(state)
             reward, next_state = environment.step(action)
 
-            penalty, penalty_info = visitation_penalty(
-                episode=episode, state=state, action=action, next_state=next_state
-            )
+            penalty, penalty_info = visitation_penalty(episode=episode,
+                                                       state=state,
+                                                       action=action,
+                                                       next_state=next_state)
 
             penalties.append(penalty)
             for info_key, info in penalty_info.items():
@@ -412,17 +398,21 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
             mean_penalty_info,
         )
 
-    def _get_visitation_penalty(self, episode: int, state, action: int, next_state):
+    def _get_visitation_penalty(self, episode: int, state, action: int,
+                                next_state):
         if isinstance(self._visitation_penalty, AdaptiveUncertaintyPenalty):
-            penalty, penalty_info = self._visitation_penalty(state=state, action=action)
+            penalty, penalty_info = self._visitation_penalty(state=state,
+                                                             action=action)
         elif isinstance(self._visitation_penalty, HardCodedPenalty):
             penalty, penalty_info = self._visitation_penalty(episode=episode)
-        elif isinstance(self._visitation_penalty, PotentialAdaptiveUncertaintyPenalty):
+        elif isinstance(self._visitation_penalty,
+                        PotentialAdaptiveUncertaintyPenalty):
             penalty, penalty_info = self._visitation_penalty(
-                state=state, action=action, next_state=next_state
-            )
-        elif isinstance(self._visitation_penalty, AdaptiveArrivingUncertaintyPenalty):
-            penalty, penalty_info = self._visitation_penalty(next_state=next_state)
+                state=state, action=action, next_state=next_state)
+        elif isinstance(self._visitation_penalty,
+                        AdaptiveArrivingUncertaintyPenalty):
+            penalty, penalty_info = self._visitation_penalty(
+                next_state=next_state)
         return penalty, penalty_info
 
     def _run_specific_tests(self, episode: int):
@@ -435,19 +425,17 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
         greedy_vote = constants.Constants.GREEDY_VOTE
 
         no_rep_greedy_sample = "_".join(
-            [constants.Constants.NO_REP, constants.Constants.GREEDY_SAMPLE]
-        )
+            [constants.Constants.NO_REP, constants.Constants.GREEDY_SAMPLE])
         no_rep_greedy_mean = "_".join(
-            [constants.Constants.NO_REP, constants.Constants.GREEDY_MEAN]
-        )
+            [constants.Constants.NO_REP, constants.Constants.GREEDY_MEAN])
         no_rep_greedy_vote = "_".join(
-            [constants.Constants.NO_REP, constants.Constants.GREEDY_VOTE]
-        )
+            [constants.Constants.NO_REP, constants.Constants.GREEDY_VOTE])
 
         if greedy_sample in self._targets:
             self._greedy_test_episode(
                 episode=episode,
-                action_selection_method=SampleGreedyEnsemble.select_target_action,
+                action_selection_method=SampleGreedyEnsemble.
+                select_target_action,
                 action_selection_method_args={
                     constants.Constants.LEARNERS: self._learner.ensemble
                 },
@@ -465,7 +453,8 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
         if greedy_vote in self._targets:
             self._greedy_test_episode(
                 episode=episode,
-                action_selection_method=MajorityVoteEnsemble.select_target_action,
+                action_selection_method=MajorityVoteEnsemble.
+                select_target_action,
                 action_selection_method_args={
                     constants.Constants.LEARNERS: self._learner.ensemble
                 },
@@ -474,7 +463,8 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
         if no_rep_greedy_sample in self._targets:
             self._non_repeat_test_episode(
                 episode=episode,
-                action_selection_method=SampleGreedyEnsemble.select_target_action,
+                action_selection_method=SampleGreedyEnsemble.
+                select_target_action,
                 action_selection_method_args={
                     constants.Constants.LEARNERS: self._learner.ensemble
                 },
@@ -492,7 +482,8 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
         if no_rep_greedy_vote in self._targets:
             self._non_repeat_test_episode(
                 episode=episode,
-                action_selection_method=MajorityVoteEnsemble.select_target_action,
+                action_selection_method=MajorityVoteEnsemble.
+                select_target_action,
                 action_selection_method_args={
                     constants.Constants.LEARNERS: self._learner.ensemble
                 },
