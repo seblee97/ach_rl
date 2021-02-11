@@ -226,23 +226,23 @@ def cluster_array_run(config_path: str, results_folder: str, timestamp: str,
             config_changes_sym_path = os.path.join(
                 config_changes_dir, f"config_changes_{array_job_index}.json")
 
-            error_path = os.path.join(checkpoint_path,
-                                      constants.Constants.ERROR_FILE_NAME)
-            with open(error_path, "w") as empty:
-                pass
-            error_sym_path = os.path.join(error_files_dir,
-                                          f"error_{array_job_index}.txt")
-            output_path = os.path.join(checkpoint_path,
-                                       constants.Constants.OUTPUT_FILE_NAME)
-            with open(output_path, "w") as empty:
-                pass
-            output_sym_path = os.path.join(output_files_dir,
-                                           f"output_{array_job_index}.txt")
+            # error_path = os.path.join(checkpoint_path,
+            #                           constants.Constants.ERROR_FILE_NAME)
+            # with open(error_path, "w") as empty:
+            #     pass
+            # error_sym_path = os.path.join(error_files_dir,
+            #                               f"error_{array_job_index}.txt")
+            # output_path = os.path.join(checkpoint_path,
+            #                            constants.Constants.OUTPUT_FILE_NAME)
+            # with open(output_path, "w") as empty:
+            #     pass
+            # output_sym_path = os.path.join(output_files_dir,
+            # f"output_{array_job_index}.txt")
 
             os.symlink(config_changes_path, config_changes_sym_path)
             os.symlink(checkpoint_path, checkpoint_sym_path)
-            os.symlink(error_path, error_sym_path)
-            os.symlink(output_path, output_sym_path)
+            # os.symlink(error_path, error_sym_path)
+            # os.symlink(output_path, output_sym_path)
 
             # add seed to config changes
             changes.append({constants.Constants.SEED: seed})
@@ -251,11 +251,11 @@ def cluster_array_run(config_path: str, results_folder: str, timestamp: str,
                 config_changes=changes, json_path=config_changes_path)
 
     pbs_array_index = "$PBS_ARRAY_INDEX"
-    error_pbs_array_index = "error_$PBS_ARRAY_INDEX.txt"
-    output_pbs_array_index = "output_$PBS_ARRAY_INDEX.txt"
+    # error_pbs_array_index = "error_$PBS_ARRAY_INDEX.txt"
+    # output_pbs_array_index = "output_$PBS_ARRAY_INDEX.txt"
     config_changes_pbs_array_index = "config_changes_$PBS_ARRAY_INDEX.json"
-    error_path_string = f'"{os.path.join(error_files_dir, error_pbs_array_index)}"'
-    output_path_string = f'"{os.path.join(output_files_dir, output_pbs_array_index)}"'
+    # error_path_string = f'"{os.path.join(error_files_dir, error_pbs_array_index)}"'
+    # output_path_string = f'"{os.path.join(output_files_dir, output_pbs_array_index)}"'
 
     run_command = (
         f'python cluster_array_run.py --config_path {config_path} '
@@ -263,15 +263,16 @@ def cluster_array_run(config_path: str, results_folder: str, timestamp: str,
         f'--checkpoint_path "{os.path.join(checkpoint_paths_dir, pbs_array_index)}" '
     )
 
-    cluster_methods.create_job_script(run_command=run_command,
-                                      save_path=job_script_path,
-                                      num_cpus=num_cpus,
-                                      conda_env_name="ach",
-                                      memory=memory,
-                                      error_path=f'{error_path_string}',
-                                      output_path=f'{output_path_string}',
-                                      array_job_length=num_configurations *
-                                      num_seeds)
+    cluster_methods.create_job_script(
+        run_command=run_command,
+        save_path=job_script_path,
+        num_cpus=num_cpus,
+        conda_env_name="ach",
+        memory=memory,
+        error_path="",
+        output_path="",
+        checkpoint_path=os.path.join(checkpoint_paths_dir, pbs_array_index),
+        array_job_length=num_configurations * num_seeds)
 
     subprocess.call(f"qsub {job_script_path}", shell=True)
 
