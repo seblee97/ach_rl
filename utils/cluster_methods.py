@@ -27,11 +27,11 @@ def create_job_script(run_command: str,
         # file.write(f"#PBS -e error.txt\n")
         # file.write(f"#PBS -o output.txt\n")
         # log job id info
-        file.write('echo "PBS Job Id PBS_JOBID is ${PBS_JOBID}"')
+        file.write('echo "PBS Job Id PBS_JOBID is ${PBS_JOBID}"\n')
         file.write(
-            'echo "PBS job array index PBS_ARRAY_INDEX value is ${PBS_ARRAY_INDEX}"'
+            'echo "PBS job array index PBS_ARRAY_INDEX value is ${PBS_ARRAY_INDEX}"\n'
         )
-        file.write("`echo ${PBS_JOBID} | cut -d'[' -f1`")
+        file.write("`echo ${PBS_JOBID} | cut -d'[' -f1`\n")
         # initialise conda env
         file.write("module load anaconda3/personal\n")
         file.write(f"source activate {conda_env_name}\n")
