@@ -38,8 +38,6 @@ class BaseVisitationPenalty(abc.ABC):
         next_state,
     ):
         """compute series of uncertainties over states culminating in penalty."""
-        import pdb
-        pdb.set_trace()
         current_state_values = np.array(
             [s[state] for s in self._state_action_values])
         next_state_values = np.array(
@@ -62,15 +60,13 @@ class BaseVisitationPenalty(abc.ABC):
             minlength=num_actions) / len(current_state_max_action_indices)
         current_state_policy_entropy = -np.sum(
             (current_state_max_action_index_probabilities + self.EPSILON) *
-            np.log(current_state_max_action_index_probabilities +
-                   self.EPSILON))
+            np.log(current_state_max_action_index_probabilities + self.EPSILON))
 
         next_state_max_action_values = np.max(next_state_values, axis=1)
         next_state_max_action_indices = np.argmax(next_state_values, axis=1)
 
         next_state_max_uncertainty = np.std(next_state_max_action_values)
-        next_state_mean_uncertainty = np.mean(np.std(next_state_values,
-                                                     axis=0))
+        next_state_mean_uncertainty = np.mean(np.std(next_state_values, axis=0))
         next_state_max_action_index_probabilities = np.bincount(
             next_state_max_action_indices,
             minlength=num_actions) / len(current_state_max_action_indices)
@@ -80,19 +76,19 @@ class BaseVisitationPenalty(abc.ABC):
 
         return {
             constants.Constants.CURRENT_STATE_MAX_UNCERTAINTY:
-            current_state_max_uncertainty,
+                current_state_max_uncertainty,
             constants.Constants.CURRENT_STATE_MEAN_UNCERTAINTY:
-            current_state_mean_uncertainty,
+                current_state_mean_uncertainty,
             constants.Constants.CURRENT_STATE_SELECT_UNCERTAINTY:
-            current_state_select_uncertainty,
+                current_state_select_uncertainty,
             constants.Constants.CURRENT_STATE_POLICY_ENTROPY:
-            current_state_policy_entropy,
+                current_state_policy_entropy,
             constants.Constants.NEXT_STATE_MAX_UNCERTAINTY:
-            next_state_max_uncertainty,
+                next_state_max_uncertainty,
             constants.Constants.NEXT_STATE_MEAN_UNCERTAINTY:
-            next_state_mean_uncertainty,
+                next_state_mean_uncertainty,
             constants.Constants.NEXT_STATE_POLICY_ENTROPY:
-            next_state_policy_entropy,
+                next_state_policy_entropy,
         }
 
     def __call__(self, episode, state, action, next_state, *args, **kwargs):
