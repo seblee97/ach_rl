@@ -7,18 +7,12 @@ configuration files we can use the same base for all and
 systematically modify it for each different run.
 """
 
-
-class ConfigChange:
-
-    config_changes = {f"vp_{i}": [{"learner": {"hard_coded": {"vp_schedule": [[0, float(i)]]}}}] for i in range(5)}
-
-    # config_changes = {
-    #     "vp_0": [("vp_schedule", [[0, 0.0]])],
-    #     "vp_0.001": [("vp_schedule", [[0, 0.001]])],
-    #     "vp_0.002": [("vp_schedule", [[0, 0.002]])],
-    #     "vp_0.003": [("vp_schedule", [[0, 0.003]])],
-    #     "optimistic_initialisation": [
-    #         ("vp_schedule", [[0, 0]]),
-    #         ("initialisation", 1.5),
-    #     ],
-    # }
+CONFIG_CHANGES = {
+    f"vp_{i}": [{
+        "learner": {
+            "hard_coded": {
+                "vp_schedule": [[0, float(i)]]
+            }
+        }
+    }] for i in range(2)
+}
