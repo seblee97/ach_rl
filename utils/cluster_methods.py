@@ -5,7 +5,6 @@ def create_job_script(run_command: str,
                       memory: int,
                       error_path: str,
                       output_path: str,
-                      checkpoint_path: str,
                       array_job_length: int = 0,
                       walltime: str = "24:0:0") -> None:
     """Create a job script for use on HPC.
@@ -39,13 +38,3 @@ def create_job_script(run_command: str,
         file.write("cd $PBS_O_WORKDIR\n")
         # job script
         file.write(f"{run_command}\n")
-        # copy error/output files to permanent
-        file.write(f'ls $PBS_O_WORKDIR/\n')
-        file.write(f'ls \n')
-        file.write(f'ls $TMPDIR/\n')
-        file.write(
-            f"mv $PBS_O_WORKDIR/$PBS_JOBNAME.e$JOBID.$PBS_ARRAY_INDEX {checkpoint_path}/\n"
-        )
-        file.write(
-            f"mv $PBS_O_WORKDIR/$PBS_JOBNAME.o$JOBID.$PBS_ARRAY_INDEX {checkpoint_path}/\n"
-        )
