@@ -234,6 +234,9 @@ class Constants:
     ERROR_FILES_SYM_PATH = "error_files_symbolic_dir"
     OUTPUT_FILES_SYM_PATH = "output_files_symbolic_dir"
     CHECKPOINTS_SYM_PATH = "checkpoints_symbolic_dir"
+    CONFIG_CHANGES_JSON = "config_changes.json"
+    ACH = "ach"
+    JOB_SCRIPT = "job_script"
 
     ATARI_ENVS = ["PongNoFrameskip-v4"]
 
