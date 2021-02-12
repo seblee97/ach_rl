@@ -189,16 +189,16 @@ def cluster_array_run(config_path: str, results_folder: str, timestamp: str,
 
     config_changes_dir = os.path.join(
         results_folder, timestamp, constants.Constants.CONFIG_CHANGES_SYM_PATH)
-    error_files_dir = os.path.join(results_folder, timestamp,
-                                   constants.Constants.ERROR_FILES_SYM_PATH)
-    output_files_dir = os.path.join(results_folder, timestamp,
-                                    constants.Constants.OUTPUT_FILES_SYM_PATH)
+    # error_files_dir = os.path.join(results_folder, timestamp,
+    #                                constants.Constants.ERROR_FILES_SYM_PATH)
+    # output_files_dir = os.path.join(results_folder, timestamp,
+    # constants.Constants.OUTPUT_FILES_SYM_PATH)
     checkpoint_paths_dir = os.path.join(
         results_folder, timestamp, constants.Constants.CHECKPOINTS_SYM_PATH)
 
     os.makedirs(config_changes_dir, exist_ok=True)
-    os.makedirs(error_files_dir, exist_ok=True)
-    os.makedirs(output_files_dir, exist_ok=True)
+    # os.makedirs(error_files_dir, exist_ok=True)
+    # os.makedirs(output_files_dir, exist_ok=True)
     os.makedirs(checkpoint_paths_dir, exist_ok=True)
 
     job_script_path = os.path.join(results_folder, timestamp, "job_script")
@@ -252,7 +252,7 @@ def cluster_array_run(config_path: str, results_folder: str, timestamp: str,
             experiment_utils.config_changes_to_json(
                 config_changes=changes, json_path=config_changes_path)
 
-    pbs_array_index = "$PBS_ARRAY_INDEX"
+    pbs_array_index = "$PBS_ARRAY_INDEX/"
     # error_pbs_array_index = "error_$PBS_ARRAY_INDEX.txt"
     # output_pbs_array_index = "output_$PBS_ARRAY_INDEX.txt"
     config_changes_pbs_array_index = "config_changes_$PBS_ARRAY_INDEX.json"
