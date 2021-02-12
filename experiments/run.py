@@ -351,9 +351,18 @@ if __name__ == "__main__":
             serial_run.serial_run(config_path=args.config_path,
                                   checkpoint_paths=checkpoint_paths)
         elif args.mode == constants.Constants.CLUSTER:
+            if len(checkpoint_paths) <= 8:
+                num_cpus = len(checkpoint_paths)
+            elif len(checkpoint_paths) <= 32:
+                num_cpus = 32
+            elif len(checkpoint_paths) <= 64:
+                num_cpus = 64
+            else:
+                raise ValueError(
+                    f"{len(checkpoint_paths)} is too many run combinations.")
             cluster_run.cluster_run(experiment_path=experiment_path,
                                     config_path=args.config_path,
-                                    num_cpus=len(checkpoint_paths),
+                                    num_cpus=num_cpus,
                                     memory_per_node=args.memory)
 
         elif args.mode == constants.Constants.CLUSTER_ARRAY:
