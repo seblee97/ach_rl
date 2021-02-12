@@ -1,10 +1,12 @@
 import argparse
 import collections.abc
 import copy
+import importlib
 import json
 import logging
 import multiprocessing
 import os
+import shutil
 import subprocess
 import tempfile
 from multiprocessing import Process
@@ -18,8 +20,11 @@ import constants
 import torch
 import yaml
 from experiments import ach_config
+from experiments import cluster_run
+from experiments import parallel_run
 from experiments import run_methods
-from experiments.config_changes import ConfigChange
+from experiments import serial_run
+from experiments import single_run
 from runners import dqn_runner
 from runners import q_learning_ensemble_runner
 from runners import q_learning_runner
@@ -40,76 +45,74 @@ parser.add_argument(
     help="run in 'parallel' or 'serial', or 'single' (no changes), or 'cluster'",
 )
 parser.add_argument("--config_path", metavar="-C", default="config.yaml")
-parser.add_argument("--seeds", metavar="-S", default=list(range(3)))
+parser.add_argument("--seeds", metavar="-S", default=list(range(1)))
 parser.add_argument("--config_changes",
                     metavar="-CC",
-                    default=ConfigChange.config_changes)
+                    default="config_changes.py")
 parser.add_argument("--num_cpus", metavar="-NC", default=8)
-parser.add_argument("--memory", metavar="-MEM", default=60)
+parser.add_argument("--memory", metavar="-MEM", default=64)
 parser.add_argument("--cluster_mode", metavar="-CM", default="individual")
 
 args = parser.parse_args()
 
+# def parallel_run(config_path: str, results_folder: str, timestamp: str,
+#                  config_changes: Dict[str,
+#                                       List[Dict]], seeds: List[int]) -> None:
+#     """Run experiments in parallel.
 
-def parallel_run(config_path: str, results_folder: str, timestamp: str,
-                 config_changes: Dict[str,
-                                      List[Dict]], seeds: List[int]) -> None:
-    """Run experiments in parallel.
+#     Args:
+#         base_configuration: config object.
+#         seeds: list of seeds to run experiment over.
+#         config_changes: changes to make to base configuration
+#             for each separate experiment.
+#         experiment_path: path to experiment.
+#         results_folder: path to results.
+#         timestamp: experiment timestamp.
+#     """
+#     procs = []
 
-    Args:
-        base_configuration: config object.
-        seeds: list of seeds to run experiment over.
-        config_changes: changes to make to base configuration
-            for each separate experiment.
-        experiment_path: path to experiment.
-        results_folder: path to results.
-        timestamp: experiment timestamp.
-    """
-    procs = []
+#     # macOS + python 3.8 change in multiprocessing defaults.
+#     # workaround: https://github.com/pytest-dev/pytest-flask/issues/104
+#     multiprocessing.set_start_method("spawn")
 
-    # macOS + python 3.8 change in multiprocessing defaults.
-    # workaround: https://github.com/pytest-dev/pytest-flask/issues/104
-    multiprocessing.set_start_method("spawn")
+#     for run_name, changes in config_changes.items():
+#         logger.info(f"{run_name}")
+#         for seed in seeds:
+#             logger.info(f"Seed: {seed}")
+#             p = Process(
+#                 target=run_methods.single_run,
+#                 args=(config_path, results_folder, timestamp, run_name, changes,
+#                       seed),
+#             )
+#             p.start()
+#             procs.append(p)
 
-    for run_name, changes in config_changes.items():
-        logger.info(f"{run_name}")
-        for seed in seeds:
-            logger.info(f"Seed: {seed}")
-            p = Process(
-                target=run_methods.single_run,
-                args=(config_path, results_folder, timestamp, run_name, changes,
-                      seed),
-            )
-            p.start()
-            procs.append(p)
+#     for p in procs:
+# #         p.join()
 
-    for p in procs:
-        p.join()
+# def serial_run(config_path: str, results_folder: str, timestamp: str,
+#                config_changes: Dict[str, List[Dict]], seeds: List[int]) -> None:
+#     """Run experiments in serial.
 
-
-def serial_run(config_path: str, results_folder: str, timestamp: str,
-               config_changes: Dict[str, List[Dict]], seeds: List[int]) -> None:
-    """Run experiments in serial.
-
-    Args:
-        base_configuration: config object.
-        seeds: list of seeds to run experiment over.
-        config_changes: changes to make to base configuration
-            for each separate experiment.
-        experiment_path: path to experiment.
-        results_folder: path to results.
-        timestamp: experiment timestamp.
-    """
-    for run_name, changes in config_changes.items():
-        logger.info(f"{run_name}")
-        for seed in seeds:
-            logger.info(f"Seed: {seed}")
-            run_methods.single_run(config_path=config_path,
-                                   results_folder=results_folder,
-                                   timestamp=timestamp,
-                                   run_name=run_name,
-                                   changes=changes,
-                                   seed=seed)
+#     Args:
+#         base_configuration: config object.
+#         seeds: list of seeds to run experiment over.
+#         config_changes: changes to make to base configuration
+#             for each separate experiment.
+#         experiment_path: path to experiment.
+#         results_folder: path to results.
+#         timestamp: experiment timestamp.
+#     """
+#     for run_name, changes in config_changes.items():
+#         logger.info(f"{run_name}")
+#         for seed in seeds:
+#             logger.info(f"Seed: {seed}")
+#             run_methods.single_run(config_path=config_path,
+#                                    results_folder=results_folder,
+#                                    timestamp=timestamp,
+#                                    run_name=run_name,
+#                                    changes=changes,
+# seed=seed)
 
 
 def _submit_job(config_path: str,
@@ -154,33 +157,39 @@ def _submit_job(config_path: str,
     subprocess.call(f"qsub {job_script_path}", shell=True)
 
 
-def cluster_run(config_path: str, results_folder: str, timestamp: str,
-                config_changes: Dict[str, List[Dict]], seeds: List[int],
-                num_cpus: int, memory: int, cluster_mode: str) -> None:
+# def cluster_run(config_path: str, results_folder: str, timestamp: str,
+#                 config_changes: Dict[str, List[Dict]], seeds: List[int],
+#                 num_cpus: int, memory: int, cluster_mode: str) -> None:
 
-    for run_name, changes in config_changes.items():
-        if cluster_mode == constants.Constants.INDIVIDUAL:
-            for seed in seeds:
-                logger.info(f"Run name: {run_name}, seed: {seed}")
-                _submit_job(config_path=config_path,
-                            results_folder=results_folder,
-                            run_name=run_name,
-                            timestamp=timestamp,
-                            num_cpus=num_cpus,
-                            memory=memory,
-                            changes=changes,
-                            seeds=seed)
-        else:
-            logger.info(f"Run name: {run_name}, seed: {seeds}")
-            _submit_job(config_path=config_path,
-                        results_folder=results_folder,
-                        run_name=run_name,
-                        timestamp=timestamp,
-                        num_cpus=num_cpus,
-                        memory=memory,
-                        changes=changes,
-                        seeds=seeds,
-                        cluster_mode=cluster_mode)
+#     for run_name, changes in config_changes.items():
+#         if cluster_mode == constants.Constants.INDIVIDUAL:
+#             for seed in seeds:
+#                 logger.info(f"Run name: {run_name}, seed: {seed}")
+#                 checkpoint_path = os.path.join(results_folder, timestamp,
+#                                                run_name, str(seed))
+#                 logger.info(f"Creating checkpoint path at {checkpoint_path}...")
+#                 os.makedirs(name=checkpoint_path, exist_ok=True)
+
+#                 logger.info(f"Run name: {run_name}, seed: {seed}")
+#                 _submit_job(config_path=config_path,
+#                             results_folder=results_folder,
+#                             run_name=run_name,
+#                             timestamp=timestamp,
+#                             num_cpus=num_cpus,
+#                             memory=memory,
+#                             changes=changes,
+#                             seeds=seed)
+#         else:
+#             logger.info(f"Run name: {run_name}, seed: {seeds}")
+#             _submit_job(config_path=config_path,
+#                         results_folder=results_folder,
+#                         run_name=run_name,
+#                         timestamp=timestamp,
+#                         num_cpus=num_cpus,
+#                         memory=memory,
+#                         changes=changes,
+#                         seeds=seeds,
+#                         cluster_mode=cluster_mode)
 
 
 def cluster_array_run(config_path: str, results_folder: str, timestamp: str,
@@ -279,6 +288,32 @@ def cluster_array_run(config_path: str, results_folder: str, timestamp: str,
     subprocess.call(f"qsub {job_script_path}", shell=True)
 
 
+def _create_experiment_directories(experiment_path: str, run_names: List[str],
+                                   seeds: List[int]) -> None:
+    for run_name in run_names:
+        for seed in seeds:
+            checkpoint_path = os.path.join(experiment_path, run_name, str(seed))
+            os.makedirs(name=checkpoint_path, exist_ok=True)
+
+
+def _organise_config_changes_and_checkpoint_dirs(experiment_path,
+                                                 config_changes: Dict[
+                                                     str, List[Dict]],
+                                                 seeds: List[int]) -> List[str]:
+    checkpoint_paths = []
+    for run_name, changes in config_changes.items():
+        for seed in seeds:
+            checkpoint_path = os.path.join(experiment_path, run_name, str(seed))
+            os.makedirs(name=checkpoint_path, exist_ok=True)
+            changes.append({constants.Constants.SEED: seed})
+            experiment_utils.config_changes_to_json(
+                config_changes=changes,
+                json_path=os.path.join(checkpoint_path,
+                                       constants.Constants.CONFIG_CHANGES_JSON))
+            checkpoint_paths.append(checkpoint_path)
+    return checkpoint_paths
+
+
 if __name__ == "__main__":
 
     timestamp = experiment_utils.get_experiment_timestamp()
@@ -292,40 +327,35 @@ if __name__ == "__main__":
                                           name=__name__)
 
     if args.mode == constants.Constants.SINGLE:
-        run_methods.single_run(config_path=args.config_path,
-                               results_folder=results_folder,
-                               timestamp=timestamp,
-                               run_name=constants.Constants.SINGLE,
-                               changes=[])
+        single_checkpoint_path = os.path.join(experiment_path,
+                                              constants.Constants.SINGLE)
+        os.makedirs(name=single_checkpoint_path, exist_ok=True)
+        single_run.single_run(config_path=args.config_path,
+                              checkpoint_path=single_checkpoint_path)
     else:
-        experiment_utils.save_config_changes(
-            config_changes=args.config_changes,
-            file_name=os.path.join(
+        config_changes = importlib.import_module(
+            name=f"{args.config_changes.strip('.py')}").CONFIG_CHANGES
+        experiment_utils.config_changes_to_json(
+            config_changes=config_changes,
+            json_path=os.path.join(
                 experiment_path,
-                f"{constants.Constants.CONFIG_CHANGES}.json",
-            ),
-        )
+                f"all_{constants.Constants.CONFIG_CHANGES_JSON}"))
+        checkpoint_paths = _organise_config_changes_and_checkpoint_dirs(
+            experiment_path=experiment_path,
+            config_changes=config_changes,
+            seeds=args.seeds)
         if args.mode == constants.Constants.PARALLEL:
-            parallel_run(config_path=args.config_path,
-                         results_folder=results_folder,
-                         timestamp=timestamp,
-                         config_changes=args.config_changes,
-                         seeds=args.seeds)
-        elif args.mode == constants.Constants.CLUSTER:
-            cluster_run(config_path=args.config_path,
-                        results_folder=results_folder,
-                        timestamp=timestamp,
-                        config_changes=args.config_changes,
-                        seeds=args.seeds,
-                        num_cpus=args.num_cpus,
-                        memory=args.memory,
-                        cluster_mode=args.cluster_mode)
+            parallel_run.parallel_run(config_path=args.config_path,
+                                      checkpoint_paths=checkpoint_paths)
         elif args.mode == constants.Constants.SERIAL:
-            serial_run(config_path=args.config_path,
-                       results_folder=results_folder,
-                       timestamp=timestamp,
-                       config_changes=args.config_changes,
-                       seeds=args.seeds)
+            serial_run.serial_run(config_path=args.config_path,
+                                  checkpoint_paths=checkpoint_paths)
+        elif args.mode == constants.Constants.CLUSTER:
+            cluster_run.cluster_run(experiment_path=experiment_path,
+                                    config_path=args.config_path,
+                                    num_cpus=len(checkpoint_paths),
+                                    memory_per_node=args.memory)
+
         elif args.mode == constants.Constants.CLUSTER_ARRAY:
             cluster_array_run(config_path=args.config_path,
                               results_folder=results_folder,
