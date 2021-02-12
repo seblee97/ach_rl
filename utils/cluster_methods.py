@@ -26,6 +26,12 @@ def create_job_script(run_command: str,
         # output/error file paths
         # file.write(f"#PBS -e error.txt\n")
         # file.write(f"#PBS -o output.txt\n")
+        # log job id info
+        file.write('echo "PBS Job Id PBS_JOBID is ${PBS_JOBID}"')
+        file.write(
+            'echo "PBS job array index PBS_ARRAY_INDEX value is ${PBS_ARRAY_INDEX}"'
+        )
+        file.write("`echo ${PBS_JOBID} | cut -d'[' -f1`")
         # initialise conda env
         file.write("module load anaconda3/personal\n")
         file.write(f"source activate {conda_env_name}\n")
