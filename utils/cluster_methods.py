@@ -26,8 +26,8 @@ def create_job_script(run_command: str,
         # define job id variable without array index
         file.write('JOBID=${PBS_JOBID%"[$PBS_ARRAY_INDEX].pbs"}\n')
         # output/error file paths
-        # file.write(f"#PBS -e error.txt\n")
-        # file.write(f"#PBS -o output.txt\n")
+        # file.write(f"#PBS -e {checkpoint_path}/error.txt\n")
+        # file.write(f"#PBS -o {checkpoint_path}/output.txt\n")
         # log job id info
         file.write('echo "PBS_JOBID is ${PBS_JOBID}"\n')
         file.write('echo "PBS_ARRAY_INDEX value is ${PBS_ARRAY_INDEX}"\n')
@@ -40,7 +40,7 @@ def create_job_script(run_command: str,
         # job script
         file.write(f"{run_command}\n")
         # copy error/output files to permanent
-
+        file.write(f'echo "ls $PBS_O_WORKDIR/"\n')
         file.write(
             f"mv $PBS_O_WORKDIR/$PBS_JOBNAME.e$JOBID.$PBS_ARRAY_INDEX {checkpoint_path}/\n"
         )
