@@ -110,6 +110,13 @@ ensemble_q_learning:
         - greedy_vote
     parallelise_ensemble: False
 
+ensemble_dqn:
+    num_learners: 4
+    copy_learner_initialisation: False
+    behaviour: epsilon_greedy
+    targets: 
+    parallelise_ensemble: False
+
 dqn:
     batch_size: 32
     num_replay_fill_trajectories: 500
@@ -175,12 +182,6 @@ logging:
     scalars:
         - [train_episode_reward, 1]
         - [train_episode_length, 1]
-        - [test_episode_reward_greedy_sample, 1]
-        - [test_episode_reward_greedy_vote, 1]
-        - [test_episode_reward_greedy_mean, 1]
-        - [test_episode_length_greedy_sample, 1]
-        - [test_episode_length_greedy_vote, 1]
-        - [test_episode_length_greedy_mean, 1]
         # - [average_action_value, 50]
         # - [loss, 1]
         # - [epsilon, 1]
