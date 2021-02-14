@@ -22,15 +22,9 @@ def create_job_script(run_command: str,
         file.write(f"#PBS -lwalltime={walltime}\n")
         if array_job_length:
             file.write(f"#PBS -J 1-{array_job_length}\n")
-        # define job id variable without array index
-        file.write('JOBID=${PBS_JOBID%"[$PBS_ARRAY_INDEX].pbs"}\n')
         # output/error file paths
-        # file.write(f"#PBS -e {checkpoint_path}/error.txt\n")
-        # file.write(f"#PBS -o {checkpoint_path}/output.txt\n")
-        # log job id info
-        file.write('echo "PBS_JOBID is ${PBS_JOBID}"\n')
-        file.write('echo "PBS_ARRAY_INDEX value is ${PBS_ARRAY_INDEX}"\n')
-        file.write('echo "PBS_JOBID without ARRAY_INDEX is $JOBID"\n')
+        file.write(f"#PBS -e {error_path}\n")
+        file.write(f"#PBS -o {output_path}\n")
         # initialise conda env
         file.write("module load anaconda3/personal\n")
         file.write(f"source activate {conda_env_name}\n")
