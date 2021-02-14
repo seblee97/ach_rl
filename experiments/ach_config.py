@@ -158,22 +158,24 @@ class AchConfig(base_configuration.BaseConfiguration):
             raise ValueError(
                 "Permitted scalars for learner {learner} not specified...")
 
-        for scalar in scalars:
-            if isinstance(scalar[0], str):
-                scalar_str = scalar[0]
-            elif isinstance(scalar[0], list):
-                scalar_str = scalar[0][0]
-            assert scalar_str in permitted_scalars, (
-                f"Scalar {scalar} specified in config logging, "
-                f"is not compatible with learner {learner}.")
-        for visual in visuals:
-            if isinstance(visual[0], str):
-                visual_str = visual[0]
-            elif isinstance(visual[0], list):
-                visual_str = visual[0][0]
-            assert visual_str in permitted_visuals, (
-                f"Visual {visual} specified in config logging, "
-                f"is not compatible with learner {learner}.")
+        if scalars is not None:
+            for scalar in scalars:
+                if isinstance(scalar[0], str):
+                    scalar_str = scalar[0]
+                elif isinstance(scalar[0], list):
+                    scalar_str = scalar[0][0]
+                assert scalar_str in permitted_scalars, (
+                    f"Scalar {scalar} specified in config logging, "
+                    f"is not compatible with learner {learner}.")
+        if visuals is not None:
+            for visual in visuals:
+                if isinstance(visual[0], str):
+                    visual_str = visual[0]
+                elif isinstance(visual[0], list):
+                    visual_str = visual[0][0]
+                assert visual_str in permitted_visuals, (
+                    f"Visual {visual} specified in config logging, "
+                    f"is not compatible with learner {learner}.")
 
         # check testing procedures are compatible with alg/env etc.
         if learner == constants.Constants.DQN:
