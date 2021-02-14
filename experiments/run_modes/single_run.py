@@ -44,7 +44,7 @@ parser.add_argument("--checkpoint_path",
                     help="path to dir in which to output results.",
                     required=True)
 
-MAIN_FILE_PATH = os.path.dirname(os.path.realpath(__file__))
+MAIN_FILE_PATH = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 
 
 def single_run(config_path: str,
