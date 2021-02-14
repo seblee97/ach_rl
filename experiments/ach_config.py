@@ -117,6 +117,47 @@ class AchConfig(base_configuration.BaseConfiguration):
                 constants.Constants.INDIVIDUAL_VALUE_FUNCTIONS,
                 constants.Constants.VALUE_FUNCTION_STD,
             ]
+        elif learner == constants.Constants.ENSEMBLE_DQN:
+            permitted_scalars = [
+                constants.Constants.TRAIN_EPISODE_REWARD,
+                constants.Constants.TRAIN_EPISODE_LENGTH,
+                constants.Constants.TEST_EPISODE_REWARD,
+                constants.Constants.TEST_EPISODE_LENGTH,
+                "_".join([
+                    constants.Constants.TRAIN_EPISODE_REWARD,
+                    constants.Constants.ENSEMBLE_RUNNER,
+                ]),
+                "_".join([
+                    constants.Constants.TRAIN_EPISODE_LENGTH,
+                    constants.Constants.ENSEMBLE_RUNNER,
+                ]),
+                constants.Constants.ENSEMBLE_EPISODE_REWARD_STD,
+                constants.Constants.ENSEMBLE_EPISODE_LENGTH_STD,
+                constants.Constants.MEAN_VISITATION_PENALTY,
+                constants.Constants.MEAN_PENALTY_INFO,
+                constants.Constants.STD_PENALTY_INFO,
+            ]
+            test_constants = [
+                constants.Constants.TEST_EPISODE_REWARD,
+                constants.Constants.TEST_EPISODE_LENGTH,
+            ]
+            targets = [
+                constants.Constants.GREEDY_SAMPLE,
+                constants.Constants.GREEDY_VOTE,
+                constants.Constants.GREEDY_MEAN,
+            ]
+
+            permitted_visuals = [
+                constants.Constants.INDIVIDUAL_TRAIN_RUN,
+                constants.Constants.INDIVIDUAL_TEST_RUN,
+                constants.Constants.VALUE_FUNCTION,
+                constants.Constants.INDIVIDUAL_VALUE_FUNCTIONS,
+                constants.Constants.VALUE_FUNCTION_STD,
+            ]
+        else:
+            raise ValueError(
+                "Permitted scalars for learner {learner} not specified...")
+
         for scalar in scalars:
             if isinstance(scalar[0], str):
                 scalar_str = scalar[0]
@@ -143,7 +184,7 @@ class AchConfig(base_configuration.BaseConfiguration):
             ]
 
         test_types = getattr(self, constants.Constants.TESTING)
-        if test_types:
+        if test_types is not None:
             for test_type in test_types:
                 assert (
                     test_type in permitted_tests
