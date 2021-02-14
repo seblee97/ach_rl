@@ -10,7 +10,7 @@ import numpy as np
 from environments import base_environment
 from experiments import ach_config
 from learners import base_learner
-from learners.ensemble_learners import ensemble_learner
+from learners.ensemble_learners import tabular_ensemble_learner
 from learners.ensemble_learners.majority_vote_ensemble_learner import \
     MajorityVoteEnsemble
 from learners.ensemble_learners.mean_greedy_ensemble_learner import \
