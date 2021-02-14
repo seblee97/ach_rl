@@ -15,7 +15,7 @@ import os
 from typing import List
 
 import constants
-from experiments import single_run
+from experiments.run_modes import single_run
 from utils import experiment_utils
 
 parser = argparse.ArgumentParser()
