@@ -1,5 +1,6 @@
 import itertools
 from typing import Dict
+from typing import List
 from typing import Union
 
 import constants
@@ -14,10 +15,13 @@ class AchConfig(base_configuration.BaseConfiguration):
     non-trivial associations that need checking in config.
     """
 
-    def __init__(self, config: Union[str, Dict]) -> None:
+    def __init__(self,
+                 config: Union[str, Dict],
+                 changes: List[Dict] = []) -> None:
         super().__init__(
             configuration=config,
             template=AChConfigTemplate.base_template,
+            changes=changes,
         )
 
         self._validate_config()
@@ -81,6 +85,7 @@ class AchConfig(base_configuration.BaseConfiguration):
                 constants.Constants.ENSEMBLE_EPISODE_LENGTH_STD,
                 constants.Constants.MEAN_VISITATION_PENALTY,
                 constants.Constants.MEAN_PENALTY_INFO,
+                constants.Constants.STD_PENALTY_INFO,
                 constants.Constants.NO_REPEAT_TEST_EPISODE_REWARD,
                 constants.Constants.NO_REPEAT_TEST_EPISODE_LENGTH,
                 constants.Constants.CYCLE_COUNT,
@@ -112,34 +117,22 @@ class AchConfig(base_configuration.BaseConfiguration):
                 constants.Constants.INDIVIDUAL_VALUE_FUNCTIONS,
                 constants.Constants.VALUE_FUNCTION_STD,
             ]
-        elif learner == constants.Constants.ENSEMBLE_DQN:
-            permitted_scalars = [
-                constants.Constants.TRAIN_EPISODE_REWARD,
-                constants.Constants.TRAIN_EPISODE_LENGTH,
-            ]
-
-        else:
-            raise ValueError(
-                f"Permitted scalars not established for learner type {learner}")
-
-        if scalars is not None:
-            for scalar in scalars:
-                if isinstance(scalar[0], str):
-                    scalar_str = scalar[0]
-                elif isinstance(scalar[0], list):
-                    scalar_str = scalar[0][0]
-                assert scalar_str in permitted_scalars, (
-                    f"Scalar {scalar} specified in config logging, "
-                    f"is not compatible with learner {learner}.")
-        if visuals is not None:
-            for visual in visuals:
-                if isinstance(visual[0], str):
-                    visual_str = visual[0]
-                elif isinstance(visual[0], list):
-                    visual_str = visual[0][0]
-                assert visual_str in permitted_visuals, (
-                    f"Visual {visual} specified in config logging, "
-                    f"is not compatible with learner {learner}.")
+        for scalar in scalars:
+            if isinstance(scalar[0], str):
+                scalar_str = scalar[0]
+            elif isinstance(scalar[0], list):
+                scalar_str = scalar[0][0]
+            assert scalar_str in permitted_scalars, (
+                f"Scalar {scalar} specified in config logging, "
+                f"is not compatible with learner {learner}.")
+        for visual in visuals:
+            if isinstance(visual[0], str):
+                visual_str = visual[0]
+            elif isinstance(visual[0], list):
+                visual_str = visual[0][0]
+            assert visual_str in permitted_visuals, (
+                f"Visual {visual} specified in config logging, "
+                f"is not compatible with learner {learner}.")
 
         # check testing procedures are compatible with alg/env etc.
         if learner == constants.Constants.DQN:

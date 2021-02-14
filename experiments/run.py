@@ -1,248 +1,77 @@
 import argparse
-import copy
-import json
-import logging
-import multiprocessing
+import importlib
 import os
-from multiprocessing import Process
-from typing import Any
 from typing import Dict
 from typing import List
-from typing import Tuple
+from typing import Union
 
 import constants
-import torch
-from experiments import ach_config
-from experiments.config_changes import ConfigChange
-from runners import dqn_ensemble_runner
-from runners import dqn_runner
-from runners import q_learning_ensemble_runner
-from runners import q_learning_runner
-from runners import sarsa_lambda_runner
+from experiments.run_modes import cluster_array_run
+from experiments.run_modes import cluster_run
+from experiments.run_modes import parallel_run
+from experiments.run_modes import serial_run
+from experiments.run_modes import single_run
 from utils import experiment_logger
 from utils import experiment_utils
-from utils import plotting_functions
 
 MAIN_FILE_PATH = os.path.dirname(os.path.realpath(__file__))
 
 parser = argparse.ArgumentParser()
 
-parser.add_argument(
-    "--mode",
-    metavar="-M",
-    default="parallel",
-    help="run in 'parallel' or 'serial', or 'single' (no changes)",
-)
-parser.add_argument("--config", metavar="-C", default="config.yaml")
-parser.add_argument("--seeds", metavar="-S", default=range(1))
+parser.add_argument("--mode",
+                    metavar="-M",
+                    required=True,
+                    help="run experiment.")
+parser.add_argument("--config_path",
+                    metavar="-C",
+                    default="config.yaml",
+                    help="path to base configuration file.")
+parser.add_argument("--seeds",
+                    metavar="-S",
+                    default="[0]",
+                    help="list of seeds to run.")
 parser.add_argument("--config_changes",
                     metavar="-CC",
-                    default=ConfigChange.config_changes)
-
-args = parser.parse_args()
-
-
-def parallel_run(
-    base_configuration: ach_config.AchConfig,
-    seeds: List[int],
-    config_changes: Dict[str, List[Tuple[str, Any, bool]]],
-    experiment_path: str,
-    results_folder: str,
-    timestamp: str,
-) -> None:
-    """Run experiments in parallel.
-
-    Args:
-        base_configuration: config object.
-        seeds: list of seeds to run experiment over.
-        config_changes: changes to make to base configuration
-            for each separate experiment.
-        experiment_path: path to experiment.
-        results_folder: path to results.
-        timestamp: experiment timestamp.
-    """
-    procs = []
-
-    # macOS + python 3.8 change in multiprocessing defaults.
-    # workaround: https://github.com/pytest-dev/pytest-flask/issues/104
-    multiprocessing.set_start_method("fork")
-
-    for run_name, changes in config_changes.items():
-        for seed in seeds:
-            p = Process(
-                target=single_run,
-                args=(
-                    base_configuration,
-                    run_name,
-                    seed,
-                    results_folder,
-                    experiment_path,
-                    timestamp,
-                    changes,
-                ),
-            )
-            p.start()
-            procs.append(p)
-
-    for p in procs:
-        p.join()
+                    default="config_changes.py")
+parser.add_argument(
+    "--memory",
+    metavar="-MEM",
+    default=64,
+    help="amount of memory to assign to each node when working on cluster")
 
 
-def serial_run(
-    base_configuration: ach_config.AchConfig,
-    seeds: List[int],
-    config_changes: Dict[str, List[Tuple[str, Any, bool]]],
-    experiment_path: str,
-    results_folder: str,
-    timestamp: str,
-):
-    """Run experiments in serial.
-
-    Args:
-        base_configuration: config object.
-        seeds: list of seeds to run experiment over.
-        config_changes: changes to make to base configuration
-            for each separate experiment.
-        experiment_path: path to experiment.
-        results_folder: path to results.
-        timestamp: experiment timestamp.
-    """
-    for run_name, changes in config_changes.items():
-        logger.info(f"{run_name}")
-        for seed in seeds:
-            logger.info(f"Seed: {seed}")
-            single_run(
-                base_configuration=base_configuration,
-                seed=seed,
-                results_folder=results_folder,
-                experiment_path=experiment_path,
-                timestamp=timestamp,
-                run_name=run_name,
-                config_change=changes,
-            )
-
-
-def single_run(
-    base_configuration: ach_config.AchConfig,
-    run_name: str,
-    seed: int,
-    results_folder: str,
-    experiment_path: str,
-    timestamp: str,
-    config_change: List[Tuple[str, Any, bool]],
-):
-    """Run single experiment.
-
-    Args:
-        base_configuration: config object.
-        seeds: list of seeds to run experiment over.
-        run_name: name of single experiment.
-        experiment_path: path to experiment.
-        results_folder: path to results.
-        timestamp: experiment timestamp.
-        config_change: change to make to base configuration.
-    """
-    config = copy.deepcopy(base_configuration)
-
-    experiment_utils.set_random_seeds(seed)
-    checkpoint_path = experiment_utils.get_checkpoint_path(
-        results_folder, timestamp, run_name, str(seed))
-
-    os.makedirs(name=checkpoint_path, exist_ok=True)
-
-    config.amend_property(property_name=constants.Constants.SEED,
-                          new_property_value=seed)
-
-    for change in config_change:
+def _process_seed_arguments(seeds: Union[str, List[int]]):
+    if isinstance(seeds, list):
+        return seeds
+    elif isinstance(seeds, str):
         try:
-            config.amend_property(
-                property_name=change[0],
-                new_property_value=change[1],
-            )
-        except AssertionError:
-            if change[2]:
-                config.add_property(
-                    property_name=change[0],
-                    property_value=change[1],
-                )
-
-    config = experiment_utils.set_device(config)
-
-    config.add_property(constants.Constants.EXPERIMENT_TIMESTAMP, timestamp)
-    config.add_property(constants.Constants.CHECKPOINT_PATH, checkpoint_path)
-    config.add_property(
-        constants.Constants.LOGFILE_PATH,
-        os.path.join(checkpoint_path, "data_logger.csv"),
-    )
-
-    if config.type == constants.Constants.SARSA_LAMBDA:
-        r = sarsa_lambda_runner.SARSALambdaRunner(config=config)
-    elif config.type == constants.Constants.Q_LEARNING:
-        r = q_learning_runner.QLearningRunner(config=config)
-    elif config.type == constants.Constants.DQN:
-        r = dqn_runner.DQNRunner(config=config)
-    elif config.type == constants.Constants.ENSEMBLE_Q_LEARNING:
-        r = q_learning_ensemble_runner.EnsembleQLearningRunner(config=config)
-    elif config.type == constants.Constants.ENSEMBLE_DQN:
-        r = dqn_ensemble_runner.EnsembleDQNRunner(config=config)
-    else:
-        raise ValueError(f"Learner type {type} not recognised.")
-
-    r.train()
-    r.post_process()
+            seeds = [int(seeds.strip("[").strip("]"))]
+        except ValueError:
+            seeds = [int(s) for s in seeds.strip("[").strip("]").split(",")]
+    return seeds
 
 
-def summary_plot(config: ach_config.AchConfig, exp_names: List[str],
-                 experiment_path: str):
-    """Plot summary of experiment."""
-    plotting_functions.plot_all_multi_seed_multi_run(
-        folder_path=experiment_path,
-        exp_names=exp_names,
-        window_width=config.smoothing)
-
-
-def _distribute_over_gpus(config_changes: Dict[str, List[Tuple[Any]]]):
-    """If performing a parallel run with GPUs we want to split our processes evenly
-    over the available GPUs. This method allocates tasks (as evenly as possible)
-    over the GPUs.
-
-    Method changes config_changes object in-place.
-    """
-    num_runs = len(args.seeds) * len(config_changes)
-    num_gpus_available = torch.cuda.device_count()
-
-    if num_gpus_available > 0:
-        even_runs_per_gpu = num_runs // num_gpus_available
-        excess_runs = num_runs % num_gpus_available
-
-        gpu_ids = {}
-
-        for i in range(num_gpus_available):
-            jobs_with_id_i = {
-                j: i for j in range(i * even_runs_per_gpu, (i + 1) *
-                                    even_runs_per_gpu)
-            }
-            gpu_ids.update(jobs_with_id_i)
-
-        for i in range(excess_runs):
-            gpu_ids[num_runs - excess_runs + i] = i
-
-        for i, config_change in enumerate(config_changes.values()):
-            config_change.append((constants.Constants.GPU_ID, gpu_ids[i]))
-
-
-def save_config_changes(config_changes: Dict[str, List[Tuple[str, Any, bool]]],
-                        file_name: str) -> None:
-    with open(file_name, "w") as fp:
-        json.dump(config_changes, fp, indent=4)
+def _organise_config_changes_and_checkpoint_dirs(experiment_path,
+                                                 config_changes: Dict[
+                                                     str, List[Dict]],
+                                                 seeds: List[int]) -> List[str]:
+    checkpoint_paths = []
+    for run_name, changes in config_changes.items():
+        for seed in seeds:
+            checkpoint_path = os.path.join(experiment_path, run_name, str(seed))
+            os.makedirs(name=checkpoint_path, exist_ok=True)
+            changes.append({constants.Constants.SEED: seed})
+            experiment_utils.config_changes_to_json(
+                config_changes=changes,
+                json_path=os.path.join(checkpoint_path,
+                                       constants.Constants.CONFIG_CHANGES_JSON))
+            checkpoint_paths.append(checkpoint_path)
+    return checkpoint_paths
 
 
 if __name__ == "__main__":
 
-    base_configuration = ach_config.AchConfig(config=args.config)
-
-    base_configuration.add_property(constants.Constants.RUN_PATH,
-                                    MAIN_FILE_PATH)
+    args = parser.parse_args()
 
     timestamp = experiment_utils.get_experiment_timestamp()
     results_folder = os.path.join(MAIN_FILE_PATH, constants.Constants.RESULTS)
@@ -254,53 +83,44 @@ if __name__ == "__main__":
     logger = experiment_logger.get_logger(experiment_path=experiment_path,
                                           name=__name__)
 
-    if args.mode != constants.Constants.SINGLE:
-        save_config_changes(
-            config_changes=args.config_changes,
-            file_name=os.path.join(
+    if args.mode == constants.Constants.SINGLE:
+        single_checkpoint_path = os.path.join(experiment_path,
+                                              constants.Constants.SINGLE)
+        os.makedirs(name=single_checkpoint_path, exist_ok=True)
+        single_run.single_run(config_path=args.config_path,
+                              checkpoint_path=single_checkpoint_path)
+    else:
+        seeds = _process_seed_arguments(args.seeds)
+        config_changes = importlib.import_module(
+            name=f"{args.config_changes.strip('.py')}").CONFIG_CHANGES
+        experiment_utils.config_changes_to_json(
+            config_changes=config_changes,
+            json_path=os.path.join(
                 experiment_path,
-                f"{constants.Constants.CONFIG_CHANGES}.json",
-            ),
-        )
-
-    if args.mode == constants.Constants.PARALLEL:
-        if base_configuration.use_gpu:
-            _distribute_over_gpus(args.config_changes)
-
-        parallel_run(
-            base_configuration=base_configuration,
-            config_changes=args.config_changes,
-            seeds=args.seeds,
+                f"all_{constants.Constants.CONFIG_CHANGES_JSON}"))
+        checkpoint_paths = _organise_config_changes_and_checkpoint_dirs(
             experiment_path=experiment_path,
-            results_folder=results_folder,
-            timestamp=timestamp,
-        )
-        summary_plot(
-            config=base_configuration,
-            experiment_path=experiment_path,
-            exp_names=list(args.config_changes.keys()),
-        )
-    elif args.mode == constants.Constants.SERIAL:
-        serial_run(
-            base_configuration=base_configuration,
-            config_changes=args.config_changes,
-            seeds=args.seeds,
-            experiment_path=experiment_path,
-            results_folder=results_folder,
-            timestamp=timestamp,
-        )
-        summary_plot(
-            config=base_configuration,
-            experiment_path=experiment_path,
-            exp_names=list(args.config_changes.keys()),
-        )
-    elif args.mode == constants.Constants.SINGLE:
-        single_run(
-            base_configuration=base_configuration,
-            run_name=constants.Constants.SINGLE,
-            seed=base_configuration.seed,
-            results_folder=results_folder,
-            experiment_path=experiment_path,
-            timestamp=timestamp,
-            config_change=[],
-        )
+            config_changes=config_changes,
+            seeds=seeds)
+        if args.mode == constants.Constants.PARALLEL:
+            parallel_run.parallel_run(config_path=args.config_path,
+                                      checkpoint_paths=checkpoint_paths)
+        elif args.mode == constants.Constants.SERIAL:
+            serial_run.serial_run(config_path=args.config_path,
+                                  checkpoint_paths=checkpoint_paths)
+        elif args.mode == constants.Constants.CLUSTER:
+            if len(checkpoint_paths) <= 8:
+                num_cpus = len(checkpoint_paths)
+            elif len(checkpoint_paths) <= 32:
+                num_cpus = 32
+            elif len(checkpoint_paths) <= 64:
+                num_cpus = 64
+            else:
+                raise ValueError(
+                    f"{len(checkpoint_paths)} is too many run combinations.")
+            cluster_run.cluster_run(experiment_path=experiment_path,
+                                    config_path=args.config_path,
+                                    num_cpus=num_cpus,
+                                    memory_per_node=args.memory)
+        elif args.mode == constants.Constants.CLUSTER_ARRAY:
+            raise NotADirectoryError

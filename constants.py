@@ -225,6 +225,19 @@ class Constants:
     LOG_FILE_NAME = "experiment.log"
     LOG_FORMAT = "%(asctime)s  %(name)8s  %(levelname)5s  %(message)s"
     ENSEMBLE_DQN = "ensemble_dqn"
+    CLUSTER = "cluster"
+    ERROR_FILE_NAME = "error.txt"
+    OUTPUT_FILE_NAME = "output.txt"
+    INDIVIDUAL = "individual"
+    STD_PENALTY_INFO = "std_penalty_info"
+    CLUSTER_ARRAY = "cluster_array"
+    CONFIG_CHANGES_SYM_PATH = "config_changes_symbolic_dir"
+    ERROR_FILES_SYM_PATH = "error_files_symbolic_dir"
+    OUTPUT_FILES_SYM_PATH = "output_files_symbolic_dir"
+    CHECKPOINTS_SYM_PATH = "checkpoints_symbolic_dir"
+    CONFIG_CHANGES_JSON = "config_changes.json"
+    ACH = "ach"
+    JOB_SCRIPT = "job_script"
 
     ATARI_ENVS = ["PongNoFrameskip-v4"]
 
