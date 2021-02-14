@@ -30,7 +30,7 @@ def cluster_run(experiment_path: str, config_path: str, num_cpus: int,
     output_path = os.path.join(experiment_path,
                                constants.Constants.OUTPUT_FILE_NAME)
 
-    run_command = (f"python parallel_run.py --config_path {config_path} "
+    run_command = (f"python ../parallel_run.py --config_path {config_path} "
                    f"--experiment_path {experiment_path}")
 
     cluster_methods.create_job_script(run_command=run_command,
