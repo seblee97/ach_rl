@@ -20,6 +20,7 @@ from typing import List
 
 import constants
 from experiments import ach_config
+from runners import dqn_ensemble_runner
 from runners import dqn_runner
 from runners import q_learning_ensemble_runner
 from runners import q_learning_runner
@@ -85,6 +86,8 @@ def single_run(config_path: str,
         r = dqn_runner.DQNRunner(config=config)
     elif config.type == constants.Constants.ENSEMBLE_Q_LEARNING:
         r = q_learning_ensemble_runner.EnsembleQLearningRunner(config=config)
+    elif config.type == constants.Constants.ENSEMBLE_DQN:
+        r = dqn_ensemble_runner.EnsembleDQNRunner(config=config)
     else:
         raise ValueError(f"Learner type {type} not recognised.")
 
