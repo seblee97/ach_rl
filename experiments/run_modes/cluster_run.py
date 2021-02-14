@@ -4,30 +4,11 @@ This script is for runs being executed on the cluster.
 It first creates a job script with the relevant specifications, 
 and then excutes it in a subprocess.
 """
-import argparse
 import os
 import subprocess
 
 import constants
 from utils import cluster_methods
-
-parser = argparse.ArgumentParser()
-
-parser.add_argument("--config_path",
-                    metavar="-C",
-                    type=str,
-                    help="path to yaml file.",
-                    required=True)
-parser.add_argument("--config_changes_paths",
-                    metavar="-CC",
-                    type=str,
-                    help="path to json config changes file.",
-                    required=False)
-parser.add_argument("--checkpoint_paths",
-                    metavar="-CP",
-                    type=str,
-                    help="path to dir in which to output results.",
-                    required=True)
 
 MAIN_FILE_PATH = os.path.dirname(os.path.realpath(__file__))
 

@@ -17,8 +17,6 @@ parser.add_argument("--config_path", metavar="-C")
 parser.add_argument("--config_changes")
 parser.add_argument("--checkpoint_path")
 
-args = parser.parse_args()
-
 MAIN_FILE_PATH = os.path.dirname(os.path.realpath(__file__))
 
 
@@ -157,6 +155,7 @@ def single_run(config_path: str,
 
 
 if __name__ == '__main__':
+    args = parser.parse_args()
     config_changes = experiment_utils.json_to_config_changes(
         args.config_changes)
     single_run(config_path=args.config_path,
