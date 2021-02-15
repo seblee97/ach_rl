@@ -242,6 +242,8 @@ class Constants:
     INDIVIDUAL_VALUE_FUNCTION_ANIMATION = "individual_value_function_animation"
     VALUE_FUNCTION_STD_ANIMATION = "value_function_std_animation"
     POST_VISUALISATIONS = "post_visualisations"
+    SHARED_LAYERS = "shared_layers"
+    SHARE_REPLAY_BUFFER = "share_replay_buffer"
 
     ATARI_ENVS = ["PongNoFrameskip-v4"]
 
