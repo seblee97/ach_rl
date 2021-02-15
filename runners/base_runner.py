@@ -36,21 +36,15 @@ from visitation_penalties import potential_adaptive_uncertainty_penalty
 
 class BaseRunner(abc.ABC):
     """Base class for runners (orchestrating training, testing, logging etc.)."""
+
     def __init__(self, config: ach_config.AchConfig) -> None:
         self._environment = self._setup_environment(config=config)
-        self._visitation_penalty = self._setup_visitation_penalty(
-            config=config)
+        self._visitation_penalty = self._setup_visitation_penalty(config=config)
         self._epsilon_function = self._setup_epsilon_function(config=config)
         self._learner = self._setup_learner(config=config)
         self._logger = experiment_logger.get_logger(
             experiment_path=config.checkpoint_path, name=__name__)
         self._data_logger = self._setup_data_logger(config=config)
-
-        self._array_logging = self._setup_logging_frequencies(config.arrays)
-        self._scalar_logging = self._setup_logging_frequencies(config.scalars)
-        self._visualisations = self._setup_logging_frequencies(
-            config.visualisations)
-        self._plotter = self._setup_plotter(config=config)
 
         self._checkpoint_path = config.checkpoint_path
         self._apply_curriculum = config.apply_curriculum
@@ -58,8 +52,17 @@ class BaseRunner(abc.ABC):
         self._checkpoint_frequency = config.checkpoint_frequency
         self._test_frequency = config.test_frequency
         self._test_types = config.testing
-
         self._num_episodes = config.num_episodes
+
+        self._array_logging = self._setup_logging_frequencies(config.arrays)
+        self._array_folder_path = os.path.join(self._checkpoint_path,
+                                               constants.Constants.ARRAYS)
+        os.makedirs(name=self._array_folder_path, exist_ok=True)
+        self._scalar_logging = self._setup_logging_frequencies(config.scalars)
+        self._visualisations = self._setup_logging_frequencies(
+            config.visualisations)
+        self._post_visualisations = config.post_visualisations
+        self._plotter = self._setup_plotter(config=config)
 
         config.save_configuration(folder_path=config.checkpoint_path)
 
@@ -98,8 +101,7 @@ class BaseRunner(abc.ABC):
 
         if config.apply_curriculum:
             curriculum_args = self._get_curriculum_args(config=config)
-            curriculum_wrapper = self.get_curriculum_wrapper(
-                config.environment)
+            curriculum_wrapper = self.get_curriculum_wrapper(config.environment)
             environment = curriculum_wrapper(**environment_args,
                                              **curriculum_args)
         else:
@@ -132,8 +134,7 @@ class BaseRunner(abc.ABC):
             env_args = {
                 constants.Constants.SIZE: tuple(config.size),
                 constants.Constants.NUM_REWARDS: config.num_rewards,
-                constants.Constants.REWARD_MAGNITUDES:
-                config.reward_magnitudes,
+                constants.Constants.REWARD_MAGNITUDES: config.reward_magnitudes,
                 constants.Constants.STARTING_XY: agent_starting_position,
                 constants.Constants.REWARD_XY: reward_positions,
                 constants.Constants.REPEAT_REWARDS: config.repeat_rewards,
@@ -152,9 +153,9 @@ class BaseRunner(abc.ABC):
         elif config.environment == constants.Constants.MULTIROOM:
             env_args = {
                 constants.Constants.ASCII_MAP_PATH:
-                os.path.join(config.run_path, config.ascii_map_path),
+                    os.path.join(config.run_path, config.ascii_map_path),
                 constants.Constants.EPISODE_TIMEOUT:
-                config.episode_timeout,
+                    config.episode_timeout,
             }
         return env_args
 
@@ -164,9 +165,9 @@ class BaseRunner(abc.ABC):
         if config.environment == constants.Constants.MINIGRID:
             curriculum_args = {
                 constants.Constants.TRANSITION_EPISODES:
-                config.transition_episodes,
+                    config.transition_episodes,
                 constants.Constants.ENVIRONMENT_CHANGES:
-                config.environment_changes,
+                    config.environment_changes,
             }
         return curriculum_args
 
@@ -250,6 +251,13 @@ class BaseRunner(abc.ABC):
         """Define logging functionality for prior to each training episode."""
         pass
 
+    def _array_log_iteration(self, tag: str, episode: int) -> bool:
+        """Whether or not array tag should be logged at this episode."""
+        if tag in self._array_logging:
+            if episode % self._array_logging[tag] == 0:
+                return True
+        return False
+
     def _scalar_log_iteration(self, tag: str, episode: int) -> bool:
         """Whether or not scalar tag should be logged at this episode."""
         if tag in self._scalar_logging:
@@ -272,12 +280,22 @@ class BaseRunner(abc.ABC):
         df_tag: Optional[str] = None,
     ):
         """If specified, log scalar."""
-        if tag in self._scalar_logging:
-            if episode % self._scalar_logging[tag] == 0:
-                df_tag = df_tag or tag
-                self._data_logger.write_scalar(tag=df_tag,
-                                               step=episode,
-                                               scalar=scalar)
+        if self._scalar_log_iteration(tag=tag, episode=episode):
+            df_tag = df_tag or tag
+            self._data_logger.write_scalar(tag=df_tag,
+                                           step=episode,
+                                           scalar=scalar)
+
+    def _write_array(
+        self,
+        tag: str,
+        episode: int,
+        array: np.ndarray,
+    ) -> None:
+        if self._array_log_iteration(tag=tag, episode=episode):
+            file_path = os.path.join(self._array_folder_path,
+                                     f"{tag}_{episode}")
+            np.save(file_path, array)
 
     def train(self) -> None:
         """Perform training (and validation) on given number of episodes."""
@@ -386,8 +404,8 @@ class BaseRunner(abc.ABC):
             episode_reward: scalar reward accumulated over episode.
             num_steps: number of steps taken for episode.
         """
-        action_selection_method = (action_selection_method
-                                   or self._learner.select_target_action)
+        action_selection_method = (action_selection_method or
+                                   self._learner.select_target_action)
 
         episode_reward = 0
 
@@ -434,8 +452,8 @@ class BaseRunner(abc.ABC):
             episode_reward: scalar reward accumulated over episode.
             num_steps: number of steps taken for episode.
         """
-        action_selection_method = (action_selection_method
-                                   or self._learner.select_target_action)
+        action_selection_method = (action_selection_method or
+                                   self._learner.select_target_action)
 
         episode_reward = 0
 
@@ -479,5 +497,10 @@ class BaseRunner(abc.ABC):
     def post_process(self) -> None:
         """Solidify any data and make plots."""
         self._plotter.load_data()
-
         self._plotter.plot_learning_curves()
+        self._post_visualisation()
+
+    @abc.abstractmethod
+    def _post_visualisation(self):
+        """Create visualisations at end of training."""
+        pass
