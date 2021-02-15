@@ -6,11 +6,10 @@ from typing import List
 from typing import Tuple
 from typing import Union
 
+import constants
 import numpy as np
 import torch
 import torch.nn as nn
-
-import constants
 from learners import base_learner
 from learners.deep_learners.components import q_network
 from utils import epsilon_schedules
@@ -33,6 +32,8 @@ class DQNLearner(base_learner.BaseLearner):
         gradient_clipping: Union[Tuple, None],
         momentum: float = 0,
         eps: float = 1e-8,
+        shared_layers: Union[List[int], None] = None,
+        num_branches: int = 0,
     ):
         """Class constructor.
 
@@ -55,6 +56,8 @@ class DQNLearner(base_learner.BaseLearner):
         self._state_dimensions = state_dimensions
         self._action_space = action_space
         self._layer_specifications = layer_specifications
+        self._shared_layers = shared_layers
+        self._num_branches = num_branches
         self._optimiser_type = optimiser_type
         self._learning_rate = learning_rate
         self._momentum = momentum
@@ -85,16 +88,16 @@ class DQNLearner(base_learner.BaseLearner):
             state_dim=self._state_dimensions,
             num_actions=len(self._action_space),
             layer_specifications=self._layer_specifications,
-        )
+            shared_layers=self._shared_layers,
+            num_branches=self._num_branches)
 
     def _setup_optimiser(self):
         """Setup optimiser.
 
         Supports adam and rms_prop."""
         if self._optimiser_type == constants.Constants.ADAM:
-            optimiser = torch.optim.Adam(
-                self._q_network.parameters(), lr=self._learning_rate
-            )
+            optimiser = torch.optim.Adam(self._q_network.parameters(),
+                                         lr=self._learning_rate)
         elif self._optimiser_type == constants.Constants.RMS_PROP:
             optimiser = torch.optim.RMSprop(
                 self._q_network.parameters(),
@@ -103,6 +106,13 @@ class DQNLearner(base_learner.BaseLearner):
                 eps=self._eps,
             )
         return optimiser
+
+    def set_network_branch_gradients(self, branch_index: int):
+        for param in self._q_network._branched_layers.parameters():
+            param.requires_grad = False
+        for param in self._q_network._branched_layers[branch_index].parameters(
+        ):
+            param.requires_grad = True
 
     def train(self) -> None:
         """Set to train."""
@@ -117,7 +127,9 @@ class DQNLearner(base_learner.BaseLearner):
         self._target_q_network.load_state_dict(self._q_network.state_dict())
         self._target_q_network.eval()
 
-    def select_behaviour_action(self, state: np.ndarray):
+    def select_behaviour_action(self,
+                                state: np.ndarray,
+                                branch: Union[int, None] = None):
         """Action to select for behaviour i.e. for training."""
         # cast state to tensor
         state = torch.from_numpy(state).to(torch.float).to(self._device)
@@ -127,41 +139,43 @@ class DQNLearner(base_learner.BaseLearner):
         else:
             self._q_network.eval()
             with torch.no_grad():
-                state_action_values = self._q_network(state)
+                state_action_values = self._q_network(state, branch=branch)
                 action = torch.argmax(state_action_values).item()
             self._q_network.train()
         return action
 
-    def select_target_action(self, state: np.ndarray):
+    def select_target_action(self,
+                             state: np.ndarray,
+                             branch: Union[int, None] = None):
         """Action to select for target, i.e. final policy."""
         with torch.no_grad():
             # cast state to tensor
             state = torch.from_numpy(state).to(torch.float).to(self._device)
 
-            state_action_values = self._q_network(state)
+            state_action_values = self._q_network(state, branch=branch)
             action = torch.argmax(state_action_values).item()
         return action
 
-    def step(
-        self,
-        state: torch.Tensor,
-        action: torch.Tensor,
-        reward: torch.Tensor,
-        next_state: torch.Tensor,
-        active: torch.Tensor,
-        visitation_penalty: float,
-    ) -> Tuple[float, float]:
+    def step(self,
+             state: torch.Tensor,
+             action: torch.Tensor,
+             reward: torch.Tensor,
+             next_state: torch.Tensor,
+             active: torch.Tensor,
+             visitation_penalty: float,
+             branch: Union[int, None] = None) -> Tuple[float, float]:
         """Training step."""
 
-        state_value_estimates = self._q_network(state)
+        state_value_estimates = self._q_network(state, branch=branch)
 
         # add batch dimension to action for indexing
         action_index = action.unsqueeze(-1).to(torch.int64)
-        estimate = torch.gather(state_value_estimates, 1, action_index).squeeze()
+        estimate = torch.gather(state_value_estimates, 1,
+                                action_index).squeeze()
 
-        max_target = torch.max(
-            self._target_q_network(next_state), axis=1
-        ).values.detach()
+        max_target = torch.max(self._target_q_network(next_state,
+                                                      branch=branch),
+                               axis=1).values.detach()
 
         target = reward + visitation_penalty + active * self._gamma * max_target
 
@@ -172,9 +186,9 @@ class DQNLearner(base_learner.BaseLearner):
         # clip gradients
         if self._gradient_clipping is not None:
             for param in self._q_network.parameters():
-                param.grad.data.clamp_(
-                    self._gradient_clipping[0], self._gradient_clipping[1]
-                )
+                if param.requires_grad:
+                    param.grad.data.clamp_(self._gradient_clipping[0],
+                                           self._gradient_clipping[1])
 
         self._optimiser.step()
 
