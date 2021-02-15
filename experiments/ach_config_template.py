@@ -696,7 +696,14 @@ class AChConfigTemplate:
                 name=constants.Constants.ARRAYS,
                 types=[list, type(None)],
                 requirements=[
-                    lambda x: x is None or all(isinstance(y, str) for y in x)
+                    lambda x: all(
+                        isinstance(y, list) and isinstance(y[1], int)
+                        for y in x),
+                    lambda x: all((isinstance(z, str) or
+                                   (isinstance(z, list) and isinstance(
+                                       z[0], str) and isinstance(z[1], int))
+                                   for z in y[0])
+                                  for y in x),
                 ],
             ),
             config_field.Field(
@@ -724,6 +731,13 @@ class AChConfigTemplate:
                         (isinstance(z, str) or
                          (isinstance(z, list) and isinstance(z[0], str) and
                           isinstance(z[1], int)) for z in y[0]) for y in x),
+                ],
+            ),
+            config_field.Field(
+                name=constants.Constants.POST_VISUALISATIONS,
+                types=[list, type(None)],
+                requirements=[
+                    lambda x: x is None or all(isinstance(y, str) for y in x),
                 ],
             ),
         ],
