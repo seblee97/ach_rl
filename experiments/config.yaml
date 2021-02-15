@@ -179,6 +179,9 @@ logging:
     animation_library: imageio
     animation_file_format: mp4
     arrays:
+        - [value_function, 10]
+        # - [individual_value_functions, 50]
+        - [value_function_std, 10]
     scalars:
         - [train_episode_reward, 1]
         - [train_episode_length, 1]
@@ -195,12 +198,15 @@ logging:
         # - [no_repeat_test_episode_length, 1]
         # - [cycle_count, 1]
     visualisations:
-        - [value_function, 50]
-        - [value_function_std, 50]
-        - [individual_value_functions, 50]
+        # - [value_function, 50]
+        # - [value_function_std, 50]
+        # - [individual_value_functions, 50]
         # - visitation_count_heatmap
         - [individual_test_run, 200]
         - [individual_train_run, 200]
+    post_visualisations:
+        - value_function
+        - value_function_std
 
 post_processing:
     smoothing: 40
