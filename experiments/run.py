@@ -91,6 +91,7 @@ if __name__ == "__main__":
                               checkpoint_path=single_checkpoint_path)
     else:
         seeds = _process_seed_arguments(args.seeds)
+        logger.info(f"Seeds after processing: {seeds}")
         config_changes = importlib.import_module(
             name=f"{args.config_changes.strip('.py')}").CONFIG_CHANGES
         experiment_utils.config_changes_to_json(
