@@ -33,11 +33,12 @@ class NetworkVisitationPenalty:
         """compute series of uncertainties over states culminating in penalty."""
         with torch.no_grad():
             current_state_values = np.array([
-                self._q_network(state, branch=i).numpy().flatten()
+                self._q_network(state, branch=i).detach().numpy().flatten()
                 for i in range(len(self._q_network._branched_layers))
             ])
             next_state_values = np.array([
-                self._q_network(next_state, branch=i).numpy().flatten()
+                self._q_network(next_state,
+                                branch=i).detach().numpy().flatten()
                 for i in range(len(self._q_network._branched_layers))
             ])
 
