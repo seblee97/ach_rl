@@ -238,6 +238,10 @@ class Constants:
     CONFIG_CHANGES_JSON = "config_changes.json"
     ACH = "ach"
     JOB_SCRIPT = "job_script"
+    VALUE_FUNCTION_ANIMATION = "value_function_animation"
+    INDIVIDUAL_VALUE_FUNCTION_ANIMATION = "individual_value_function_animation"
+    VALUE_FUNCTION_STD_ANIMATION = "value_function_std_animation"
+    POST_VISUALISATIONS = "post_visualisations"
 
     ATARI_ENVS = ["PongNoFrameskip-v4"]
 
