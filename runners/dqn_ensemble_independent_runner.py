@@ -30,7 +30,7 @@ from visitation_penalties.potential_adaptive_uncertainty_penalty import \
     PotentialAdaptiveUncertaintyPenalty
 
 
-class EnsembleDQNRunner(base_runner.BaseRunner):
+class EnsembleDQNIndependentRunner(base_runner.BaseRunner):
     """Runner for DQN ensemble."""
 
     def __init__(self, config: ach_config.AchConfig):
@@ -46,17 +46,24 @@ class EnsembleDQNRunner(base_runner.BaseRunner):
         self._device = config.experiment_device
 
         self._batch_size = config.batch_size
-        self._replay_buffers = [
-            self._setup_replay_buffer(config=config)
-            for _ in range(self._num_learners)
-        ]
+        self._share_replay_buffer = config.share_replay_buffer
 
-        for rep_buffer in self._replay_buffers:
+        if self._share_replay_buffer:
+            self._replay_buffer = self._setup_replay_buffer(config=config)
             self._fill_replay_buffer(
-                replay_buffer=rep_buffer,
+                replay_buffer=self._replay_buffer,
                 num_trajectories=config.num_replay_fill_trajectories)
+        else:
+            self._replay_buffers = [
+                self._setup_replay_buffer(config=config)
+                for _ in range(self._num_learners)
+            ]
+            for rep_buffer in self._replay_buffers:
+                self._fill_replay_buffer(
+                    replay_buffer=rep_buffer,
+                    num_trajectories=config.num_replay_fill_trajectories)
 
-    def _setup_replay_buffer(
+    def _setup_individual_replay_buffer(
             self, config: ach_config.AchConfig) -> replay_buffer.ReplayBuffer:
         """Instantiate replay buffer object to store experiences."""
         state_dim = tuple(config.encoded_state_dimensions)
@@ -220,6 +227,10 @@ class EnsembleDQNRunner(base_runner.BaseRunner):
         mean_penalty_infos = {}
 
         for i, learner in enumerate(self._learner.ensemble):
+            if self._share_replay_buffer:
+                replay_buffer = self._replay_buffer
+            else:
+                replay_buffer = self._replay_buffers[i]
             (
                 _,
                 episode_reward,
@@ -229,7 +240,7 @@ class EnsembleDQNRunner(base_runner.BaseRunner):
             ) = self._single_train_episode(
                 environment=self._environment,
                 learner=learner,
-                replay_buffer=self._replay_buffers[i],
+                replay_buffer=replay_buffer,
                 visitation_penalty=self._visitation_penalty,
                 device=self._device,
                 batch_size=self._batch_size,
@@ -260,37 +271,7 @@ class EnsembleDQNRunner(base_runner.BaseRunner):
         Args:
             episode: index of episode
         """
-        processes_arguments = [(
-            copy.deepcopy(self._environment),
-            learner,
-            self._visitation_penalty,
-            episode,
-        ) for learner in self._learner.ensemble]
-        processes_results = self._pool.starmap(self._single_train_episode,
-                                               processes_arguments)
-        (
-            learners,
-            ensemble_episode_rewards,
-            ensemble_episode_step_counts,
-            mean_penalties,
-            mean_penalty_info,
-        ) = zip(*processes_results)
-
-        self._learner.ensemble = list(learners)
-
-        mean_penalty_infos = {}
-        for per_learner_mean_penalty_info in mean_penalty_info:
-            for info_key, mean_info in per_learner_mean_penalty_info.items():
-                if info_key not in mean_penalty_infos:
-                    mean_penalty_infos[info_key] = []
-                mean_penalty_infos[info_key].append(mean_info)
-
-        return (
-            ensemble_episode_rewards,
-            ensemble_episode_step_counts,
-            mean_penalties,
-            mean_penalty_infos,
-        )
+        raise NotImplementedError
 
     @staticmethod
     def _single_train_episode(
@@ -496,3 +477,6 @@ class EnsembleDQNRunner(base_runner.BaseRunner):
         #         },
         #         tag_=f"_{no_rep_greedy_vote}",
         #     )
+
+    def _post_visualisation(self):
+        pass
