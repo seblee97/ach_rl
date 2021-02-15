@@ -2,6 +2,7 @@ import copy
 import itertools
 import multiprocessing
 import os
+import re
 from typing import Tuple
 from typing import Union
 
@@ -76,6 +77,10 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
     def _pre_episode_log(self, episode: int):
         """Logging pre-episode. Includes value-function, individual run."""
         self._logger.info(f"Episode {episode}: pre-episode data logging...")
+        self._pre_episode_visualisations(episode=episode)
+        self._pre_episode_array_logging(episode=episode)
+
+    def _pre_episode_visualisations(self, episode: int):
         visualisation_configurations = [
             (constants.Constants.MAX_VALUES_PDF, True, False),
             (constants.Constants.QUIVER_VALUES_PDF, False, True),
@@ -181,6 +186,14 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
                     name=f"{constants.Constants.INDIVIDUAL_TRAIN_RUN}_{episode}",
                     data=self._environment.plot_episode_history(),
                 )
+
+    def _pre_episode_array_logging(self, episode: int):
+        self._write_array(tag=constants.Constants.VALUE_FUNCTION,
+                          episode=episode,
+                          array=self._learner.state_action_values)
+        self._write_array(tag=constants.Constants.VALUE_FUNCTION_STD,
+                          episode=episode,
+                          array=self._learner.state_action_values_std)
 
     def _train_episode(self, episode: int) -> Tuple[float, int]:
         """Perform single training loop (per learner in ensemble).
@@ -521,3 +534,39 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
                 },
                 tag_=f"_{no_rep_greedy_vote}",
             )
+
+    def _post_visualisation(self):
+        arrays_path = os.path.join(self._checkpoint_path,
+                                   constants.Constants.ARRAYS)
+        post_visualisations_path = os.path.join(
+            self._checkpoint_path, constants.Constants.POST_VISUALISATIONS)
+        all_array_paths = os.listdir(arrays_path)
+
+        value_function_visualisations = {
+            constants.Constants.VALUE_FUNCTION:
+                (re.compile(f"{constants.Constants.VALUE_FUNCTION}_\d*.npy"),
+                 constants.Constants.MAX),
+            constants.Constants.VALUE_FUNCTION_STD: (
+                re.compile(f"{constants.Constants.VALUE_FUNCTION_STD}_\d*.npy"),
+                constants.Constants.MEAN)
+        }
+
+        for tag, (regex, over_actions) in value_function_visualisations.items():
+            if tag in self._post_visualisations:
+                os.makedirs(post_visualisations_path, exist_ok=True)
+                all_value_paths = sorted(
+                    [
+                        os.path.join(arrays_path, f)
+                        for f in all_array_paths
+                        if regex.match(f)
+                    ],
+                    key=lambda x: int(x.split("_")[-1].split(".")[0]))
+                # dictionary has been saved, so need to call [()]
+                all_values = [
+                    np.load(f, allow_pickle=True)[()] for f in all_value_paths
+                ]
+                self._environment.animate_value_function(
+                    all_values=all_values,
+                    save_path=os.path.join(post_visualisations_path,
+                                           f"{tag}.gif"),
+                    over_actions=over_actions)
