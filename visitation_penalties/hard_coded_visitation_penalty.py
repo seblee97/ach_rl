@@ -3,11 +3,10 @@ from typing import Dict
 from typing import List
 
 import numpy as np
+from visitation_penalties import network_visitation_penalty
 
-from visitation_penalties import base_visistation_penalty
 
-
-class HardCodedPenalty(base_visistation_penalty.BaseVisitationPenalty):
+class HardCodedPenalty(network_visitation_penalty.NetworkVisitationPenalty):
     """Hard-coded penalties."""
 
     def __init__(self, hard_coded_penalties: List[List]):
@@ -30,7 +29,8 @@ class HardCodedPenalty(base_visistation_penalty.BaseVisitationPenalty):
         except StopIteration:
             pass
 
-    def _compute_penalty(self, episode: int, penalty_info: Dict[str, Any]) -> float:
+    def _compute_penalty(self, episode: int, penalty_info: Dict[str,
+                                                                Any]) -> float:
         if episode == self._next_switch_episode:
             self._get_next_penalty_set()
 
