@@ -4,12 +4,15 @@ from typing import Dict
 from typing import List
 from typing import Optional
 from typing import Tuple
+from typing import Union
 
 import constants
 import numpy as np
 from environments import base_environment
 from matplotlib import cm
 from matplotlib import pyplot as plt
+from matplotlib.animation import FuncAnimation
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 
 class MultiRoom(base_environment.BaseEnvironment):
@@ -68,8 +71,7 @@ class MultiRoom(base_environment.BaseEnvironment):
 
         # TODO: make more flexible
         self._rewards = {
-            tuple(reward_position): 1.0
-            for reward_position in reward_positions
+            tuple(reward_position): 1.0 for reward_position in reward_positions
         }
         self._total_rewards = sum(self._rewards.values())
 
@@ -203,7 +205,7 @@ class MultiRoom(base_environment.BaseEnvironment):
             skeleton: np array of map.
         """
         # flip size so indexing is consistent with axis dimensions
-        skeleton = np.ones(self._map.shape + (3, ))
+        skeleton = np.ones(self._map.shape + (3,))
 
         # make walls black
         skeleton[self._map == 1] = np.zeros(3)
@@ -287,14 +289,55 @@ class MultiRoom(base_environment.BaseEnvironment):
 
         return value_combinations
 
-    def plot_value_function(
-        self,
-        values: Dict,
-        plot_max_values: bool,
-        quiver: bool,
-        over_actions: str,
-        save_path: str,
-    ) -> None:
+    def animate_value_function(self, all_values: List[np.ndarray],
+                               save_path: str, over_actions: str):
+        """Create an animation of value function(s) saved throughout training.
+
+        Args:
+            all_values: list of saved numpy arrays corresponding to 
+            values at different times in training.
+            save_path: path to save location for animation.
+            over_actions: method to perform over actions e.g. mean.
+        """
+        if len(self._key_positions) <= 0:
+            fig, axes = plt.subplots(nrows=1, ncols=1)
+        elif len(self._key_positions) <= 2:
+            fig, axes = plt.subplots(nrows=1 + 2 * len(self._key_positions),
+                                     ncols=1)
+        else:
+            fig, axes = plt.subplots(nrows=1, ncols=1)
+
+        caxes = []
+        for ax in axes:
+            divider = make_axes_locatable(ax)
+            cax = divider.append_axes('right', '5%', '5%')
+            caxes.append(cax)
+
+        def _update(values):
+            self.plot_value_function(values=values,
+                                     plot_max_values=True,
+                                     quiver=False,
+                                     over_actions=over_actions,
+                                     save_path=None,
+                                     fig=fig,
+                                     axes=axes,
+                                     caxes=caxes)
+            # for i, ax in enumerate(updated_axes):
+            #     axes[i] = ax
+
+        anim = FuncAnimation(fig, _update, frames=all_values, interval=200)
+        anim.save(save_path, dpi=200, writer="imagemagick")
+        plt.close()
+
+    def plot_value_function(self,
+                            values: Dict,
+                            plot_max_values: bool,
+                            quiver: bool,
+                            over_actions: str,
+                            save_path: Union[str, None],
+                            fig=None,
+                            axes=None,
+                            caxes=None) -> None:
         """
         Plot value function over environment.
 
@@ -312,57 +355,61 @@ class MultiRoom(base_environment.BaseEnvironment):
         """
         if len(self._key_positions) <= 0:
             value_combinations = {}
-            fig, axes = plt.subplots(nrows=1, ncols=1)
+            if fig is None and axes is None:
+                fig, axes = plt.subplots(nrows=1, ncols=1)
             averaged_values_axis = axes
         elif len(self._key_positions) <= 2:
             value_combinations = self._get_value_combinations(values=values)
-            fig, axes = plt.subplots(nrows=1 + 2 * len(self._key_positions),
-                                     ncols=1)
+            if fig is None and axes is None:
+                fig, axes = plt.subplots(nrows=1 + 2 * len(self._key_positions),
+                                         ncols=1)
             averaged_values_axis = axes[0]
         else:
             value_combinations = {}
-            fig, axes = plt.subplots(nrows=1, ncols=1)
+            if fig is None and axes is None:
+                fig, axes = plt.subplots(nrows=1, ncols=1)
             averaged_values_axis = axes
+
+        caxes = caxes or [None for _ in range(len(axes))]
 
         fig.subplots_adjust(hspace=0.5)
 
         averaged_values = self._average_values_over_key_states(values=values)
 
-        self._value_plot(
-            fig=fig,
-            ax=averaged_values_axis,
-            values=averaged_values,
-            plot_max_values=plot_max_values,
-            quiver=quiver,
-            over_actions=over_actions,
-            subtitle="Positional Average",
-        )
+        self._value_plot(fig=fig,
+                         ax=averaged_values_axis,
+                         values=averaged_values,
+                         plot_max_values=plot_max_values,
+                         quiver=quiver,
+                         over_actions=over_actions,
+                         subtitle="Positional Average",
+                         cax=caxes[0])
 
         for i, (key_state,
                 value_combination) in enumerate(value_combinations.items()):
-            self._value_plot(
-                fig=fig,
-                ax=axes[i + 1],
-                values=value_combination,
-                plot_max_values=plot_max_values,
-                quiver=quiver,
-                over_actions=over_actions,
-                subtitle=f"Key State: {key_state}",
-            )
+            self._value_plot(fig=fig,
+                             ax=axes[i + 1],
+                             values=value_combination,
+                             plot_max_values=plot_max_values,
+                             quiver=quiver,
+                             over_actions=over_actions,
+                             subtitle=f"Key State: {key_state}",
+                             cax=caxes[i + 1])
 
-        fig.savefig(save_path, dpi=100)
-        plt.close()
+        if save_path is not None:
+            fig.savefig(save_path, dpi=100)
+            plt.close()
 
-    def _value_plot(
-        self,
-        fig,
-        ax,
-        values: Dict,
-        plot_max_values: bool,
-        quiver: bool,
-        over_actions: str,
-        subtitle: str,
-    ):
+    def _value_plot(self,
+                    fig,
+                    ax,
+                    values: Dict,
+                    plot_max_values: bool,
+                    quiver: bool,
+                    over_actions: str,
+                    subtitle: str,
+                    cax=None):
+
         if plot_max_values:
             image, min_val, max_val = self._get_value_heatmap(
                 values=values, over_actions=over_actions)
@@ -371,7 +418,12 @@ class MultiRoom(base_environment.BaseEnvironment):
                            cmap=self._colormap,
                            vmin=min_val,
                            vmax=max_val)
-            fig.colorbar(im, ax=ax)
+            if cax is not None:
+                cax.cla()
+                fig.colorbar(im, ax=ax, cax=cax)
+            else:
+                fig.colorbar(im, ax=ax)
+
         if quiver:
             map_shape = self._env_skeleton().shape
             X, Y, arrow_x, arrow_y = self._get_quiver_data(map_shape=map_shape,
@@ -473,8 +525,7 @@ class MultiRoom(base_environment.BaseEnvironment):
             key_index = self._key_positions.index(tuple(self._agent_position))
             if not self._keys_state[key_index]:
                 self._keys_state[key_index] = 1
-                self._key_collection_times[
-                    key_index] = self._episode_step_count
+                self._key_collection_times[key_index] = self._episode_step_count
 
     def step(self, action: int) -> Tuple[float, Tuple[int, int]]:
         """Take step in environment according to action of agent.
@@ -501,8 +552,7 @@ class MultiRoom(base_environment.BaseEnvironment):
         reward = self._compute_reward()
         self._active = self._remain_active(reward=reward)
 
-        self._episode_history.append(copy.deepcopy(tuple(
-            self._agent_position)))
+        self._episode_history.append(copy.deepcopy(tuple(self._agent_position)))
 
         new_state = tuple(self._agent_position) + tuple(self._keys_state)
 
@@ -512,8 +562,8 @@ class MultiRoom(base_environment.BaseEnvironment):
         """Check for reward, i.e. whether agent position is equal to a reward position.
         If reward is found, add to rewards received log.
         """
-        if (tuple(self._agent_position) in self._rewards
-                and tuple(self._agent_position) not in self._rewards_received):
+        if (tuple(self._agent_position) in self._rewards and
+                tuple(self._agent_position) not in self._rewards_received):
             reward = self._rewards.get(tuple(self._agent_position))
             self._rewards_received.append(tuple(self._agent_position))
         else:
