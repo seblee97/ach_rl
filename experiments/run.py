@@ -125,3 +125,5 @@ if __name__ == "__main__":
                                     memory_per_node=args.memory)
         elif args.mode == constants.Constants.CLUSTER_ARRAY:
             raise NotADirectoryError
+        else:
+            raise ValueError(f"Mode '{args.mode}' not recognised.")
