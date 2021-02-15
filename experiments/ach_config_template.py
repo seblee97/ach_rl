@@ -562,6 +562,15 @@ class AChConfigTemplate:
                 types=[bool],
             ),
             config_field.Field(
+                name=constants.Constants.SHARED_LAYERS,
+                types=[list, type(None)],
+                requirements=[
+                    lambda x: x is None or
+                    (isinstance(x, list) and all(isinstance(y, int) for y in x))
+                ]),
+            config_field.Field(name=constants.Constants.SHARE_REPLAY_BUFFER,
+                               types=[bool]),
+            config_field.Field(
                 name=constants.Constants.BEHAVIOUR,
                 types=[str],
                 requirements=[
