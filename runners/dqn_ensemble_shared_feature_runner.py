@@ -334,9 +334,11 @@ class EnsembleDQNSharedFeatureRunner(base_runner.BaseRunner):
 
             penalty, penalty_info = visitation_penalty(
                 episode=episode,
-                state=torch.from_numpy(state),
+                state=torch.from_numpy(state).to(self._device,
+                                                 dtype=torch.float),
                 action=action,
-                next_state=torch.from_numpy(next_state))
+                next_state=torch.from_numpy(next_state).to(self._device,
+                                                           dtype=torch.float))
 
             penalties.append(penalty)
             for info_key, info in penalty_info.items():
