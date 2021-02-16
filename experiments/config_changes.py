@@ -18,7 +18,17 @@ systematically modify it for each different run.
 # }
 
 CONFIG_CHANGES = {
-    "baseline": [],
+    "baseline": [{
+        "learner": {
+            "hard_coded": {
+                "vp_schedule": [[0, 0]]
+            }
+        }
+    }, {
+        "learner": {
+            "visitation_penalty_type": "policy_entropy_penalty"
+        }
+    }],
     "hard_coded": [{
         "learner": {
             "hard_coded": {
