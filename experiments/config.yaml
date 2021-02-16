@@ -110,12 +110,21 @@ ensemble_q_learning:
         - greedy_vote
     parallelise_ensemble: False
 
-ensemble_dqn:
+independent_ensemble_dqn:
     num_learners: 4
     copy_learner_initialisation: False
+    share_replay_buffer: True
     behaviour: epsilon_greedy
     targets: 
     parallelise_ensemble: False
+
+bootstrapped_ensemble_dqn:
+    num_learners: 4
+    copy_learner_initialisation: False
+    shared_layers: [0, 1, 2, 3, 4]
+    behaviour: epsilon_greedy
+    targets: 
+    mask_probability: 0.5
 
 dqn:
     batch_size: 32
