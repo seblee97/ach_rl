@@ -138,6 +138,21 @@ class QNetwork(nn.Module):
         elif initialisation == constants.Constants.XAVIER_UNIFORM:
             nn.init.xavier_uniform_(layer_weights)
 
+    def forward_all_heads(self, x: torch.Tensor):
+        """Method to get output through every head for an input tensor, x."""
+        for layer in self._core_layers:
+            x = layer(x)
+
+        all_outputs = []
+
+        for branch in range(self._num_branches):
+            branch_output = x
+            for layer in self._branched_layers[branch]:
+                branch_output = layer(branch_output)
+            all_outputs.append(branch_output)
+
+        return torch.stack(all_outputs)
+
     def forward(self, x: torch.Tensor, branch: Union[int, None] = None):
         """Forward pass through network."""
 
