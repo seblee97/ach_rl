@@ -379,7 +379,9 @@ class AChConfigTemplate:
                     lambda x: x in [
                         constants.Constants.SARSA_LAMBDA, constants.Constants.
                         Q_LEARNING, constants.Constants.DQN, constants.Constants
-                        .ENSEMBLE_Q_LEARNING, constants.Constants.ENSEMBLE_DQN
+                        .ENSEMBLE_Q_LEARNING, constants.Constants.
+                        BOOTSTRAPPED_ENSEMBLE_DQN, constants.Constants.
+                        INDEPENDENT_ENSEMBLE_DQN
                     ]
                 ],
             ),
@@ -550,7 +552,7 @@ class AChConfigTemplate:
         level=[constants.Constants.ENSEMBLE_Q_LEARNING],
     )
 
-    _ensemble_dqn_template = config_template.Template(
+    _independent_ensemble_dqn_template = config_template.Template(
         fields=[
             config_field.Field(
                 name=constants.Constants.NUM_LEARNERS,
@@ -561,13 +563,6 @@ class AChConfigTemplate:
                 name=constants.Constants.COPY_LEARNER_INITIALISATION,
                 types=[bool],
             ),
-            config_field.Field(
-                name=constants.Constants.SHARED_LAYERS,
-                types=[list, type(None)],
-                requirements=[
-                    lambda x: x is None or
-                    (isinstance(x, list) and all(isinstance(y, int) for y in x))
-                ]),
             config_field.Field(name=constants.Constants.SHARE_REPLAY_BUFFER,
                                types=[bool]),
             config_field.Field(
@@ -590,9 +585,53 @@ class AChConfigTemplate:
         ],
         dependent_variables=[constants.Constants.TYPE],
         dependent_variables_required_values=[
-            [constants.Constants.ENSEMBLE_DQN],
+            [constants.Constants.INDEPENDENT_ENSEMBLE_DQN],
         ],
-        level=[constants.Constants.ENSEMBLE_DQN],
+        level=[constants.Constants.INDEPENDENT_ENSEMBLE_DQN],
+    )
+
+    _bootstrapped_ensemble_dqn_template = config_template.Template(
+        fields=[
+            config_field.Field(
+                name=constants.Constants.NUM_LEARNERS,
+                types=[int],
+                requirements=[lambda x: x >= 1],
+            ),
+            config_field.Field(
+                name=constants.Constants.COPY_LEARNER_INITIALISATION,
+                types=[bool],
+            ),
+            config_field.Field(
+                name=constants.Constants.SHARED_LAYERS,
+                types=[list, type(None)],
+                requirements=[
+                    lambda x: x is None or
+                    (isinstance(x, list) and all(isinstance(y, int) for y in x))
+                ]),
+            config_field.Field(
+                name=constants.Constants.BEHAVIOUR,
+                types=[str],
+                requirements=[
+                    lambda x: x in [
+                        constants.Constants.GREEDY, constants.Constants.
+                        EPSILON_GREEDY
+                    ]
+                ],
+            ),
+            config_field.Field(
+                name=constants.Constants.TARGETS,
+                types=[list, type(None)],
+                requirements=[lambda x: x is None or all(y in [] for y in x)],
+            ),
+            config_field.Field(name=constants.Constants.MASK_PROBABILITY,
+                               types=[int, float],
+                               requirements=[lambda x: x >= 0 and x <= 1])
+        ],
+        dependent_variables=[constants.Constants.TYPE],
+        dependent_variables_required_values=[
+            [constants.Constants.BOOTSTRAPPED_ENSEMBLE_DQN],
+        ],
+        level=[constants.Constants.BOOTSTRAPPED_ENSEMBLE_DQN],
     )
 
     _dqn_template = config_template.Template(
@@ -643,7 +682,9 @@ class AChConfigTemplate:
         ],
         dependent_variables=[constants.Constants.TYPE],
         dependent_variables_required_values=[[
-            constants.Constants.DQN, constants.Constants.ENSEMBLE_DQN
+            constants.Constants.DQN,
+            constants.Constants.BOOTSTRAPPED_ENSEMBLE_DQN,
+            constants.Constants.INDEPENDENT_ENSEMBLE_DQN
         ]],
         level=[constants.Constants.DQN],
     )
@@ -811,7 +852,8 @@ class AChConfigTemplate:
             _sarsa_lambda_template,
             _q_learning_template,
             _ensemble_q_learning_template,
-            _ensemble_dqn_template,
+            _bootstrapped_ensemble_dqn_template,
+            _independent_ensemble_dqn_template,
             _dqn_template,
             _training_template,
             _logging_template,
