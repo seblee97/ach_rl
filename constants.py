@@ -244,6 +244,10 @@ class Constants:
     POST_VISUALISATIONS = "post_visualisations"
     SHARED_LAYERS = "shared_layers"
     SHARE_REPLAY_BUFFER = "share_replay_buffer"
+    MASK = "mask"
+    BOOTSTRAPPED_ENSEMBLE_DQN = "bootstrapped_ensemble_dqn"
+    INDEPENDENT_ENSEMBLE_DQN = "independent_ensemble_dqn"
+    MASK_PROBABILITY = "mask_probability"
 
     ATARI_ENVS = ["PongNoFrameskip-v4"]
 
