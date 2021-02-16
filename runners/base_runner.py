@@ -310,7 +310,6 @@ class BaseRunner(abc.ABC):
             episode_start_time = time.time()
 
             if i % self._print_frequency == 0:
-                self._logger.info(f"Episode {i}/{self._num_episodes}: ")
                 if i != 0:
                     self._logger.info(
                         f"    Latest Episode Duration {episode_duration}")
@@ -318,6 +317,7 @@ class BaseRunner(abc.ABC):
                         f"    Latest Train Reward: {train_reward}")
                     self._logger.info(
                         f"    Latest Train Length: {train_step_count}")
+                self._logger.info(f"Episode {i + 1}/{self._num_episodes}: ")
 
             if i % self._checkpoint_frequency == 0 and i != 0:
                 self._data_logger.checkpoint()
