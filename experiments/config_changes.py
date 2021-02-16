@@ -26,7 +26,7 @@ CONFIG_CHANGES = {
         }
     }, {
         "learner": {
-            "visitation_penalty_type": "policy_entropy_penalty"
+            "visitation_penalty_type": "hard_coded"
         }
     }],
     "hard_coded": [{
