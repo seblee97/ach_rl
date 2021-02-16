@@ -11,6 +11,7 @@ from environments import base_environment
 from experiments import ach_config
 from learners import base_learner
 from learners.deep_learners import dqn_learner
+from learners.deep_learners import multi_head_dqn_learner
 from learners.deep_learners.components import replay_buffer
 from learners.ensemble_learners import deep_ensemble_learner
 from learners.ensemble_learners.majority_vote_ensemble_learner import \
@@ -38,41 +39,30 @@ class EnsembleDQNSharedFeatureRunner(base_runner.BaseRunner):
         self._targets = config.targets
         super().__init__(config=config)
 
-        self._parallelise_ensemble = config.parallelise_ensemble
-        if self._parallelise_ensemble:
-            num_cores = multiprocessing.cpu_count()
-            self._pool = multiprocessing.Pool(processes=num_cores)
-
         self._device = config.experiment_device
-
         self._batch_size = config.batch_size
-        self._share_replay_buffer = config.share_replay_buffer
+        self._mask_probability = config.mask_probability
 
-        if self._share_replay_buffer:
-            self._replay_buffer = self._setup_individual_replay_buffer(
-                config=config)
-            self._fill_replay_buffer(
-                replay_buffer=self._replay_buffer,
-                num_trajectories=config.num_replay_fill_trajectories)
-        else:
-            self._replay_buffers = [
-                self._setup_individual_replay_buffer(config=config)
-                for _ in range(self._num_learners)
-            ]
-            for rep_buffer in self._replay_buffers:
-                self._fill_replay_buffer(
-                    replay_buffer=rep_buffer,
-                    num_trajectories=config.num_replay_fill_trajectories)
+        self._replay_buffer = self._setup_replay_buffer(config=config)
+        self._fill_replay_buffer(
+            num_trajectories=config.num_replay_fill_trajectories)
 
-    def _setup_individual_replay_buffer(
+    def _setup_replay_buffer(
             self, config: ach_config.AchConfig) -> replay_buffer.ReplayBuffer:
         """Instantiate replay buffer object to store experiences."""
         state_dim = tuple(config.encoded_state_dimensions)
         replay_size = config.replay_buffer_size
         return replay_buffer.ReplayBuffer(replay_size=replay_size,
-                                          state_dim=state_dim)
+                                          state_dim=state_dim,
+                                          mask_length=self._num_learners)
 
-    def _fill_replay_buffer(self, replay_buffer, num_trajectories: int):
+    def _get_random_mask(self):
+        return np.random.choice(
+            [0, 1],
+            size=self._num_learners,
+            p=[self._mask_probability, 1 - self._mask_probability])
+
+    def _fill_replay_buffer(self, num_trajectories: int):
         """Build up store of experiences before training begins.
 
         Args:
@@ -84,13 +74,13 @@ class EnsembleDQNSharedFeatureRunner(base_runner.BaseRunner):
         for _ in range(num_trajectories):
             action = random.choice(self._environment.action_space)
             reward, next_state = self._environment.step(action)
-            replay_buffer.add(
-                state=state,
-                action=action,
-                reward=reward,
-                next_state=next_state,
-                active=self._environment.active,
-            )
+
+            self._replay_buffer.add(state=state,
+                                    action=action,
+                                    reward=reward,
+                                    next_state=next_state,
+                                    active=self._environment.active,
+                                    mask=self._get_random_mask())
             if not self._environment.active:
                 state = self._environment.reset_environment(train=True)
             else:
@@ -99,7 +89,7 @@ class EnsembleDQNSharedFeatureRunner(base_runner.BaseRunner):
     def _setup_learner(self,
                        config: ach_config.AchConfig):  # TODO: similar to envs
         """Initialise learner specified in configuration."""
-        learner = dqn_learner.DQNLearner(
+        return multi_head_dqn_learner.MultiHeadDQNLearner(
             action_space=self._environment.action_space,
             state_dimensions=tuple(config.encoded_state_dimensions),
             layer_specifications=config.layer_specifications,
@@ -114,11 +104,6 @@ class EnsembleDQNSharedFeatureRunner(base_runner.BaseRunner):
             target_network_update_period=config.target_network_update_period,
             device=config.experiment_device,
             gradient_clipping=config.gradient_clipping)
-        learner.set_network_branch_gradients(branch_index=0)
-        return learner
-        # learner = deep_ensemble_learner.DeepEnsembleLearner(
-        #     learner_ensemble=learners)
-        # return learner
 
     def _pre_episode_log(self, episode: int):
         """Logging pre-episode. Includes value-function, individual run."""
@@ -137,207 +122,28 @@ class EnsembleDQNSharedFeatureRunner(base_runner.BaseRunner):
         self._visitation_penalty.q_network = copy.deepcopy(
             self._learner.q_network)
 
-        if self._parallelise_ensemble:
-            train_fn = self._parallelised_train_episode
-        else:
-            train_fn = self._serial_train_episode
+        # select branch uniformly at random for rollout
+        branch = random.choice(range(self._num_learners))
 
-        (ensemble_rewards, ensemble_step_counts, ensemble_mean_penalties,
-         ensemble_mean_penalty_infos,
-         ensemble_std_penalty_infos) = train_fn(episode=episode)
-
-        mean_reward = np.mean(ensemble_rewards)
-        mean_step_count = np.mean(ensemble_step_counts)
-
-        std_reward = np.std(ensemble_rewards)
-        std_step_count = np.std(ensemble_step_counts)
-
-        # close and join pool after last step
-        if self._parallelise_ensemble:
-            if episode == self._num_episodes - 1:
-                self._pool.close()
-                self._pool.join()
-
-        # log data from individual runners in ensemble
-        for i in range(self._num_learners):
-            self._write_scalar(
-                tag=(f"{constants.Constants.TRAIN_EPISODE_REWARD}"
-                     f"_{constants.Constants.ENSEMBLE_RUNNER}"),
-                episode=episode,
-                scalar=ensemble_rewards[i],
-                df_tag=(f"{constants.Constants.TRAIN_EPISODE_REWARD}"
-                        f"_{constants.Constants.ENSEMBLE_RUNNER}_{i}"),
-            )
-            self._write_scalar(
-                tag=(f"{constants.Constants.TRAIN_EPISODE_LENGTH}"
-                     f"_{constants.Constants.ENSEMBLE_RUNNER}"),
-                episode=episode,
-                scalar=ensemble_step_counts[i],
-                df_tag=(f"{constants.Constants.TRAIN_EPISODE_LENGTH}"
-                        f"_{constants.Constants.ENSEMBLE_RUNNER}_{i}"),
-            )
-
-        # averages over ensemble
-        self._write_scalar(
-            tag=constants.Constants.ENSEMBLE_EPISODE_REWARD_STD,
-            episode=episode,
-            scalar=std_reward,
-        )
-        self._write_scalar(
-            tag=constants.Constants.ENSEMBLE_EPISODE_LENGTH_STD,
-            episode=episode,
-            scalar=std_step_count,
-        )
-        self._write_scalar(
-            tag=constants.Constants.MEAN_VISITATION_PENALTY,
-            episode=episode,
-            scalar=np.mean(ensemble_mean_penalties),
-        )
-        for penalty_info, ensemble_penalty_info in ensemble_mean_penalty_infos.items(
-        ):
-            self._write_scalar(
-                tag=constants.Constants.MEAN_PENALTY_INFO,
-                episode=episode,
-                scalar=np.mean(ensemble_penalty_info),
-                df_tag=penalty_info,
-            )
-
-        return mean_reward, mean_step_count
-
-    def _serial_train_episode(
-        self,
-        episode: int,
-    ) -> Tuple[float, int]:
-        """Perform the train episode for each learner in ensemble serially.
-
-        Args:
-            episode: index of episode
-        """
-        ensemble_episode_rewards = []
-        ensemble_episode_step_counts = []
-        mean_penalties = []
-        mean_penalty_infos = {}
-        std_penalty_infos = {}
-
-        for i in range(self._num_learners):
-            if self._share_replay_buffer:
-                replay_buffer = self._replay_buffer
-            else:
-                replay_buffer = self._replay_buffers[i]
-            (_, episode_reward, episode_count, mean_penalty, mean_penalty_info,
-             std_penalty_info) = self._single_train_episode(
-                 environment=self._environment,
-                 learner=self._learner,
-                 branch=i,
-                 replay_buffer=replay_buffer,
-                 visitation_penalty=self._visitation_penalty,
-                 device=self._device,
-                 batch_size=self._batch_size,
-                 episode=episode,
-             )
-
-            ensemble_episode_rewards.append(episode_reward)
-            ensemble_episode_step_counts.append(episode_count)
-            mean_penalties.append(mean_penalty)
-            for info_key, mean_info in mean_penalty_info.items():
-                if info_key not in mean_penalty_infos:
-                    mean_penalty_infos[info_key] = []
-                mean_penalty_infos[info_key].append(mean_info)
-            for info_key, std_info in std_penalty_info.items():
-                if info_key not in std_penalty_infos:
-                    std_penalty_infos[info_key] = []
-                std_penalty_infos[info_key].append(std_info)
-
-        return (ensemble_episode_rewards, ensemble_episode_step_counts,
-                mean_penalties, mean_penalty_infos, std_penalty_infos)
-
-    def _parallelised_train_episode(
-        self,
-        episode: int,
-    ) -> Tuple[float, int]:
-        """Perform the train episode for each learner in ensemble in parallel.
-
-        Args:
-            episode: index of episode
-        """
-        raise NotImplementedError
-        # processes_arguments = [(
-        #     copy.deepcopy(self._environment),
-        #     learner,
-        #     self._visitation_penalty,
-        #     episode,
-        # ) for learner in self._learner.ensemble]
-        # processes_results = self._pool.starmap(self._single_train_episode,
-        #                                        processes_arguments)
-        # (
-        #     learners,
-        #     ensemble_episode_rewards,
-        #     ensemble_episode_step_counts,
-        #     mean_penalties,
-        #     mean_penalty_info,
-        # ) = zip(*processes_results)
-
-        # self._learner.ensemble = list(learners)
-
-        # mean_penalty_infos = {}
-        # for per_learner_mean_penalty_info in mean_penalty_info:
-        #     for info_key, mean_info in per_learner_mean_penalty_info.items():
-        #         if info_key not in mean_penalty_infos:
-        #             mean_penalty_infos[info_key] = []
-        #         mean_penalty_infos[info_key].append(mean_info)
-
-        # return (
-        #     ensemble_episode_rewards,
-        #     ensemble_episode_step_counts,
-        #     mean_penalties,
-        #     mean_penalty_infos,
-        # )
-
-    @staticmethod
-    def _single_train_episode(
-        environment: base_environment.BaseEnvironment,
-        learner: base_learner.BaseLearner,
-        branch: int,
-        replay_buffer: replay_buffer.ReplayBuffer,
-        visitation_penalty: base_visistation_penalty.BaseVisitationPenalty,
-        device: str,
-        batch_size: int,
-        episode: int,
-    ) -> Union[None, Tuple[float, int]]:
-        """Single learner train episode.
-
-        Args:
-            environment: environment in which to rollout episode.
-            learner: learner to place in environment.
-            episode: index of episode.
-
-        Returns:
-            episode_reward: single episode, single learner episode reward
-            num_steps: single episode, single learner episode duration
-        """
         episode_reward = 0
         episode_loss = 0
-        episode_steps = 0
 
         penalties = []
         penalty_infos = {}
 
-        # track gradients for relevant branch of Q-networks
-        learner.set_network_branch_gradients(branch_index=branch)
+        state = self._environment.reset_environment(train=True)
 
-        state = environment.reset_environment(train=True)
+        while self._environment.active:
 
-        while environment.active:
+            action = self._learner.select_behaviour_action(state, branch=branch)
+            reward, next_state = self._environment.step(action)
 
-            action = learner.select_behaviour_action(state, branch=branch)
-            reward, next_state = environment.step(action)
-
-            penalty, penalty_info = visitation_penalty(
+            penalty, penalty_info = self._visitation_penalty(
                 episode=episode,
-                state=torch.from_numpy(state).to(device=device,
+                state=torch.from_numpy(state).to(device=self._device,
                                                  dtype=torch.float),
                 action=action,
-                next_state=torch.from_numpy(next_state).to(device=device,
+                next_state=torch.from_numpy(next_state).to(device=self._device,
                                                            dtype=torch.float))
 
             penalties.append(penalty)
@@ -346,80 +152,65 @@ class EnsembleDQNSharedFeatureRunner(base_runner.BaseRunner):
                     penalty_infos[info_key] = []
                 penalty_infos[info_key].append(info)
 
-            replay_buffer.add(
-                state=state,
-                action=action,
-                reward=reward,
-                next_state=next_state,
-                active=environment.active,
-            )
+            self._replay_buffer.add(state=state,
+                                    action=action,
+                                    reward=reward,
+                                    next_state=next_state,
+                                    active=self._environment.active,
+                                    mask=self._get_random_mask())
 
-            experience_sample = replay_buffer.sample(batch_size)
+            experience_sample = self._replay_buffer.sample(self._batch_size)
 
-            loss, epsilon = learner.step(
+            loss, epsilon = self._learner.step(
                 state=torch.from_numpy(experience_sample[0]).to(
-                    device=device, dtype=torch.float),
+                    device=self._device, dtype=torch.float),
                 action=torch.from_numpy(experience_sample[1]).to(
-                    device=device, dtype=torch.int),
+                    device=self._device, dtype=torch.int),
                 reward=torch.from_numpy(experience_sample[2]).to(
-                    device=device, dtype=torch.float),
+                    device=self._device, dtype=torch.float),
                 next_state=torch.from_numpy(experience_sample[3]).to(
-                    device=device, dtype=torch.float),
+                    device=self._device, dtype=torch.float),
                 active=torch.from_numpy(experience_sample[4]).to(
-                    device=device, dtype=torch.int),
+                    device=self._device, dtype=torch.int),
                 visitation_penalty=penalty,
-                branch=branch)
+                mask=torch.from_numpy(experience_sample[5]).to(
+                    device=self._device, dtype=torch.int))
 
             state = next_state
             episode_reward += reward
             episode_loss += loss
-            episode_steps += 1
 
-            mean_penalties = np.mean(penalties)
-            mean_penalty_info = {
-                k: np.mean(v) for k, v in penalty_infos.items()
-            }
-            std_penalty_info = {k: np.std(v) for k, v in penalty_infos.items()}
+        mean_penalty = np.mean(penalties)
+        mean_penalty_info = {k: np.mean(v) for k, v in penalty_infos.items()}
+        std_penalty_info = {k: np.std(v) for k, v in penalty_infos.items()}
+        episode_steps = self._environment.episode_step_count
 
-        # episode_reward = 0
+        self._write_scalar(
+            tag=constants.Constants.LOSS,
+            episode=episode,
+            scalar=episode_loss / episode_steps,
+        )
+        self._write_scalar(
+            tag=constants.Constants.MEAN_VISITATION_PENALTY,
+            episode=episode,
+            scalar=mean_penalty,
+        )
+        for penalty_info, ensemble_penalty_info in mean_penalty_info.items():
+            self._write_scalar(
+                tag=constants.Constants.MEAN_PENALTY_INFO,
+                episode=episode,
+                scalar=ensemble_penalty_info,
+                df_tag=penalty_info,
+            )
+        for penalty_info, ensemble_penalty_info in std_penalty_info.items():
+            self._write_scalar(
+                tag=constants.Constants.STD_PENALTY_INFO,
+                episode=episode,
+                scalar=ensemble_penalty_info,
+                df_tag=f"{penalty_info}_std",
+            )
 
-        # penalties = []
-        # penalty_infos = {}
-
-        # state = environment.reset_environment(train=True)
-
-        # while environment.active:
-        #     action = learner.select_behaviour_action(state)
-        #     reward, next_state = environment.step(action)
-
-        #     penalty, penalty_info = visitation_penalty(episode=episode,
-        #                                                state=state,
-        #                                                action=action,
-        #                                                next_state=next_state)
-
-        #     penalties.append(penalty)
-        #     for info_key, info in penalty_info.items():
-        #         if info_key not in penalty_infos.keys():
-        #             penalty_infos[info_key] = []
-        #         penalty_infos[info_key].append(info)
-
-        #     learner.step(
-        #         state,
-        #         action,
-        #         reward,
-        #         next_state,
-        #         environment.active,
-        #         penalty,
-        #     )
-        #     state = next_state
-        #     episode_reward += reward
-
-        # mean_penalties = np.mean(penalties)
-
-        # mean_penalty_info = {k: np.mean(v) for k, v in penalty_infos.items()}
-
-        return (learner, episode_reward, environment.episode_step_count,
-                mean_penalties, mean_penalty_info, std_penalty_info)
+        return episode_reward, episode_steps
 
     def _get_visitation_penalty(self, episode: int, state, action: int,
                                 next_state):
