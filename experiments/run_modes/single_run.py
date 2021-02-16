@@ -87,13 +87,12 @@ def single_run(config_path: str,
         r = dqn_runner.DQNRunner(config=config)
     elif config.type == constants.Constants.ENSEMBLE_Q_LEARNING:
         r = q_learning_ensemble_runner.EnsembleQLearningRunner(config=config)
-    elif config.type == constants.Constants.ENSEMBLE_DQN:
-        if config.shared_layers:
-            r = dqn_ensemble_shared_feature_runner.EnsembleDQNSharedFeatureRunner(
-                config=config)
-        else:
-            r = dqn_ensemble_independent_runner.EnsembleDQNIndependentRunner(
-                config=config)
+    elif config.type == constants.Constants.BOOTSTRAPPED_ENSEMBLE_DQN:
+        r = dqn_ensemble_shared_feature_runner.EnsembleDQNSharedFeatureRunner(
+            config=config)
+    elif config.type == constants.Constants.INDEPENDENT_ENSEMBLE_DQN:
+        r = dqn_ensemble_independent_runner.EnsembleDQNIndependentRunner(
+            config=config)
     else:
         raise ValueError(f"Learner type {type} not recognised.")
 
