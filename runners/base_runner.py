@@ -28,10 +28,12 @@ from utils import plotter
 from visitation_penalties import \
     adaptive_arriving_uncertainty_visitation_penalty
 from visitation_penalties import adaptive_uncertainty_visitation_penalty
-from visitation_penalties import base_visistation_penalty
+from visitation_penalties import base_visitation_penalty
 from visitation_penalties import hard_coded_visitation_penalty
+from visitation_penalties import network_visitation_penalty
 from visitation_penalties import policy_entropy_penalty
 from visitation_penalties import potential_adaptive_uncertainty_penalty
+from visitation_penalties import tabular_visitation_penalty
 
 
 class BaseRunner(abc.ABC):
@@ -193,13 +195,13 @@ class BaseRunner(abc.ABC):
 
     def _setup_visitation_penalty(
         self, config: ach_config.AchConfig
-    ) -> base_visistation_penalty.BaseVisitationPenalty:
+    ) -> base_visitation_penalty.BaseVisitationPenalty:
         """Initialise object to act as visitation penalty."""
         if config.visitation_penalty_type == constants.Constants.HARD_CODED:
-            visitation_penalty = hard_coded_visitation_penalty.HardCodedPenalty(
+            penalty_computer = hard_coded_visitation_penalty.HardCodedPenalty(
                 hard_coded_penalties=config.vp_schedule)
         elif config.visitation_penalty_type == constants.Constants.ADAPTIVE_UNCERTAINTY:
-            visitation_penalty = (
+            penalty_computer = (
                 adaptive_uncertainty_visitation_penalty.
                 AdaptiveUncertaintyPenalty(
                     multiplicative_factor=config.multiplicative_factor,
@@ -207,25 +209,46 @@ class BaseRunner(abc.ABC):
                 ))
         elif (config.visitation_penalty_type ==
               constants.Constants.ADAPTIVE_ARRIVING_UNCERTAINTY):
-            visitation_penalty = adaptive_arriving_uncertainty_visitation_penalty.AdaptiveArrivingUncertaintyPenalty(
+            penalty_computer = adaptive_arriving_uncertainty_visitation_penalty.AdaptiveArrivingUncertaintyPenalty(
                 multiplicative_factor=config.multiplicative_factor,
                 action_function=config.action_function,
             )
         elif (config.visitation_penalty_type ==
               constants.Constants.POTENTIAL_BASED_ADAPTIVE_UNCERTAINTY):
-            visitation_penalty = potential_adaptive_uncertainty_penalty.PotentialAdaptiveUncertaintyPenalty(
+            penalty_computer = potential_adaptive_uncertainty_penalty.PotentialAdaptiveUncertaintyPenalty(
                 gamma=config.discount_factor,
                 multiplicative_factor=config.multiplicative_factor,
                 pre_action_function=config.pre_action_function,
                 post_action_function=config.post_action_function,
             )
         elif config.visitation_penalty_type == constants.Constants.POLICY_ENTROPY_PENALTY:
-            visitation_penalty = policy_entropy_penalty.PolicyEntropyPenalty(
+            penalty_computer = policy_entropy_penalty.PolicyEntropyPenalty(
                 multiplicative_factor=config.multiplicative_factor)
         else:
             raise ValueError(
                 f"Visitation penalty type {config.visitation_penalty_type} not recognised"
             )
+
+        if config.type in [
+                constants.Constants.BOOTSTRAPPED_ENSEMBLE_DQN,
+                constants.Constants.DQN,
+                constants.Constants.INDEPENDENT_ENSEMBLE_DQN
+        ]:
+            visitation_penalty = network_visitation_penalty.NetworkVisitationPenalty(
+                penalty_computer=penalty_computer)
+        elif config.type in [
+                constants.Constants.Q_LEARNING,
+                constants.Constants.SARSA_LAMBDA,
+                constants.Constants.ENSEMBLE_Q_LEARNING
+        ]:
+            visitation_penalty = tabular_visitation_penalty.TabularVisitationPenalty(
+                penalty_computer=penalty_computer)
+        else:
+            raise ValueError(
+                f"Learner type {config.type} has not been grouped as tabular or network, "
+                "so the correct visitation penalty class type cannot be determined."
+            )
+
         return visitation_penalty
 
     def _setup_epsilon_function(self, config: ach_config.AchConfig):
