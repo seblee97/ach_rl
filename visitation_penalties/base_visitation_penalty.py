@@ -8,6 +8,15 @@ import constants
 import numpy as np
 
 
+class BaseVisitationPenaltyComputer(abc.ABC):
+    """Base class for visitation penalty computations. 
+    Child classes of this class are argument to overall visitation penalty classes."""
+
+    @abc.abstractmethod
+    def compute_penalty(self, episode: int, penalty_info: Dict[str, Any]):
+        pass
+
+
 class BaseVisitationPenalty(abc.ABC):
     """Base class for visitation penalties.
 
@@ -19,17 +28,13 @@ class BaseVisitationPenalty(abc.ABC):
     # very small value to avoid log (0) in entropy calculation
     EPSILON = 1e-8
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, penalty_computer: BaseVisitationPenaltyComputer):
+        self._penalty_computer = penalty_computer
         self._state_action_values: List[Dict[Tuple[int], List[float]]]
 
-    @property
-    def state_action_values(self):
-        return self._state_action_values
-
-    @state_action_values.setter
-    def state_action_values(self, state_action_values: List[Dict[Tuple[int],
-                                                                 float]]):
-        self._state_action_values = state_action_values
+    @abc.abstractmethod
+    def _compute_state_values(self, state):
+        pass
 
     def _get_penalty_info(
         self,
@@ -38,10 +43,8 @@ class BaseVisitationPenalty(abc.ABC):
         next_state,
     ):
         """compute series of uncertainties over states culminating in penalty."""
-        current_state_values = np.array(
-            [s[state] for s in self._state_action_values])
-        next_state_values = np.array(
-            [s[next_state] for s in self._state_action_values])
+        current_state_values = self._compute_state_values(state=state)
+        next_state_values = self._compute_state_values(state=next_state)
 
         num_actions = len(current_state_values[0])
 
@@ -96,11 +99,7 @@ class BaseVisitationPenalty(abc.ABC):
                                               action=action,
                                               next_state=next_state)
 
-        penalty = self._compute_penalty(episode=episode,
-                                        penalty_info=penalty_info)
+        penalty = self._penalty_computer.compute_penalty(
+            episode=episode, penalty_info=penalty_info)
 
         return penalty, penalty_info
-
-    @abc.abstractmethod
-    def _compute_penalty(self, episode: int, penalty_info: Dict[str, Any]):
-        pass
