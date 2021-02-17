@@ -5,12 +5,11 @@ from typing import Tuple
 from typing import Union
 
 import constants
-from visitation_penalties import base_visistation_penalty
+from visitation_penalties import base_visitation_penalty
 
 
 class PotentialAdaptiveUncertaintyPenalty(
-    base_visistation_penalty.BaseVisitationPenalty
-):
+        base_visitation_penalty.BaseVisitationPenaltyComputer):
     """Visitation penalty tuned to uncertainty,
     in the potential-based reward shaping formulation of Ng, Harada, Russell (1999)."""
 
@@ -28,29 +27,23 @@ class PotentialAdaptiveUncertaintyPenalty(
         self._pre_action_function = pre_action_function
         self._post_action_function = post_action_function
 
-    def _compute_penalty(self, episode: int, penalty_info: Dict[str, Any]):
+    def compute_penalty(self, episode: int, penalty_info: Dict[str, Any]):
         if self._pre_action_function == constants.Constants.MAX:
             pre_uncertainty = penalty_info[
-                constants.Constants.CURRENT_STATE_MAX_UNCERTAINTY
-            ]
+                constants.Constants.CURRENT_STATE_MAX_UNCERTAINTY]
         elif self._pre_action_function == constants.Constants.MEAN:
             pre_uncertainty = penalty_info[
-                constants.Constants.CURRENT_STATE_MEAN_UNCERTAINTY
-            ]
+                constants.Constants.CURRENT_STATE_MEAN_UNCERTAINTY]
         elif self._pre_action_function == constants.Constants.SELECT:
             pre_uncertainty = penalty_info[
-                constants.Constants.CURRENT_STATE_SELECT_UNCERTAINTY
-            ]
+                constants.Constants.CURRENT_STATE_SELECT_UNCERTAINTY]
         if self._post_action_function == constants.Constants.MAX:
             post_uncertainty = penalty_info[
-                constants.Constants.NEXT_STATE_MAX_UNCERTAINTY
-            ]
+                constants.Constants.NEXT_STATE_MAX_UNCERTAINTY]
         elif self._post_action_function == constants.Constants.MEAN:
             post_uncertainty = penalty_info[
-                constants.Constants.NEXT_STATE_MEAN_UNCERTAINTY
-            ]
+                constants.Constants.NEXT_STATE_MEAN_UNCERTAINTY]
 
         penalty = self._multiplicative_factor * (
-            self._gamma * post_uncertainty - pre_uncertainty
-        )
+            self._gamma * post_uncertainty - pre_uncertainty)
         return penalty
