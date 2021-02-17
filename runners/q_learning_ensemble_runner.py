@@ -99,7 +99,7 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
                     visualisation_configuration[2],
                     constants.Constants.MAX,
                     os.path.join(
-                        self._checkpoint_path,
+                        self._visualisations_folder_path,
                         f"{episode}_{visualisation_configuration[0]}",
                     ),
                 ) for visualisation_configuration in
@@ -113,7 +113,7 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
                     self._environment.plot_value_function(
                         values=averaged_state_action_values,
                         save_path=os.path.join(
-                            self._checkpoint_path,
+                            self._visualisations_folder_path,
                             f"{episode}_{visualisation_configuration[0]}",
                         ),
                         plot_max_values=visualisation_configuration[1],
@@ -139,7 +139,7 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
                     combo[1][2],
                     constants.Constants.MAX,
                     os.path.join(
-                        self._checkpoint_path,
+                        self._visualisations_folder_path,
                         f"{episode}_{combo[0]}_{combo[1][0]}",
                     ),
                 ) for combo in learner_visual_configuration_combos]
@@ -155,7 +155,7 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
                         self._environment.plot_value_function(
                             values=individual_state_action_values,
                             save_path=os.path.join(
-                                self._checkpoint_path,
+                                self._visualisations_folder_path,
                                 f"{episode}_{i}_{visualisation_configuration[0]}",
                             ),
                             plot_max_values=visualisation_configuration[1],
@@ -171,7 +171,7 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
             self._environment.plot_value_function(
                 values=state_action_values_std,
                 save_path=os.path.join(
-                    self._checkpoint_path,
+                    self._visualisations_folder_path,
                     f"{episode}_{constants.Constants.VALUE_FUNCTION_STD_PDF}",
                 ),
                 plot_max_values=True,
@@ -194,6 +194,9 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
         self._write_array(tag=constants.Constants.VALUE_FUNCTION_STD,
                           episode=episode,
                           array=self._learner.state_action_values_std)
+        self._write_array(tag=constants.Constants.POLICY_ENTROPY,
+                          episode=episode,
+                          array=self._learner.policy_entropy)
 
     def _train_episode(self, episode: int) -> Tuple[float, int]:
         """Perform single training loop (per learner in ensemble).
@@ -536,34 +539,26 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
             )
 
     def _post_visualisation(self):
-        arrays_path = os.path.join(self._checkpoint_path,
-                                   constants.Constants.ARRAYS)
         post_visualisations_path = os.path.join(
             self._checkpoint_path, constants.Constants.POST_VISUALISATIONS)
-        all_array_paths = os.listdir(arrays_path)
 
         value_function_visualisations = {
-            constants.Constants.VALUE_FUNCTION:
-                (re.compile(f"{constants.Constants.VALUE_FUNCTION}_\d*.npy"),
-                 constants.Constants.MAX),
-            constants.Constants.VALUE_FUNCTION_STD: (
-                re.compile(f"{constants.Constants.VALUE_FUNCTION_STD}_\d*.npy"),
-                constants.Constants.MEAN)
+            constants.Constants.VALUE_FUNCTION: constants.Constants.MAX,
+            constants.Constants.VALUE_FUNCTION_STD: constants.Constants.MEAN,
+            constants.Constants.POLICY_ENTROPY: constants.Constants.MEAN
         }
 
-        for tag, (regex, over_actions) in value_function_visualisations.items():
+        for tag, over_actions in value_function_visualisations.items():
             if tag in self._post_visualisations:
                 os.makedirs(post_visualisations_path, exist_ok=True)
+                array_path = os.path.join(self._array_folder_path, tag)
                 all_value_paths = sorted(
-                    [
-                        os.path.join(arrays_path, f)
-                        for f in all_array_paths
-                        if regex.match(f)
-                    ],
+                    os.listdir(array_path),
                     key=lambda x: int(x.split("_")[-1].split(".")[0]))
                 # dictionary has been saved, so need to call [()]
                 all_values = [
-                    np.load(f, allow_pickle=True)[()] for f in all_value_paths
+                    np.load(os.path.join(array_path, f), allow_pickle=True)[()]
+                    for f in all_value_paths
                 ]
                 self._environment.animate_value_function(
                     all_values=all_values,
