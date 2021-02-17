@@ -46,6 +46,9 @@ parser.add_argument(
     default=0,
     help="number of cpus to use in cluster. Inferred if not given.")
 parser.add_argument("--gpu_type", default="K80", help="type of gpu")
+parser.add_argument("--cluster_debug",
+                    action="store_true",
+                    help="leads to subprocess call and not qsub.")
 
 
 def _process_seed_arguments(seeds: Union[str, List[int]]):
@@ -134,7 +137,8 @@ if __name__ == "__main__":
                                     num_cpus=num_cpus,
                                     memory_per_node=args.memory,
                                     num_gpus=args.num_gpus,
-                                    gpu_type=args.gpu_type)
+                                    gpu_type=args.gpu_type,
+                                    cluster_debug=args.cluster_debug)
         elif args.mode == constants.Constants.CLUSTER_ARRAY:
             raise NotADirectoryError
         else:
