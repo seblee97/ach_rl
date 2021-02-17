@@ -20,7 +20,7 @@ from learners.ensemble_learners.mean_greedy_ensemble_learner import \
 from learners.ensemble_learners.sample_greedy_ensemble_learner import \
     SampleGreedyEnsemble
 from runners import base_runner
-from visitation_penalties import base_visistation_penalty
+from visitation_penalties import base_visitation_penalty
 from visitation_penalties.adaptive_arriving_uncertainty_visitation_penalty import \
     AdaptiveArrivingUncertaintyPenalty
 from visitation_penalties.adaptive_uncertainty_visitation_penalty import \
@@ -278,7 +278,7 @@ class EnsembleDQNIndependentRunner(base_runner.BaseRunner):
         environment: base_environment.BaseEnvironment,
         learner: base_learner.BaseLearner,
         replay_buffer: replay_buffer.ReplayBuffer,
-        visitation_penalty: base_visistation_penalty.BaseVisitationPenalty,
+        visitation_penalty: base_visitation_penalty.BaseVisitationPenalty,
         device: str,
         batch_size: int,
         episode: int,
