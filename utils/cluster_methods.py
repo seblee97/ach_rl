@@ -3,6 +3,8 @@ def create_job_script(run_command: str,
                       num_cpus: int,
                       conda_env_name: str,
                       memory: int,
+                      num_gpus: int,
+                      gpu_type: str,
                       error_path: str,
                       output_path: str,
                       array_job_length: int = 0,
@@ -18,7 +20,10 @@ def create_job_script(run_command: str,
             walltime: time to give job--1 day by default
     """
     with open(save_path, 'w') as file:
-        file.write(f"#PBS -lselect=1:ncpus={num_cpus}:mem={memory}gb\n")
+        resource_specification = f"#PBS -lselect=1:ncpus={num_cpus}:mem={memory}gb"
+        if num_gpus:
+            resource_specification += f":ngpus={num_gpus}:gpu_type={gpu_type}"
+        file.write(f"{resource_specification}\n")
         file.write(f"#PBS -lwalltime={walltime}\n")
         if array_job_length:
             file.write(f"#PBS -J 1-{array_job_length}\n")
