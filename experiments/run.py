@@ -38,6 +38,10 @@ parser.add_argument(
     metavar="-MEM",
     default=64,
     help="amount of memory to assign to each node when working on cluster")
+parser.add_argument("--num_gpus",
+                    default=0,
+                    help="number of gpus to use in cluster")
+parser.add_argument("--gpu_type", default="K80", help="type of gpu")
 
 
 def _process_seed_arguments(seeds: Union[str, List[int]]):
@@ -122,7 +126,9 @@ if __name__ == "__main__":
             cluster_run.cluster_run(experiment_path=experiment_path,
                                     config_path=args.config_path,
                                     num_cpus=num_cpus,
-                                    memory_per_node=args.memory)
+                                    memory_per_node=args.memory,
+                                    num_gpus=args.num_gpus,
+                                    gpu_type=args.gpu_type)
         elif args.mode == constants.Constants.CLUSTER_ARRAY:
             raise NotADirectoryError
         else:
