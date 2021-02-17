@@ -60,9 +60,15 @@ class BaseRunner(abc.ABC):
         self._array_folder_path = os.path.join(self._checkpoint_path,
                                                constants.Constants.ARRAYS)
         os.makedirs(name=self._array_folder_path, exist_ok=True)
+        for tag in self._array_logging.keys():
+            os.makedirs(name=os.path.join(self._array_folder_path, tag),
+                        exist_ok=True)
         self._scalar_logging = self._setup_logging_frequencies(config.scalars)
         self._visualisations = self._setup_logging_frequencies(
             config.visualisations)
+        self._visualisations_folder_path = os.path.join(
+            self._checkpoint_path, constants.Constants.VISUALISATIONS)
+        os.makedirs(name=self._visualisations_folder_path, exist_ok=True)
         self._post_visualisations = config.post_visualisations
         self._plotter = self._setup_plotter(config=config)
 
@@ -316,7 +322,7 @@ class BaseRunner(abc.ABC):
         array: np.ndarray,
     ) -> None:
         if self._array_log_iteration(tag=tag, episode=episode):
-            file_path = os.path.join(self._array_folder_path,
+            file_path = os.path.join(self._array_folder_path, tag,
                                      f"{tag}_{episode}")
             np.save(file_path, array)
 
