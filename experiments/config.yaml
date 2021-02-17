@@ -70,7 +70,7 @@ learner:
 
     # hard_coded, adaptive_uncertainty, adaptive_arriving_uncertainty, 
     # policy_entropy_penalty or potential_based_adaptive_uncertainty
-    visitation_penalty_type: policy_entropy_penalty 
+    visitation_penalty_type: hard_coded 
 
     hard_coded: 
         vp_schedule:
@@ -191,6 +191,7 @@ logging:
         - [value_function, 10]
         # - [individual_value_functions, 50]
         - [value_function_std, 10]
+        - [policy_entropy, 10]
     scalars:
         - [train_episode_reward, 1]
         - [train_episode_length, 1]
@@ -216,6 +217,7 @@ logging:
     post_visualisations:
         - value_function
         - value_function_std
+        - policy_entropy
 
 post_processing:
     smoothing: 40
