@@ -14,7 +14,7 @@ MAIN_FILE_PATH = os.path.dirname(os.path.realpath(__file__))
 
 
 def cluster_run(experiment_path: str, config_path: str, num_cpus: int,
-                memory_per_node: int) -> None:
+                memory_per_node: int, num_gpus: int, gpu_type: str) -> None:
     """Set of experiments run in parallel.
 
     Args:
@@ -39,6 +39,8 @@ def cluster_run(experiment_path: str, config_path: str, num_cpus: int,
                                       num_cpus=num_cpus,
                                       conda_env_name=env,
                                       memory=memory_per_node,
+                                      num_gpus=num_gpus,
+                                      gpu_type=gpu_type,
                                       error_path=error_path,
                                       output_path=output_path)
 
