@@ -28,6 +28,8 @@ CONFIG_CHANGES = {
         "learner": {
             "visitation_penalty_type": "hard_coded"
         }
+    }, {
+        "gpu_id": 0
     }],
     "hard_coded": [{
         "learner": {
@@ -39,6 +41,8 @@ CONFIG_CHANGES = {
         "learner": {
             "visitation_penalty_type": "hard_coded"
         }
+    }, {
+        "gpu_id": 1
     }],
     "policy_entropy": [{
         "learner": {
@@ -50,5 +54,7 @@ CONFIG_CHANGES = {
         "learner": {
             "visitation_penalty_type": "policy_entropy_penalty"
         }
+    }, {
+        "gpu_id": 2
     }]
 }
