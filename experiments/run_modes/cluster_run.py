@@ -13,8 +13,13 @@ from utils import cluster_methods
 MAIN_FILE_PATH = os.path.dirname(os.path.realpath(__file__))
 
 
-def cluster_run(experiment_path: str, config_path: str, num_cpus: int,
-                memory_per_node: int, num_gpus: int, gpu_type: str) -> None:
+def cluster_run(experiment_path: str,
+                config_path: str,
+                num_cpus: int,
+                memory_per_node: int,
+                num_gpus: int,
+                gpu_type: str,
+                cluster_debug: bool = False) -> None:
     """Set of experiments run in parallel.
 
     Args:
@@ -44,5 +49,7 @@ def cluster_run(experiment_path: str, config_path: str, num_cpus: int,
                                       error_path=error_path,
                                       output_path=output_path)
 
-    subprocess.call(run_command, shell=True)
-    # subprocess.call(f"qsub {job_script_path}", shell=True)
+    if cluster_debug:
+        subprocess.call(run_command, shell=True)
+    else:
+        subprocess.call(f"qsub {job_script_path}", shell=True)
