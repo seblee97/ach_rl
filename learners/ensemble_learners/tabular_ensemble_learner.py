@@ -72,8 +72,6 @@ class TabularEnsembleLearner(base_learner.BaseLearner):
             max_action_index_probabilities = np.bincount(
                 max_action_indices, minlength=len(
                     state_values[0])) / len(max_action_indices)
-            import pdb
-            pdb.set_trace()
             state_policy_entropy = -np.sum(
                 (max_action_index_probabilities + self.EPSILON) *
                 np.log(max_action_index_probabilities + self.EPSILON))
