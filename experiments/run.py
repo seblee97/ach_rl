@@ -41,6 +41,10 @@ parser.add_argument(
 parser.add_argument("--num_gpus",
                     default=0,
                     help="number of gpus to use in cluster")
+parser.add_argument(
+    "--num_cpus",
+    default=0,
+    help="number of cpus to use in cluster. Inferred if not given.")
 parser.add_argument("--gpu_type", default="K80", help="type of gpu")
 
 
@@ -114,7 +118,9 @@ if __name__ == "__main__":
             serial_run.serial_run(config_path=args.config_path,
                                   checkpoint_paths=checkpoint_paths)
         elif args.mode == constants.Constants.CLUSTER:
-            if len(checkpoint_paths) <= 8:
+            if args.num_cpus:
+                num_cpus = args.num_cpus
+            elif len(checkpoint_paths) <= 8:
                 num_cpus = len(checkpoint_paths)
             elif len(checkpoint_paths) <= 32:
                 num_cpus = 32
