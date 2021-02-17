@@ -248,6 +248,7 @@ class Constants:
     BOOTSTRAPPED_ENSEMBLE_DQN = "bootstrapped_ensemble_dqn"
     INDEPENDENT_ENSEMBLE_DQN = "independent_ensemble_dqn"
     MASK_PROBABILITY = "mask_probability"
+    POLICY_ENTROPY = "policy_entropy"
 
     ATARI_ENVS = ["PongNoFrameskip-v4"]
 
