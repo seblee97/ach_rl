@@ -7,6 +7,10 @@ from learners import base_learner
 
 class TabularEnsembleLearner(base_learner.BaseLearner):
     """Learner consisting of ensemble."""
+
+    # very small value to avoid log (0) in entropy calculation
+    EPSILON = 1e-8
+
     def __init__(self, learner_ensemble: List[base_learner.BaseLearner]):
         """Class constructor.
 
@@ -25,9 +29,7 @@ class TabularEnsembleLearner(base_learner.BaseLearner):
 
         states = all_state_action_values[0].keys()
         for state in states:
-            state_values = [
-                values[state] for values in all_state_action_values
-            ]
+            state_values = [values[state] for values in all_state_action_values]
             mean_state_values = np.mean(state_values, axis=0)
             averaged_values[state] = mean_state_values
         return averaged_values
@@ -49,12 +51,34 @@ class TabularEnsembleLearner(base_learner.BaseLearner):
 
         states = all_state_action_values[0].keys()
         for state in states:
-            state_values = [
-                values[state] for values in all_state_action_values
-            ]
+            state_values = [values[state] for values in all_state_action_values]
             state_values_std = np.std(state_values, axis=0)
             values_std[state] = state_values_std
         return values_std
+
+    @property
+    def policy_entropy(self):
+        all_state_action_values = [
+            learner.state_action_values for learner in self._learner_ensemble
+        ]
+
+        policy_entropy = {}
+
+        states = all_state_action_values[0].keys()
+
+        for state in states:
+            state_values = [values[state] for values in all_state_action_values]
+            max_action_indices = np.argmax(state_values, axis=1)
+            max_action_index_probabilities = np.bincount(
+                max_action_indices, minlength=len(
+                    state_values[0])) / len(max_action_indices)
+            import pdb
+            pdb.set_trace()
+            state_policy_entropy = -np.sum(
+                (max_action_index_probabilities + self.EPSILON) *
+                np.log(max_action_index_probabilities + self.EPSILON))
+            policy_entropy[state] = state_policy_entropy
+        return policy_entropy
 
     @property
     def ensemble(self) -> List:
