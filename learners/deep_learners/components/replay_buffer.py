@@ -13,7 +13,8 @@ class ReplayBuffer:
     def __init__(self,
                  replay_size: int,
                  state_dim: Tuple,
-                 mask_length: Union[int, None] = None) -> None:
+                 mask_length: Union[int, None] = None,
+                 penalties: bool = False) -> None:
         """Class constructor.
 
         Args:
@@ -32,6 +33,9 @@ class ReplayBuffer:
                                          dtype=np.int8)
         else:
             self._mask_buffer = None
+        self._penalties = penalties
+        if self._penalties:
+            self._penalty_buffer = np.zeros(replay_size, dtype=np.float32)
 
         self._insertion_index = 0
         self._replay_size = replay_size
@@ -46,7 +50,8 @@ class ReplayBuffer:
             reward: float,
             next_state: np.ndarray,
             active: bool,
-            mask: Union[np.ndarray, None] = None) -> None:
+            mask: Union[np.ndarray, None] = None,
+            penalty: Union[np.ndarray, None] = None) -> None:
         """Add tuple to buffer.
 
         Args:
@@ -65,7 +70,8 @@ class ReplayBuffer:
         self._active_buffer[insertion_index] = active
         if mask is not None:
             self._mask_buffer[insertion_index] = mask
-
+        if penalty is not None:
+            self._penalty_buffer[insertion_index] = penalty
         self._insertion_index += 1
 
     def sample(self, batch_size: int) -> namedtuple:
@@ -90,13 +96,26 @@ class ReplayBuffer:
 
         if self._mask_buffer is not None:
             mask_sample = self._mask_buffer[sample_indices]
-            return custom_objects.MaskedTransition(
-                state_encoding=states_sample,
-                action=actions_sample,
-                reward=rewards_sample,
-                next_state_encoding=next_states_sample,
-                active=active_sample,
-                mask=mask_sample)
+
+            if self._penalties:
+                penalty_sample = self._penalty_buffer[sample_indices]
+                return custom_objects.MaskedPenaltyTransition(
+                    state_encoding=states_sample,
+                    action=actions_sample,
+                    reward=rewards_sample,
+                    next_state_encoding=next_states_sample,
+                    active=active_sample,
+                    mask=mask_sample,
+                    penalty=penalty_sample)
+            else:
+                return custom_objects.MaskedTransition(
+                    state_encoding=states_sample,
+                    action=actions_sample,
+                    reward=rewards_sample,
+                    next_state_encoding=next_states_sample,
+                    active=active_sample,
+                    mask=mask_sample)
+
         else:
             return custom_objects.Transition(
                 state_encoding=states_sample,
