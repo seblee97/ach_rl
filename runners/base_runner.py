@@ -240,8 +240,13 @@ class BaseRunner(abc.ABC):
                 constants.Constants.DQN,
                 constants.Constants.INDEPENDENT_ENSEMBLE_DQN
         ]:
+            if config.shaping_implementation == constants.Constants.TRAIN_Q_NETWORK:
+                use_target_network = False
+            elif config.shaping_implementation == constants.Constants.TRAIN_TARGET_NETWORK:
+                use_target_network = True
             visitation_penalty = network_visitation_penalty.NetworkVisitationPenalty(
-                penalty_computer=penalty_computer)
+                penalty_computer=penalty_computer,
+                use_target_network=use_target_network)
         elif config.type in [
                 constants.Constants.Q_LEARNING,
                 constants.Constants.SARSA_LAMBDA,
