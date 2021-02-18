@@ -2,7 +2,6 @@ import argparse
 import json
 import os
 
-import constants
 from utils import plotting_functions
 
 parser = argparse.ArgumentParser()
