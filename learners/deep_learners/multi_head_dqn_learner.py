@@ -82,6 +82,10 @@ class MultiHeadDQNLearner(base_learner.BaseLearner):
     def q_network(self) -> nn.Module:
         return self._q_network
 
+    @property
+    def target_q_network(self) -> nn.Module:
+        return self._target_q_network
+
     def _initialise_q_network(self):
         """Setup a q-network."""
         return q_network.QNetwork(
@@ -106,13 +110,6 @@ class MultiHeadDQNLearner(base_learner.BaseLearner):
                 eps=self._eps,
             )
         return optimiser
-
-    # def set_network_branch_gradients(self, branch_index: int):
-    #     for param in self._q_network._branched_layers.parameters():
-    #         param.requires_grad = False
-    #     for param in self._q_network._branched_layers[branch_index].parameters(
-    #     ):
-    #         param.requires_grad = True
 
     def train(self) -> None:
         """Set to train."""
