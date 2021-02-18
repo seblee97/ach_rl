@@ -39,6 +39,8 @@ class EnsembleDQNSharedFeatureRunner(base_runner.BaseRunner):
 
         self._visitation_penalty.q_network = copy.deepcopy(
             self._learner.q_network)
+        self._visitation_penalty.target_q_network = copy.deepcopy(
+            self._learner.target_q_network)
 
         self._replay_buffer = self._setup_replay_buffer(config=config)
         self._fill_replay_buffer(
@@ -135,6 +137,8 @@ class EnsembleDQNSharedFeatureRunner(base_runner.BaseRunner):
         """
         self._visitation_penalty.q_network = copy.deepcopy(
             self._learner.q_network)
+        self._visitation_penalty.target_q_network = copy.deepcopy(
+            self._learner.target_q_network)
 
         # select branch uniformly at random for rollout
         branch = random.choice(range(self._num_learners))
