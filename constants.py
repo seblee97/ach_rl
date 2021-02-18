@@ -249,6 +249,11 @@ class Constants:
     INDEPENDENT_ENSEMBLE_DQN = "independent_ensemble_dqn"
     MASK_PROBABILITY = "mask_probability"
     POLICY_ENTROPY = "policy_entropy"
+    SHAPING_IMPLEMENTATION = "shaping_implementation"
+    ACT = "act"
+    TRAIN_Q_NETWORK = "train_q_network"
+    TRAIN_TARGET_NETWORK = "train_target_network"
+    PENALTY = "penalty"
 
     ATARI_ENVS = ["PongNoFrameskip-v4"]
 
