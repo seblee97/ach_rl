@@ -625,7 +625,16 @@ class AChConfigTemplate:
             ),
             config_field.Field(name=constants.Constants.MASK_PROBABILITY,
                                types=[int, float],
-                               requirements=[lambda x: x >= 0 and x <= 1])
+                               requirements=[lambda x: x >= 0 and x <= 1]),
+            config_field.Field(name=constants.Constants.SHAPING_IMPLEMENTATION,
+                               types=[str],
+                               requirements=[
+                                   lambda x: x in [
+                                       constants.Constants.ACT, constants.
+                                       Constants.TRAIN_Q_NETWORK, constants.
+                                       Constants.TRAIN_TARGET_NETWORK
+                                   ]
+                               ])
         ],
         dependent_variables=[constants.Constants.TYPE],
         dependent_variables_required_values=[
