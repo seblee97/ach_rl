@@ -70,7 +70,10 @@ learner:
 
     # hard_coded, adaptive_uncertainty, adaptive_arriving_uncertainty, 
     # policy_entropy_penalty or potential_based_adaptive_uncertainty
-    visitation_penalty_type: hard_coded 
+    visitation_penalty_type: hard_coded
+
+    # train_q_network, train_target_network, act; only relevant for DQN-based
+    shaping_implementation: train_q_network
 
     hard_coded: 
         vp_schedule:
