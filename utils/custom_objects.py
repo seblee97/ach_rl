@@ -24,3 +24,13 @@ MaskedTransition = namedtuple(
         constants.Constants.MASK,
     ],
 )
+
+MaskedPenaltyTransition = namedtuple(
+    typename=constants.Constants.TRANSITION,
+    field_names=[
+        constants.Constants.STATE_ENCODING, constants.Constants.ACTION,
+        constants.Constants.REWARD, constants.Constants.NEXT_STATE_ENCODING,
+        constants.Constants.ACTIVE, constants.Constants.MASK,
+        constants.Constants.PENALTY
+    ],
+)
