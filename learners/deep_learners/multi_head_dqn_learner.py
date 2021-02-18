@@ -170,7 +170,7 @@ class MultiHeadDQNLearner(base_learner.BaseLearner):
         # add batch dimension, copy for each branch dimension for indexing
         action_index = action.unsqueeze(-1).repeat(self._num_branches, 1,
                                                    1).to(torch.int64)
-        estimate = torch.gather(state_value_estimates, 1,
+        estimate = torch.gather(state_value_estimates, 2,
                                 action_index).squeeze()
 
         max_target = torch.max(
