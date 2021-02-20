@@ -26,6 +26,7 @@ from runners import dqn_runner
 from runners import q_learning_ensemble_runner
 from runners import q_learning_runner
 from runners import sarsa_lambda_runner
+from utils import experiment_logger
 from utils import experiment_utils
 
 parser = argparse.ArgumentParser()
@@ -60,12 +61,15 @@ def single_run(config_path: str,
         changes: specification of changes to be made to config.
     """
 
+    logger = experiment_logger.get_logger(experiment_path=checkpoint_path,
+                                          name=__name__)
+
     config = ach_config.AchConfig(config=config_path, changes=changes)
 
     seed = config.seed
 
     experiment_utils.set_random_seeds(seed)
-    config = experiment_utils.set_device(config)
+    config = experiment_utils.set_device(config, logger=logger)
 
     config.amend_property(property_name=constants.Constants.SEED,
                           new_property_value=seed)

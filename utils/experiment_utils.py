@@ -33,7 +33,7 @@ def set_device(config: ach_config.AchConfig,
     else:
         print_fn = print
     if config.use_gpu:
-        print("Attempting to find GPU...")
+        print_fn("Attempting to find GPU...")
         if torch.cuda.is_available():
             print_fn("GPU found, using the GPU...")
             torch.backends.cudnn.deterministic = True
