@@ -5,11 +5,11 @@ from visitation_penalties import base_visitation_penalty
 
 
 class NetworkVisitationPenalty(base_visitation_penalty.BaseVisitationPenalty):
-
-    def __init__(self,
-                 penalty_computer: base_visitation_penalty.
-                 BaseVisitationPenaltyComputer,
-                 use_target_network: bool = False):
+    def __init__(
+        self,
+        penalty_computer: base_visitation_penalty.BaseVisitationPenaltyComputer,
+        use_target_network: bool = False,
+    ):
         self._q_network: nn.Module
         self._target_q_network: nn.Module
         self._use_target_network = use_target_network
@@ -34,13 +34,9 @@ class NetworkVisitationPenalty(base_visitation_penalty.BaseVisitationPenalty):
     def _compute_state_values(self, state):
         with torch.no_grad():
             if self._use_target_network:
-                state_values = np.array(
-                    self._target_q_network.forward_all_heads(
-                        state).cpu().detach().numpy())
+                state_values = self._target_q_network.forward_all_heads(state)
             else:
-                state_values = np.array(
-                    self._q_network.forward_all_heads(
-                        state).cpu().detach().numpy())
+                state_values = self._q_network.forward_all_heads(state)
         # output of forward_all_heads method has dimensions [NUM_LEARNERS x BATCH_SIZE x NUM_ACTIONS]
         # for penalty compuation we have batch size of 1 and want to squash this dimension
-        return state_values
+        return state_values.cpu().numpy()
