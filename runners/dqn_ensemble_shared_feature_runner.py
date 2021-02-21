@@ -37,34 +37,37 @@ class EnsembleDQNSharedFeatureRunner(base_runner.BaseRunner):
         self._mask_probability = config.mask_probability
         self._shaping_implementation = config.shaping_implementation
 
-        self._visitation_penalty.q_network = copy.deepcopy(
-            self._learner.q_network)
+        self._visitation_penalty.q_network = copy.deepcopy(self._learner.q_network)
         self._visitation_penalty.target_q_network = copy.deepcopy(
-            self._learner.target_q_network)
+            self._learner.target_q_network
+        )
 
         self._replay_buffer = self._setup_replay_buffer(config=config)
-        self._fill_replay_buffer(
-            num_trajectories=config.num_replay_fill_trajectories)
+        self._fill_replay_buffer(num_trajectories=config.num_replay_fill_trajectories)
 
     def _setup_replay_buffer(
-            self, config: ach_config.AchConfig) -> replay_buffer.ReplayBuffer:
+        self, config: ach_config.AchConfig
+    ) -> replay_buffer.ReplayBuffer:
         """Instantiate replay buffer object to store experiences."""
         state_dim = tuple(config.encoded_state_dimensions)
         replay_size = config.replay_buffer_size
         penalties = config.shaping_implementation in [
             constants.Constants.TRAIN_Q_NETWORK,
-            constants.Constants.TRAIN_TARGET_NETWORK
+            constants.Constants.TRAIN_TARGET_NETWORK,
         ]
-        return replay_buffer.ReplayBuffer(replay_size=replay_size,
-                                          state_dim=state_dim,
-                                          mask_length=self._num_learners,
-                                          penalties=penalties)
+        return replay_buffer.ReplayBuffer(
+            replay_size=replay_size,
+            state_dim=state_dim,
+            mask_length=self._num_learners,
+            penalties=penalties,
+        )
 
     def _get_random_mask(self):
         return np.random.choice(
             [0, 1],
             size=self._num_learners,
-            p=[self._mask_probability, 1 - self._mask_probability])
+            p=[self._mask_probability, 1 - self._mask_probability],
+        )
 
     def _fill_replay_buffer(self, num_trajectories: int):
         """Build up store of experiences before training begins.
@@ -84,26 +87,30 @@ class EnsembleDQNSharedFeatureRunner(base_runner.BaseRunner):
             else:
                 penalty, _ = self._visitation_penalty(
                     episode=0,
-                    state=torch.from_numpy(state).to(device=self._device,
-                                                     dtype=torch.float),
+                    state=torch.from_numpy(state).to(
+                        device=self._device, dtype=torch.float
+                    ),
                     action=action,
                     next_state=torch.from_numpy(next_state).to(
-                        device=self._device, dtype=torch.float))
+                        device=self._device, dtype=torch.float
+                    ),
+                )
 
-            self._replay_buffer.add(state=state,
-                                    action=action,
-                                    reward=reward,
-                                    next_state=next_state,
-                                    active=self._environment.active,
-                                    mask=self._get_random_mask(),
-                                    penalty=penalty)
+            self._replay_buffer.add(
+                state=state,
+                action=action,
+                reward=reward,
+                next_state=next_state,
+                active=self._environment.active,
+                mask=self._get_random_mask(),
+                penalty=penalty,
+            )
             if not self._environment.active:
                 state = self._environment.reset_environment(train=True)
             else:
                 state = next_state
 
-    def _setup_learner(self,
-                       config: ach_config.AchConfig):  # TODO: similar to envs
+    def _setup_learner(self, config: ach_config.AchConfig):  # TODO: similar to envs
         """Initialise learner specified in configuration."""
         return multi_head_dqn_learner.MultiHeadDQNLearner(
             action_space=self._environment.action_space,
@@ -119,7 +126,8 @@ class EnsembleDQNSharedFeatureRunner(base_runner.BaseRunner):
             gamma=config.discount_factor,
             target_network_update_period=config.target_network_update_period,
             device=config.experiment_device,
-            gradient_clipping=config.gradient_clipping)
+            gradient_clipping=config.gradient_clipping,
+        )
 
     def _pre_episode_log(self, episode: int):
         """Logging pre-episode. Includes value-function, individual run."""
@@ -135,10 +143,10 @@ class EnsembleDQNSharedFeatureRunner(base_runner.BaseRunner):
             episode_reward: mean scalar reward accumulated over ensemble episodes.
             num_steps: mean number of steps taken for ensemble episodes.
         """
-        self._visitation_penalty.q_network = copy.deepcopy(
-            self._learner.q_network)
+        self._visitation_penalty.q_network = copy.deepcopy(self._learner.q_network)
         self._visitation_penalty.target_q_network = copy.deepcopy(
-            self._learner.target_q_network)
+            self._learner.target_q_network
+        )
 
         # select branch uniformly at random for rollout
         branch = random.choice(range(self._num_learners))
@@ -161,11 +169,14 @@ class EnsembleDQNSharedFeatureRunner(base_runner.BaseRunner):
 
             acting_penalty, acting_penalty_info = self._visitation_penalty(
                 episode=episode,
-                state=torch.from_numpy(state).to(device=self._device,
-                                                 dtype=torch.float),
+                state=torch.from_numpy(state).to(
+                    device=self._device, dtype=torch.float
+                ),
                 action=action,
-                next_state=torch.from_numpy(next_state).to(device=self._device,
-                                                           dtype=torch.float))
+                next_state=torch.from_numpy(next_state).to(
+                    device=self._device, dtype=torch.float
+                ),
+            )
 
             acting_penalties.append(acting_penalty)
 
@@ -179,46 +190,43 @@ class EnsembleDQNSharedFeatureRunner(base_runner.BaseRunner):
             else:
                 buffer_penalty = acting_penalty
 
-            self._replay_buffer.add(state=state,
-                                    action=action,
-                                    reward=reward,
-                                    next_state=next_state,
-                                    active=self._environment.active,
-                                    mask=self._get_random_mask(),
-                                    penalty=buffer_penalty)
+            self._replay_buffer.add(
+                state=state,
+                action=action,
+                reward=reward,
+                next_state=next_state,
+                active=self._environment.active,
+                mask=self._get_random_mask(),
+                penalty=buffer_penalty,
+            )
 
             experience_sample = self._replay_buffer.sample(self._batch_size)
 
             state_sample = torch.from_numpy(experience_sample[0]).to(
-                device=self._device, dtype=torch.float)
+                device=self._device, dtype=torch.float
+            )
             action_sample = torch.from_numpy(experience_sample[1]).to(
-                device=self._device, dtype=torch.int)
+                device=self._device, dtype=torch.int
+            )
             reward_sample = torch.from_numpy(experience_sample[2]).to(
-                device=self._device, dtype=torch.float)
+                device=self._device, dtype=torch.float
+            )
             next_state_sample = torch.from_numpy(experience_sample[3]).to(
-                device=self._device, dtype=torch.float)
+                device=self._device, dtype=torch.float
+            )
             active_sample = torch.from_numpy(experience_sample[4]).to(
-                device=self._device, dtype=torch.int)
+                device=self._device, dtype=torch.int
+            )
             mask_sample = torch.from_numpy(experience_sample[5]).to(
-                device=self._device, dtype=torch.int)
+                device=self._device, dtype=torch.int
+            )
 
-            # TODO: vectorise over batch
-            sample_penalty = []
-            sample_penalty_infos = {}
-
-            for i in range(self._batch_size):
-                i_sample_penalty, i_sample_penalty_info = self._visitation_penalty(
-                    episode=episode,
-                    state=state_sample[i].unsqueeze(0),
-                    action=action_sample[i].unsqueeze(0),
-                    next_state=next_state_sample[i].unsqueeze(0))
-
-                sample_penalty.append(i_sample_penalty)
-
-                for info_key, info in i_sample_penalty_info.items():
-                    if info_key not in sample_penalty_infos.keys():
-                        sample_penalty_infos[info_key] = []
-                    sample_penalty_infos[info_key].append(info)
+            sample_penalty, sample_penalty_infos = self._visitation_penalty(
+                episode=episode,
+                state=state_sample,
+                action=action_sample,
+                next_state=next_state_sample,
+            )
 
             sample_penalties.append(np.mean(sample_penalty))
             for info_key, info in sample_penalty_infos.items():
@@ -227,22 +235,26 @@ class EnsembleDQNSharedFeatureRunner(base_runner.BaseRunner):
                 sample_penalties_infos[info_key].append(np.mean(info))
 
             if self._shaping_implementation in [
-                    constants.Constants.TRAIN_Q_NETWORK,
-                    constants.Constants.TRAIN_TARGET_NETWORK
+                constants.Constants.TRAIN_Q_NETWORK,
+                constants.Constants.TRAIN_TARGET_NETWORK,
             ]:
-                penalty = torch.Tensor(sample_penalty).to(device=self._device,
-                                                          dtype=torch.float)
+                penalty = torch.Tensor(sample_penalty).to(
+                    device=self._device, dtype=torch.float
+                )
             elif self._shaping_implementation in [constants.Constants.ACT]:
                 penalty = torch.from_numpy(experience_sample[6]).to(
-                    device=self._device, dtype=torch.float)
+                    device=self._device, dtype=torch.float
+                )
 
-            loss, epsilon = self._learner.step(state=state_sample,
-                                               action=action_sample,
-                                               reward=reward_sample,
-                                               next_state=next_state_sample,
-                                               active=active_sample,
-                                               visitation_penalty=penalty,
-                                               mask=mask_sample)
+            loss, epsilon = self._learner.step(
+                state=state_sample,
+                action=action_sample,
+                reward=reward_sample,
+                next_state=next_state_sample,
+                active=active_sample,
+                visitation_penalty=penalty,
+                mask=mask_sample,
+            )
 
             state = next_state
             episode_reward += reward
@@ -273,38 +285,36 @@ class EnsembleDQNSharedFeatureRunner(base_runner.BaseRunner):
             tag=constants.Constants.MEAN_VISITATION_PENALTY,
             episode=episode,
             scalar=mean_sample_penalty,
-            df_tag=f"sample_{constants.Constants.MEAN_VISITATION_PENALTY}")
+            df_tag=f"sample_{constants.Constants.MEAN_VISITATION_PENALTY}",
+        )
         self._write_scalar(
             tag=constants.Constants.MEAN_VISITATION_PENALTY,
             episode=episode,
             scalar=mean_acting_penalty,
-            df_tag=f"acting_{constants.Constants.MEAN_VISITATION_PENALTY}")
-        for penalty_info, ensemble_penalty_info in mean_sample_penalty_info.items(
-        ):
+            df_tag=f"acting_{constants.Constants.MEAN_VISITATION_PENALTY}",
+        )
+        for penalty_info, ensemble_penalty_info in mean_sample_penalty_info.items():
             self._write_scalar(
                 tag=constants.Constants.MEAN_PENALTY_INFO,
                 episode=episode,
                 scalar=ensemble_penalty_info,
                 df_tag=f"sample_{penalty_info}",
             )
-        for penalty_info, ensemble_penalty_info in std_sample_penalty_info.items(
-        ):
+        for penalty_info, ensemble_penalty_info in std_sample_penalty_info.items():
             self._write_scalar(
                 tag=constants.Constants.STD_PENALTY_INFO,
                 episode=episode,
                 scalar=ensemble_penalty_info,
                 df_tag=f"sample_{penalty_info}_std",
             )
-        for penalty_info, ensemble_penalty_info in mean_acting_penalty_info.items(
-        ):
+        for penalty_info, ensemble_penalty_info in mean_acting_penalty_info.items():
             self._write_scalar(
                 tag=constants.Constants.MEAN_PENALTY_INFO,
                 episode=episode,
                 scalar=ensemble_penalty_info,
                 df_tag=f"acting_{penalty_info}",
             )
-        for penalty_info, ensemble_penalty_info in std_acting_penalty_info.items(
-        ):
+        for penalty_info, ensemble_penalty_info in std_acting_penalty_info.items():
             self._write_scalar(
                 tag=constants.Constants.STD_PENALTY_INFO,
                 episode=episode,
@@ -314,21 +324,17 @@ class EnsembleDQNSharedFeatureRunner(base_runner.BaseRunner):
 
         return episode_reward, episode_steps
 
-    def _get_visitation_penalty(self, episode: int, state, action: int,
-                                next_state):
+    def _get_visitation_penalty(self, episode: int, state, action: int, next_state):
         if isinstance(self._visitation_penalty, AdaptiveUncertaintyPenalty):
-            penalty, penalty_info = self._visitation_penalty(state=state,
-                                                             action=action)
+            penalty, penalty_info = self._visitation_penalty(state=state, action=action)
         elif isinstance(self._visitation_penalty, HardCodedPenalty):
             penalty, penalty_info = self._visitation_penalty(episode=episode)
-        elif isinstance(self._visitation_penalty,
-                        PotentialAdaptiveUncertaintyPenalty):
+        elif isinstance(self._visitation_penalty, PotentialAdaptiveUncertaintyPenalty):
             penalty, penalty_info = self._visitation_penalty(
-                state=state, action=action, next_state=next_state)
-        elif isinstance(self._visitation_penalty,
-                        AdaptiveArrivingUncertaintyPenalty):
-            penalty, penalty_info = self._visitation_penalty(
-                next_state=next_state)
+                state=state, action=action, next_state=next_state
+            )
+        elif isinstance(self._visitation_penalty, AdaptiveArrivingUncertaintyPenalty):
+            penalty, penalty_info = self._visitation_penalty(next_state=next_state)
         return penalty, penalty_info
 
     def _run_specific_tests(self, episode: int):
