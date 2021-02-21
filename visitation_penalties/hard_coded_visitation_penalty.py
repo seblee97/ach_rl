@@ -2,6 +2,7 @@ from typing import Any
 from typing import Dict
 from typing import List
 
+import constants
 import numpy as np
 from visitation_penalties import base_visitation_penalty
 
@@ -27,9 +28,12 @@ class HardCodedPenalty(base_visitation_penalty.BaseVisitationPenaltyComputer):
         except StopIteration:
             pass
 
-    def compute_penalty(self, episode: int, penalty_info: Dict[str,
-                                                               Any]) -> float:
+    def compute_penalty(self, episode: int, penalty_info: Dict[str, Any]) -> float:
         if episode == self._next_switch_episode:
             self._get_next_penalty_set()
 
-        return self._current_penalty
+        batch_dimension = penalty_info[
+            constants.Constants.CURRENT_STATE_MAX_UNCERTAINTY
+        ].shape[0]
+
+        return self._current_penalty * np.ones(batch_dimension)
