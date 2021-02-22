@@ -254,6 +254,7 @@ class Constants:
     TRAIN_Q_NETWORK = "train_q_network"
     TRAIN_TARGET_NETWORK = "train_target_network"
     PENALTY = "penalty"
+    LOG_EPSILON = 1e-8
 
     ATARI_ENVS = ["PongNoFrameskip-v4"]
 
