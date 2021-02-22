@@ -3,13 +3,11 @@ from typing import List
 
 import numpy as np
 from learners import base_learner
+from utils import custom_functions
 
 
 class TabularEnsembleLearner(base_learner.BaseLearner):
     """Learner consisting of ensemble."""
-
-    # very small value to avoid log (0) in entropy calculation
-    EPSILON = 1e-8
 
     def __init__(self, learner_ensemble: List[base_learner.BaseLearner]):
         """Class constructor.
@@ -69,12 +67,10 @@ class TabularEnsembleLearner(base_learner.BaseLearner):
         for state in states:
             state_values = [values[state] for values in all_state_action_values]
             max_action_indices = np.argmax(state_values, axis=1)
-            max_action_index_probabilities = np.bincount(
-                max_action_indices, minlength=len(
-                    state_values[0])) / len(max_action_indices)
-            state_policy_entropy = -np.sum(
-                (max_action_index_probabilities + self.EPSILON) *
-                np.log(max_action_index_probabilities + self.EPSILON))
+            state_policy_entropy = custom_functions.policy_entropy(
+                state_max_action_indices=max_action_indices,
+                num_actions=len(state_values[0]),
+            )
             policy_entropy[state] = state_policy_entropy
         return policy_entropy
 
