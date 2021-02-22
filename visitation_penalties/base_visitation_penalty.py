@@ -6,6 +6,7 @@ from typing import Tuple
 
 import constants
 import numpy as np
+from utils import custom_functions
 
 
 class BaseVisitationPenaltyComputer(abc.ABC):
@@ -24,9 +25,6 @@ class BaseVisitationPenalty(abc.ABC):
     the potential-based reward structure of
     Ng, Harada, Russell (1999).
     """
-
-    # very small value to avoid log (0) in entropy calculation
-    EPSILON = 1e-8
 
     def __init__(self, penalty_computer: BaseVisitationPenaltyComputer):
         self._penalty_computer = penalty_computer
@@ -59,19 +57,20 @@ class BaseVisitationPenalty(abc.ABC):
             state_max_uncertainty = np.std(state_max_action_values, axis=0)
             state_mean_uncertainty = np.mean(np.std(state_values, axis=0), axis=-1)
 
-            state_max_action_index_probabilities = [
-                np.bincount(indices, minlength=num_actions) / len(indices)
-                for indices in state_max_action_indices.T
-            ]
-            state_policy_entropy = np.array(
-                [
-                    -np.sum(
-                        (probabilities + self.EPSILON)
-                        * np.log(probabilities + self.EPSILON)
-                    )
-                    for probabilities in state_max_action_index_probabilities
-                ]
-            )
+            if len(state_max_action_indices.shape) == 1:
+                state_policy_entropy = custom_functions.policy_entropy(
+                    state_max_action_indices, num_actions=num_actions
+                )
+            elif len(state_max_action_indices.shape) == 2:
+                state_policy_entropy = np.array(
+                    [
+                        custom_functions.policy_entropy(
+                            indices, num_actions=num_actions
+                        )
+                        for indices in state_max_action_indices
+                    ]
+                )
+
             return state_max_uncertainty, state_mean_uncertainty, state_policy_entropy
 
         (
@@ -86,9 +85,11 @@ class BaseVisitationPenalty(abc.ABC):
             next_state_policy_entropy,
         ) = _state_quantities(next_state_values)
 
-        current_state_select_uncertainty = np.std(
-            current_state_values[:, :, action], axis=0
-        )
+        if len(current_state_values.shape) == 2:
+            current_state_select = current_state_values[:, action]
+        elif len(current_state_values.shape) == 3:
+            current_state_select = current_state_values[:, :, action]
+        current_state_select_uncertainty = np.std(current_state_select, axis=0)
 
         return {
             constants.Constants.CURRENT_STATE_MAX_UNCERTAINTY: current_state_max_uncertainty,
