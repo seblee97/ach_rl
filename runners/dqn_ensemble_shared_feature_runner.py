@@ -90,7 +90,9 @@ class EnsembleDQNSharedFeatureRunner(base_runner.BaseRunner):
                     state=torch.from_numpy(state).to(
                         device=self._device, dtype=torch.float
                     ),
-                    action=action,
+                    action=torch.from_numpy(action).to(
+                        device=self._device, dtype=torch.int
+                    ),
                     next_state=torch.from_numpy(next_state).to(
                         device=self._device, dtype=torch.float
                     ),
