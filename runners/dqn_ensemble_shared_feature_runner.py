@@ -90,9 +90,9 @@ class EnsembleDQNSharedFeatureRunner(base_runner.BaseRunner):
                     state=torch.from_numpy(state).to(
                         device=self._device, dtype=torch.float
                     ),
-                    action=torch.from_numpy(action).to(
-                        device=self._device, dtype=torch.int
-                    ),
+                    action=torch.Tensor([action])
+                    .squeeze()
+                    .to(device=self._device, dtype=torch.int),
                     next_state=torch.from_numpy(next_state).to(
                         device=self._device, dtype=torch.float
                     ),
@@ -174,7 +174,9 @@ class EnsembleDQNSharedFeatureRunner(base_runner.BaseRunner):
                 state=torch.from_numpy(state).to(
                     device=self._device, dtype=torch.float
                 ),
-                action=action,
+                action=torch.Tensor([action])
+                .squeeze()
+                .to(device=self._device, dtype=torch.int),
                 next_state=torch.from_numpy(next_state).to(
                     device=self._device, dtype=torch.float
                 ),
