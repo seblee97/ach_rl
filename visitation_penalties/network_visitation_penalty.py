@@ -1,4 +1,3 @@
-import numpy as np
 import torch
 import torch.nn as nn
 from visitation_penalties import base_visitation_penalty
