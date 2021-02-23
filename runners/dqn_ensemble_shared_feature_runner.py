@@ -224,7 +224,7 @@ class EnsembleDQNSharedFeatureRunner(base_runner.BaseRunner):
             sample_penalty, sample_penalty_infos = self._visitation_penalty(
                 episode=episode,
                 state=state_sample,
-                action=action_sample.cpu().numpy(),
+                action=experience_sample[1],
                 next_state=next_state_sample,
             )
 
@@ -348,17 +348,19 @@ class EnsembleDQNSharedFeatureRunner(base_runner.BaseRunner):
         # greedy_vote = constants.Constants.GREEDY_VOTE
 
         # no_rep_greedy_sample = "_".join(
-        #     [constants.Constants.NO_REP, constants.Constants.GREEDY_SAMPLE])
+        #     [constants.Constants.NO_REP, constants.Constants.GREEDY_SAMPLE]
+        # )
         # no_rep_greedy_mean = "_".join(
-        #     [constants.Constants.NO_REP, constants.Constants.GREEDY_MEAN])
+        #     [constants.Constants.NO_REP, constants.Constants.GREEDY_MEAN]
+        # )
         # no_rep_greedy_vote = "_".join(
-        #     [constants.Constants.NO_REP, constants.Constants.GREEDY_VOTE])
+        #     [constants.Constants.NO_REP, constants.Constants.GREEDY_VOTE]
+        # )
 
         # if greedy_sample in self._targets:
         #     self._greedy_test_episode(
         #         episode=episode,
-        #         action_selection_method=SampleGreedyEnsemble.
-        #         select_target_action,
+        #         action_selection_method=SampleGreedyEnsemble.select_target_action,
         #         action_selection_method_args={
         #             constants.Constants.LEARNERS: self._learner.ensemble
         #         },
@@ -376,8 +378,7 @@ class EnsembleDQNSharedFeatureRunner(base_runner.BaseRunner):
         # if greedy_vote in self._targets:
         #     self._greedy_test_episode(
         #         episode=episode,
-        #         action_selection_method=MajorityVoteEnsemble.
-        #         select_target_action,
+        #         action_selection_method=MajorityVoteEnsemble.select_target_action,
         #         action_selection_method_args={
         #             constants.Constants.LEARNERS: self._learner.ensemble
         #         },
@@ -386,8 +387,7 @@ class EnsembleDQNSharedFeatureRunner(base_runner.BaseRunner):
         # if no_rep_greedy_sample in self._targets:
         #     self._non_repeat_test_episode(
         #         episode=episode,
-        #         action_selection_method=SampleGreedyEnsemble.
-        #         select_target_action,
+        #         action_selection_method=SampleGreedyEnsemble.select_target_action,
         #         action_selection_method_args={
         #             constants.Constants.LEARNERS: self._learner.ensemble
         #         },
@@ -405,8 +405,7 @@ class EnsembleDQNSharedFeatureRunner(base_runner.BaseRunner):
         # if no_rep_greedy_vote in self._targets:
         #     self._non_repeat_test_episode(
         #         episode=episode,
-        #         action_selection_method=MajorityVoteEnsemble.
-        #         select_target_action,
+        #         action_selection_method=MajorityVoteEnsemble.select_target_action,
         #         action_selection_method_args={
         #             constants.Constants.LEARNERS: self._learner.ensemble
         #         },
