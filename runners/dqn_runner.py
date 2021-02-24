@@ -199,11 +199,10 @@ class DQNRunner(base_runner.BaseRunner):
 
         while self._environment.active:
 
-            # if self._ensemble:
-            #     action = self._learner.select_behaviour_action(state, branch=branch)
-            # else:
-            #     action = self._learner.select_behaviour_action(state)
-            action = 0
+            if self._ensemble:
+                action = self._learner.select_behaviour_action(state, branch=branch)
+            else:
+                action = self._learner.select_behaviour_action(state)
             reward, next_state = self._environment.step(action)
 
             acting_penalty, acting_penalty_info = self._visitation_penalty(
@@ -233,15 +232,15 @@ class DQNRunner(base_runner.BaseRunner):
             else:
                 mask = None
 
-            self._replay_buffer.add(
-                state=state,
-                action=action,
-                reward=reward,
-                next_state=next_state,
-                active=self._environment.active,
-                mask=mask,
-                penalty=buffer_penalty,
-            )
+            # self._replay_buffer.add(
+            #     state=state,
+            #     action=action,
+            #     reward=reward,
+            #     next_state=next_state,
+            #     active=self._environment.active,
+            #     mask=mask,
+            #     penalty=buffer_penalty,
+            # )
 
             experience_sample = self._replay_buffer.sample(self._batch_size)
 
