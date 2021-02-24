@@ -313,67 +313,68 @@ class DQNRunner(base_runner.BaseRunner):
             episode_reward += reward
             episode_loss += loss
 
-        # mean_sample_penalty = np.mean(sample_penalties)
-        # mean_sample_penalty_info = {
-        #     k: np.mean(v) for k, v in sample_penalties_infos.items()
-        # }
-        # std_sample_penalty_info = {
-        #     k: np.std(v) for k, v in sample_penalties_infos.items()
-        # }
-        # mean_acting_penalty = np.mean(acting_penalties)
-        # mean_acting_penalty_info = {
-        #     k: np.mean(v) for k, v in acting_penalties_infos.items()
-        # }
-        # std_acting_penalty_info = {
-        #     k: np.std(v) for k, v in acting_penalties_infos.items()
-        # }
+        mean_sample_penalty = np.mean(sample_penalties)
+        mean_sample_penalty_info = {
+            k: np.mean(v) for k, v in sample_penalties_infos.items()
+        }
+        std_sample_penalty_info = {
+            k: np.std(v) for k, v in sample_penalties_infos.items()
+        }
+        mean_acting_penalty = np.mean(acting_penalties)
+        mean_acting_penalty_info = {
+            k: np.mean(v) for k, v in acting_penalties_infos.items()
+        }
+        std_acting_penalty_info = {
+            k: np.std(v) for k, v in acting_penalties_infos.items()
+        }
+
         episode_steps = self._environment.episode_step_count
 
-        # self._write_scalar(
-        #     tag=constants.Constants.LOSS,
-        #     episode=episode,
-        #     scalar=episode_loss / episode_steps,
-        # )
-        # self._write_scalar(
-        #     tag=constants.Constants.MEAN_VISITATION_PENALTY,
-        #     episode=episode,
-        #     scalar=mean_sample_penalty,
-        #     df_tag=f"sample_{constants.Constants.MEAN_VISITATION_PENALTY}",
-        # )
-        # self._write_scalar(
-        #     tag=constants.Constants.MEAN_VISITATION_PENALTY,
-        #     episode=episode,
-        #     scalar=mean_acting_penalty,
-        #     df_tag=f"acting_{constants.Constants.MEAN_VISITATION_PENALTY}",
-        # )
-        # for penalty_info, ensemble_penalty_info in mean_sample_penalty_info.items():
-        #     self._write_scalar(
-        #         tag=constants.Constants.MEAN_PENALTY_INFO,
-        #         episode=episode,
-        #         scalar=ensemble_penalty_info,
-        #         df_tag=f"sample_{penalty_info}",
-        #     )
-        # for penalty_info, ensemble_penalty_info in std_sample_penalty_info.items():
-        #     self._write_scalar(
-        #         tag=constants.Constants.STD_PENALTY_INFO,
-        #         episode=episode,
-        #         scalar=ensemble_penalty_info,
-        #         df_tag=f"sample_{penalty_info}_std",
-        #     )
-        # for penalty_info, ensemble_penalty_info in mean_acting_penalty_info.items():
-        #     self._write_scalar(
-        #         tag=constants.Constants.MEAN_PENALTY_INFO,
-        #         episode=episode,
-        #         scalar=ensemble_penalty_info,
-        #         df_tag=f"acting_{penalty_info}",
-        #     )
-        # for penalty_info, ensemble_penalty_info in std_acting_penalty_info.items():
-        #     self._write_scalar(
-        #         tag=constants.Constants.STD_PENALTY_INFO,
-        #         episode=episode,
-        #         scalar=ensemble_penalty_info,
-        #         df_tag=f"acting_{penalty_info}_std",
-        #     )
+        self._write_scalar(
+            tag=constants.Constants.LOSS,
+            episode=episode,
+            scalar=episode_loss / episode_steps,
+        )
+        self._write_scalar(
+            tag=constants.Constants.MEAN_VISITATION_PENALTY,
+            episode=episode,
+            scalar=mean_sample_penalty,
+            df_tag=f"sample_{constants.Constants.MEAN_VISITATION_PENALTY}",
+        )
+        self._write_scalar(
+            tag=constants.Constants.MEAN_VISITATION_PENALTY,
+            episode=episode,
+            scalar=mean_acting_penalty,
+            df_tag=f"acting_{constants.Constants.MEAN_VISITATION_PENALTY}",
+        )
+        for penalty_info, ensemble_penalty_info in mean_sample_penalty_info.items():
+            self._write_scalar(
+                tag=constants.Constants.MEAN_PENALTY_INFO,
+                episode=episode,
+                scalar=ensemble_penalty_info,
+                df_tag=f"sample_{penalty_info}",
+            )
+        for penalty_info, ensemble_penalty_info in std_sample_penalty_info.items():
+            self._write_scalar(
+                tag=constants.Constants.STD_PENALTY_INFO,
+                episode=episode,
+                scalar=ensemble_penalty_info,
+                df_tag=f"sample_{penalty_info}_std",
+            )
+        for penalty_info, ensemble_penalty_info in mean_acting_penalty_info.items():
+            self._write_scalar(
+                tag=constants.Constants.MEAN_PENALTY_INFO,
+                episode=episode,
+                scalar=ensemble_penalty_info,
+                df_tag=f"acting_{penalty_info}",
+            )
+        for penalty_info, ensemble_penalty_info in std_acting_penalty_info.items():
+            self._write_scalar(
+                tag=constants.Constants.STD_PENALTY_INFO,
+                episode=episode,
+                scalar=ensemble_penalty_info,
+                df_tag=f"acting_{penalty_info}_std",
+            )
 
         return episode_reward, episode_steps
 
