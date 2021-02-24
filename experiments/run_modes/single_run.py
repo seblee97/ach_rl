@@ -21,7 +21,6 @@ from typing import List
 import constants
 from experiments import ach_config
 from runners import dqn_ensemble_independent_runner
-from runners import dqn_ensemble_shared_feature_runner
 from runners import dqn_runner
 from runners import q_learning_ensemble_runner
 from runners import q_learning_runner
@@ -31,28 +30,30 @@ from utils import experiment_utils
 
 parser = argparse.ArgumentParser()
 
-parser.add_argument("--config_path",
-                    metavar="-C",
-                    type=str,
-                    help="path to yaml file.",
-                    required=True)
-parser.add_argument("--config_changes_path",
-                    metavar="-CC",
-                    type=str,
-                    help="path to json config changes file.",
-                    required=False)
-parser.add_argument("--checkpoint_path",
-                    metavar="-CP",
-                    type=str,
-                    help="path to dir in which to output results.",
-                    required=True)
+parser.add_argument(
+    "--config_path", metavar="-C", type=str, help="path to yaml file.", required=True
+)
+parser.add_argument(
+    "--config_changes_path",
+    metavar="-CC",
+    type=str,
+    help="path to json config changes file.",
+    required=False,
+)
+parser.add_argument(
+    "--checkpoint_path",
+    metavar="-CP",
+    type=str,
+    help="path to dir in which to output results.",
+    required=True,
+)
 
 MAIN_FILE_PATH = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 
 
-def single_run(config_path: str,
-               checkpoint_path: str,
-               changes: List[Dict] = []) -> None:
+def single_run(
+    config_path: str, checkpoint_path: str, changes: List[Dict] = []
+) -> None:
     """Single experiment run.
 
     Args:
@@ -61,8 +62,9 @@ def single_run(config_path: str,
         changes: specification of changes to be made to config.
     """
 
-    logger = experiment_logger.get_logger(experiment_path=checkpoint_path,
-                                          name=__name__)
+    logger = experiment_logger.get_logger(
+        experiment_path=checkpoint_path, name=__name__
+    )
 
     config = ach_config.AchConfig(config=config_path, changes=changes)
 
@@ -71,8 +73,9 @@ def single_run(config_path: str,
     experiment_utils.set_random_seeds(seed)
     config = experiment_utils.set_device(config, logger=logger)
 
-    config.amend_property(property_name=constants.Constants.SEED,
-                          new_property_value=seed)
+    config.amend_property(
+        property_name=constants.Constants.SEED, new_property_value=seed
+    )
 
     config.add_property(constants.Constants.CHECKPOINT_PATH, checkpoint_path)
     config.add_property(
@@ -87,16 +90,14 @@ def single_run(config_path: str,
         r = sarsa_lambda_runner.SARSALambdaRunner(config=config)
     elif config.type == constants.Constants.Q_LEARNING:
         r = q_learning_runner.QLearningRunner(config=config)
-    elif config.type == constants.Constants.DQN:
+    elif config.type == constants.Constants.VANILLA_DQN:
         r = dqn_runner.DQNRunner(config=config)
     elif config.type == constants.Constants.ENSEMBLE_Q_LEARNING:
         r = q_learning_ensemble_runner.EnsembleQLearningRunner(config=config)
     elif config.type == constants.Constants.BOOTSTRAPPED_ENSEMBLE_DQN:
-        r = dqn_ensemble_shared_feature_runner.EnsembleDQNSharedFeatureRunner(
-            config=config)
+        r = dqn_runner.DQNRunner(config=config)
     elif config.type == constants.Constants.INDEPENDENT_ENSEMBLE_DQN:
-        r = dqn_ensemble_independent_runner.EnsembleDQNIndependentRunner(
-            config=config)
+        r = dqn_ensemble_independent_runner.EnsembleDQNIndependentRunner(config=config)
     else:
         raise ValueError(f"Learner type {type} not recognised.")
 
@@ -104,13 +105,16 @@ def single_run(config_path: str,
     r.post_process()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     args = parser.parse_args()
     if args.config_changes_path is not None:
         config_changes = experiment_utils.json_to_config_changes(
-            args.config_changes_path)
+            args.config_changes_path
+        )
     else:
         config_changes = []
-    single_run(config_path=args.config_path,
-               checkpoint_path=args.checkpoint_path,
-               changes=config_changes)
+    single_run(
+        config_path=args.config_path,
+        checkpoint_path=args.checkpoint_path,
+        changes=config_changes,
+    )
