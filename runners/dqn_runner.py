@@ -233,11 +233,11 @@ class DQNRunner(base_runner.BaseRunner):
                 mask = None
 
             self._replay_buffer.add(
-                state=np.random.random((1, 4, 84, 84)),
-                action=0,
-                reward=0.0,
-                next_state=np.random.random((1, 4, 84, 84)),
-                active=True,
+                state=state,
+                action=action,
+                reward=reward,
+                next_state=next_state,
+                active=self._environment.active,
                 mask=mask,
                 penalty=buffer_penalty,
             )
