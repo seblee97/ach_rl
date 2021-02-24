@@ -113,6 +113,10 @@ ensemble_q_learning:
         - greedy_vote
     parallelise_ensemble: False
 
+vanilla_dqn:
+    behaviour: epsilon_greedy
+    targets: 
+
 independent_ensemble_dqn:
     num_learners: 4
     copy_learner_initialisation: False
