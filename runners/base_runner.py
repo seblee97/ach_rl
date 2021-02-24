@@ -45,7 +45,8 @@ class BaseRunner(abc.ABC):
         self._epsilon_function = self._setup_epsilon_function(config=config)
         self._learner = self._setup_learner(config=config)
         self._logger = experiment_logger.get_logger(
-            experiment_path=config.checkpoint_path, name=__name__)
+            experiment_path=config.checkpoint_path, name=__name__
+        )
         self._data_logger = self._setup_data_logger(config=config)
 
         self._checkpoint_path = config.checkpoint_path
@@ -57,17 +58,17 @@ class BaseRunner(abc.ABC):
         self._num_episodes = config.num_episodes
 
         self._array_logging = self._setup_logging_frequencies(config.arrays)
-        self._array_folder_path = os.path.join(self._checkpoint_path,
-                                               constants.Constants.ARRAYS)
+        self._array_folder_path = os.path.join(
+            self._checkpoint_path, constants.Constants.ARRAYS
+        )
         os.makedirs(name=self._array_folder_path, exist_ok=True)
         for tag in self._array_logging.keys():
-            os.makedirs(name=os.path.join(self._array_folder_path, tag),
-                        exist_ok=True)
+            os.makedirs(name=os.path.join(self._array_folder_path, tag), exist_ok=True)
         self._scalar_logging = self._setup_logging_frequencies(config.scalars)
-        self._visualisations = self._setup_logging_frequencies(
-            config.visualisations)
+        self._visualisations = self._setup_logging_frequencies(config.visualisations)
         self._visualisations_folder_path = os.path.join(
-            self._checkpoint_path, constants.Constants.VISUALISATIONS)
+            self._checkpoint_path, constants.Constants.VISUALISATIONS
+        )
         os.makedirs(name=self._visualisations_folder_path, exist_ok=True)
         self._post_visualisations = config.post_visualisations
         self._plotter = self._setup_plotter(config=config)
@@ -75,8 +76,8 @@ class BaseRunner(abc.ABC):
         config.save_configuration(folder_path=config.checkpoint_path)
 
     def _setup_logging_frequencies(
-            self, logging_list: List[Tuple[Union[List, str],
-                                           int]]) -> Dict[str, int]:
+        self, logging_list: List[Tuple[Union[List, str], int]]
+    ) -> Dict[str, int]:
         """Parse logging list from config into mapping from
         tag to log to frequency with which it should be logged.
 
@@ -100,8 +101,7 @@ class BaseRunner(abc.ABC):
 
     def _setup_environment(
         self, config: ach_config.AchConfig
-    ) -> Union[base_curriculum.BaseCurriculum,
-               base_environment.BaseEnvironment]:
+    ) -> Union[base_curriculum.BaseCurriculum, base_environment.BaseEnvironment]:
         """Initialise environment specified in configuration.
         Applies curriculum wrapper where specified.
         """
@@ -110,8 +110,7 @@ class BaseRunner(abc.ABC):
         if config.apply_curriculum:
             curriculum_args = self._get_curriculum_args(config=config)
             curriculum_wrapper = self.get_curriculum_wrapper(config.environment)
-            environment = curriculum_wrapper(**environment_args,
-                                             **curriculum_args)
+            environment = curriculum_wrapper(**environment_args, **curriculum_args)
         else:
             if config.environment == constants.Constants.MINIGRID:
                 environment = minigrid.MiniGrid(**environment_args)
@@ -125,8 +124,7 @@ class BaseRunner(abc.ABC):
 
         return environment
 
-    def _get_environment_args(self,
-                              config: ach_config.AchConfig) -> Dict[str, Any]:
+    def _get_environment_args(self, config: ach_config.AchConfig) -> Dict[str, Any]:
         """Get arguments needed to pass to environment."""
         if config.environment == constants.Constants.MINIGRID:
             if config.reward_positions is not None:
@@ -156,38 +154,34 @@ class BaseRunner(abc.ABC):
                 constants.Constants.FRAME_SKIP: config.frame_skip,
             }
             if config.implementation == constants.Constants.FUNCTIONAL:
-                env_args[
-                    constants.Constants.PRE_PROCESSING] = config.pre_processing
+                env_args[constants.Constants.PRE_PROCESSING] = config.pre_processing
         elif config.environment == constants.Constants.MULTIROOM:
             env_args = {
-                constants.Constants.ASCII_MAP_PATH:
-                    os.path.join(config.run_path, config.ascii_map_path),
-                constants.Constants.EPISODE_TIMEOUT:
-                    config.episode_timeout,
+                constants.Constants.ASCII_MAP_PATH: os.path.join(
+                    config.run_path, config.ascii_map_path
+                ),
+                constants.Constants.EPISODE_TIMEOUT: config.episode_timeout,
             }
         return env_args
 
-    def _get_curriculum_args(self,
-                             config: ach_config.AchConfig) -> Dict[str, Any]:
+    def _get_curriculum_args(self, config: ach_config.AchConfig) -> Dict[str, Any]:
         """Get arguments needed to pass to environment curriculum wrapper."""
         if config.environment == constants.Constants.MINIGRID:
             curriculum_args = {
-                constants.Constants.TRANSITION_EPISODES:
-                    config.transition_episodes,
-                constants.Constants.ENVIRONMENT_CHANGES:
-                    config.environment_changes,
+                constants.Constants.TRANSITION_EPISODES: config.transition_episodes,
+                constants.Constants.ENVIRONMENT_CHANGES: config.environment_changes,
             }
         return curriculum_args
 
     @staticmethod
-    def get_curriculum_wrapper(
-            environment: str) -> base_curriculum.BaseCurriculum:
+    def get_curriculum_wrapper(environment: str) -> base_curriculum.BaseCurriculum:
         """Get relevant wrapper for environment to add curriculum features."""
         if environment == constants.Constants.MINIGRID:
             return minigrid_curriculum.MinigridCurriculum
 
     def _setup_data_logger(
-            self, config: ach_config.AchConfig) -> data_logger.DataLogger:
+        self, config: ach_config.AchConfig
+    ) -> data_logger.DataLogger:
         """Initialise logger object to record data from experiment."""
         return data_logger.DataLogger(config=config)
 
@@ -205,55 +199,67 @@ class BaseRunner(abc.ABC):
         """Initialise object to act as visitation penalty."""
         if config.visitation_penalty_type == constants.Constants.HARD_CODED:
             penalty_computer = hard_coded_visitation_penalty.HardCodedPenalty(
-                hard_coded_penalties=config.vp_schedule)
+                hard_coded_penalties=config.vp_schedule
+            )
         elif config.visitation_penalty_type == constants.Constants.ADAPTIVE_UNCERTAINTY:
             penalty_computer = (
-                adaptive_uncertainty_visitation_penalty.
-                AdaptiveUncertaintyPenalty(
+                adaptive_uncertainty_visitation_penalty.AdaptiveUncertaintyPenalty(
                     multiplicative_factor=config.multiplicative_factor,
                     action_function=config.action_function,
-                ))
-        elif (config.visitation_penalty_type ==
-              constants.Constants.ADAPTIVE_ARRIVING_UNCERTAINTY):
+                )
+            )
+        elif (
+            config.visitation_penalty_type
+            == constants.Constants.ADAPTIVE_ARRIVING_UNCERTAINTY
+        ):
             penalty_computer = adaptive_arriving_uncertainty_visitation_penalty.AdaptiveArrivingUncertaintyPenalty(
                 multiplicative_factor=config.multiplicative_factor,
                 action_function=config.action_function,
             )
-        elif (config.visitation_penalty_type ==
-              constants.Constants.POTENTIAL_BASED_ADAPTIVE_UNCERTAINTY):
+        elif (
+            config.visitation_penalty_type
+            == constants.Constants.POTENTIAL_BASED_ADAPTIVE_UNCERTAINTY
+        ):
             penalty_computer = potential_adaptive_uncertainty_penalty.PotentialAdaptiveUncertaintyPenalty(
                 gamma=config.discount_factor,
                 multiplicative_factor=config.multiplicative_factor,
                 pre_action_function=config.pre_action_function,
                 post_action_function=config.post_action_function,
             )
-        elif config.visitation_penalty_type == constants.Constants.POLICY_ENTROPY_PENALTY:
+        elif (
+            config.visitation_penalty_type == constants.Constants.POLICY_ENTROPY_PENALTY
+        ):
             penalty_computer = policy_entropy_penalty.PolicyEntropyPenalty(
-                multiplicative_factor=config.multiplicative_factor)
+                multiplicative_factor=config.multiplicative_factor
+            )
         else:
             raise ValueError(
                 f"Visitation penalty type {config.visitation_penalty_type} not recognised"
             )
 
         if config.type in [
-                constants.Constants.BOOTSTRAPPED_ENSEMBLE_DQN,
-                constants.Constants.DQN,
-                constants.Constants.INDEPENDENT_ENSEMBLE_DQN
+            constants.Constants.BOOTSTRAPPED_ENSEMBLE_DQN,
+            constants.Constants.VANILLA_DQN,
+            constants.Constants.INDEPENDENT_ENSEMBLE_DQN,
         ]:
             if config.shaping_implementation == constants.Constants.TRAIN_Q_NETWORK:
                 use_target_network = False
-            elif config.shaping_implementation == constants.Constants.TRAIN_TARGET_NETWORK:
+            elif (
+                config.shaping_implementation
+                == constants.Constants.TRAIN_TARGET_NETWORK
+            ):
                 use_target_network = True
             visitation_penalty = network_visitation_penalty.NetworkVisitationPenalty(
-                penalty_computer=penalty_computer,
-                use_target_network=use_target_network)
+                penalty_computer=penalty_computer, use_target_network=use_target_network
+            )
         elif config.type in [
-                constants.Constants.Q_LEARNING,
-                constants.Constants.SARSA_LAMBDA,
-                constants.Constants.ENSEMBLE_Q_LEARNING
+            constants.Constants.Q_LEARNING,
+            constants.Constants.SARSA_LAMBDA,
+            constants.Constants.ENSEMBLE_Q_LEARNING,
         ]:
             visitation_penalty = tabular_visitation_penalty.TabularVisitationPenalty(
-                penalty_computer=penalty_computer)
+                penalty_computer=penalty_computer
+            )
         else:
             raise ValueError(
                 f"Learner type {config.type} has not been grouped as tabular or network, "
@@ -265,8 +271,7 @@ class BaseRunner(abc.ABC):
     def _setup_epsilon_function(self, config: ach_config.AchConfig):
         """Setup epsilon function."""
         if config.schedule == constants.Constants.CONSTANT:
-            epsilon_function = epsilon_schedules.ConstantEpsilon(
-                value=config.value)
+            epsilon_function = epsilon_schedules.ConstantEpsilon(value=config.value)
         elif config.schedule == constants.Constants.LINEAR_DECAY:
             epsilon_function = epsilon_schedules.LinearDecayEpsilon(
                 initial_value=config.initial_value,
@@ -316,9 +321,7 @@ class BaseRunner(abc.ABC):
         """If specified, log scalar."""
         if self._scalar_log_iteration(tag=tag, episode=episode):
             df_tag = df_tag or tag
-            self._data_logger.write_scalar(tag=df_tag,
-                                           step=episode,
-                                           scalar=scalar)
+            self._data_logger.write_scalar(tag=df_tag, step=episode, scalar=scalar)
 
     def _write_array(
         self,
@@ -327,8 +330,7 @@ class BaseRunner(abc.ABC):
         array: np.ndarray,
     ) -> None:
         if self._array_log_iteration(tag=tag, episode=episode):
-            file_path = os.path.join(self._array_folder_path, tag,
-                                     f"{tag}_{episode}")
+            file_path = os.path.join(self._array_folder_path, tag, f"{tag}_{episode}")
             np.save(file_path, array)
 
     def train(self) -> None:
@@ -345,12 +347,9 @@ class BaseRunner(abc.ABC):
 
             if i % self._print_frequency == 0:
                 if i != 0:
-                    self._logger.info(
-                        f"    Latest Episode Duration {episode_duration}")
-                    self._logger.info(
-                        f"    Latest Train Reward: {train_reward}")
-                    self._logger.info(
-                        f"    Latest Train Length: {train_step_count}")
+                    self._logger.info(f"    Latest Episode Duration {episode_duration}")
+                    self._logger.info(f"    Latest Train Reward: {train_reward}")
+                    self._logger.info(f"    Latest Train Length: {train_step_count}")
                 self._logger.info(f"Episode {i + 1}/{self._num_episodes}: ")
 
             if i % self._checkpoint_frequency == 0 and i != 0:
@@ -438,16 +437,18 @@ class BaseRunner(abc.ABC):
             episode_reward: scalar reward accumulated over episode.
             num_steps: number of steps taken for episode.
         """
-        action_selection_method = (action_selection_method or
-                                   self._learner.select_target_action)
+        action_selection_method = (
+            action_selection_method or self._learner.select_target_action
+        )
 
         episode_reward = 0
 
         state = self._environment.reset_environment(train=False)
 
         while self._environment.active:
-            action = action_selection_method(state=state,
-                                             **action_selection_method_args)
+            action = action_selection_method(
+                state=state, **action_selection_method_args
+            )
             reward, state = self._environment.step(action)
             episode_reward += reward
 
@@ -464,10 +465,10 @@ class BaseRunner(abc.ABC):
 
         if episode != 0:
             if self._visualisation_iteration(
-                    constants.Constants.INDIVIDUAL_TEST_RUN + tag_, episode):
+                constants.Constants.INDIVIDUAL_TEST_RUN + tag_, episode
+            ):
                 self._data_logger.plot_array_data(
-                    name=
-                    f"{constants.Constants.INDIVIDUAL_TEST_RUN + tag_}_{episode}",
+                    name=f"{constants.Constants.INDIVIDUAL_TEST_RUN + tag_}_{episode}",
                     data=self._environment.plot_episode_history(),
                 )
 
@@ -486,8 +487,9 @@ class BaseRunner(abc.ABC):
             episode_reward: scalar reward accumulated over episode.
             num_steps: number of steps taken for episode.
         """
-        action_selection_method = (action_selection_method or
-                                   self._learner.select_target_action)
+        action_selection_method = (
+            action_selection_method or self._learner.select_target_action
+        )
 
         episode_reward = 0
 
@@ -521,10 +523,10 @@ class BaseRunner(abc.ABC):
 
         if episode != 0:
             if self._visualisation_iteration(
-                    constants.Constants.INDIVIDUAL_NO_REP_TEST_RUN, episode):
+                constants.Constants.INDIVIDUAL_NO_REP_TEST_RUN, episode
+            ):
                 self._data_logger.plot_array_data(
-                    name=
-                    f"{constants.Constants.INDIVIDUAL_NO_REP_TEST_RUN}_{episode}",
+                    name=f"{constants.Constants.INDIVIDUAL_NO_REP_TEST_RUN}_{episode}",
                     data=self._environment.plot_episode_history(),
                 )
 
