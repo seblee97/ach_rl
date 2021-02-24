@@ -14,13 +14,15 @@ from utils import custom_torch_layers
 class QNetwork(nn.Module):
     """Q-value network."""
 
-    def __init__(self,
-                 state_dim: Tuple[int, int, int],
-                 num_actions: int,
-                 layer_specifications: List[Dict[str, Any]],
-                 shared_layers: Union[List[int], None] = None,
-                 num_branches: int = 0,
-                 copy_initialisation: bool = False):
+    def __init__(
+        self,
+        state_dim: Tuple[int, int, int],
+        num_actions: int,
+        layer_specifications: List[Dict[str, Any]],
+        shared_layers: Union[List[int], None] = None,
+        num_branches: int = 0,
+        copy_initialisation: bool = False,
+    ):
         """Class constructor.
 
         Args:
@@ -32,7 +34,8 @@ class QNetwork(nn.Module):
         self._num_actions = num_actions
         self._layer_specifications = layer_specifications
         self._shared_layers = shared_layers or list(
-            range(len(self._layer_specifications)))
+            range(len(self._layer_specifications))
+        )
         self._num_branches = num_branches
         self._copy_initialisation = copy_initialisation
 
@@ -44,33 +47,36 @@ class QNetwork(nn.Module):
         """Method to setup network architecture."""
         self._core_layers = nn.ModuleList([])
         self._branched_layers = nn.ModuleList(
-            [nn.ModuleList([]) for _ in range(self._num_branches)])
+            [nn.ModuleList([]) for _ in range(self._num_branches)]
+        )
 
-        for layer_index, layer_specification in enumerate(
-                self._layer_specifications):
+        for layer_index, layer_specification in enumerate(self._layer_specifications):
 
             if layer_index in self._shared_layers:
                 layer, nonlinearity = self._construct_layer(
-                    layer_specification=layer_specification)
+                    layer_specification=layer_specification
+                )
                 self._core_layers.append(layer)
                 self._core_layers.append(nonlinearity)
             else:
                 if self._copy_initialisation:
                     layer, nonlinearity = self._construct_layer(
-                        layer_specification=layer_specification)
+                        layer_specification=layer_specification
+                    )
                     for i in range(self._num_branches):
                         self._branched_layers[i].append(copy.deepcopy(layer))
-                        self._branched_layers[i].append(
-                            copy.deepcopy(nonlinearity))
+                        self._branched_layers[i].append(copy.deepcopy(nonlinearity))
                 else:
                     for i in range(self._num_branches):
                         layer, nonlinearity = self._construct_layer(
-                            layer_specification=layer_specification)
+                            layer_specification=layer_specification
+                        )
                         self._branched_layers[i].append(layer)
                         self._branched_layers[i].append(nonlinearity)
 
     def _construct_layer(
-            self, layer_specification: Dict) -> Tuple[nn.Module, nn.Module]:
+        self, layer_specification: Dict
+    ) -> Tuple[nn.Module, nn.Module]:
         layer_type = list(layer_specification.keys())[0]
         layer_info = list(layer_specification.values())[0]
         layer_nonlinearity = layer_info.get(constants.Constants.NONLINEARITY)
@@ -86,8 +92,9 @@ class QNetwork(nn.Module):
         elif layer_type == constants.Constants.FC:
             layer = nn.Linear(
                 in_features=layer_info.get(constants.Constants.IN_FEATURES),
-                out_features=layer_info.get(constants.Constants.OUT_FEATURES,
-                                            self._num_actions),
+                out_features=layer_info.get(
+                    constants.Constants.OUT_FEATURES, self._num_actions
+                ),
             )
 
         elif layer_type == constants.Constants.FLATTEN:
@@ -100,26 +107,26 @@ class QNetwork(nn.Module):
         elif layer_nonlinearity == constants.Constants.IDENTITY:
             nonlinearity = nn.Identity()
         else:
-            raise ValueError(
-                f"Non-linearity {layer_nonlinearity} not recognised")
+            raise ValueError(f"Non-linearity {layer_nonlinearity} not recognised")
 
         # initialise weights (only those with parameters)
         if [p for p in layer.parameters()]:
             self._initialise_weights(
                 layer.weight,
                 initialisation=layer_info.get(
-                    constants.Constants.WEIGHT_INITIALISATION),
+                    constants.Constants.WEIGHT_INITIALISATION
+                ),
             )
             self._initialise_weights(
                 layer.bias,
-                initialisation=layer_info.get(
-                    constants.Constants.BIAS_INITIALISATION),
+                initialisation=layer_info.get(constants.Constants.BIAS_INITIALISATION),
             )
 
         return layer, nonlinearity
 
-    def _initialise_weights(self, layer_weights: nn.Parameter,
-                            initialisation: Union[str, None]) -> None:
+    def _initialise_weights(
+        self, layer_weights: nn.Parameter, initialisation: Union[str, None]
+    ) -> None:
         """Initialise weights of network layer according to specification.
 
         Initialisation is in-place.
@@ -143,15 +150,18 @@ class QNetwork(nn.Module):
         for layer in self._core_layers:
             x = layer(x)
 
-        all_outputs = []
+        if self._num_branches > 0:
+            all_outputs = []
 
-        for branch in range(self._num_branches):
-            branch_output = x
-            for layer in self._branched_layers[branch]:
-                branch_output = layer(branch_output)
-            all_outputs.append(branch_output)
+            for branch in range(self._num_branches):
+                branch_output = x
+                for layer in self._branched_layers[branch]:
+                    branch_output = layer(branch_output)
+                all_outputs.append(branch_output)
 
-        return torch.stack(all_outputs)
+            return torch.stack(all_outputs)
+        else:
+            return x.unsqueeze(0)
 
     def forward(self, x: torch.Tensor, branch: Union[int, None] = None):
         """Forward pass through network."""
