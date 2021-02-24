@@ -38,4 +38,4 @@ class NetworkVisitationPenalty(base_visitation_penalty.BaseVisitationPenalty):
                 state_values = self._q_network.forward_all_heads(state)
         # output of forward_all_heads method has dimensions [NUM_LEARNERS x BATCH_SIZE x NUM_ACTIONS]
         # for penalty compuation we have batch size of 1 and want to squash this dimension
-        return state_values.detach().numpy()
+        return state_values.cpu().numpy()
