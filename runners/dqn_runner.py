@@ -71,7 +71,7 @@ class DQNRunner(base_runner.BaseRunner):
             [0, 1],
             size=self._num_learners,
             p=[self._mask_probability, 1 - self._mask_probability],
-        )
+        ).astype(np.int8)
 
     def _fill_replay_buffer(self, num_trajectories: int):
         """Build up store of experiences before training begins.
@@ -112,7 +112,7 @@ class DQNRunner(base_runner.BaseRunner):
                 next_state=next_state,
                 active=self._environment.active,
                 mask=mask,
-                penalty=penalty,
+                penalty=penalty.astype(np.float32),
             )
             if not self._environment.active:
                 state = self._environment.reset_environment(train=True)
@@ -226,7 +226,7 @@ class DQNRunner(base_runner.BaseRunner):
             if self._shaping_implementation == constants.Constants.ACT:
                 buffer_penalty = None
             else:
-                buffer_penalty = acting_penalty
+                buffer_penalty = acting_penalty.astype(np.float32)
             if self._ensemble:
                 mask = self._get_random_mask()
             else:
