@@ -264,30 +264,30 @@ class DQNRunner(base_runner.BaseRunner):
                     device=self._device, dtype=torch.int
                 )
 
-        #     sample_penalty, sample_penalty_infos = self._visitation_penalty(
-        #         episode=episode,
-        #         state=state_sample,
-        #         action=experience_sample[1],
-        #         next_state=next_state_sample,
-        #     )
+            sample_penalty, sample_penalty_infos = self._visitation_penalty(
+                episode=episode,
+                state=state_sample,
+                action=experience_sample[1],
+                next_state=next_state_sample,
+            )
 
-        #     sample_penalties.append(np.mean(sample_penalty))
-        #     for info_key, info in sample_penalty_infos.items():
-        #         if info_key not in sample_penalties_infos.keys():
-        #             sample_penalties_infos[info_key] = []
-        #         sample_penalties_infos[info_key].append(np.mean(info))
+            sample_penalties.append(np.mean(sample_penalty))
+            for info_key, info in sample_penalty_infos.items():
+                if info_key not in sample_penalties_infos.keys():
+                    sample_penalties_infos[info_key] = []
+                sample_penalties_infos[info_key].append(np.mean(info))
 
-        #     if self._shaping_implementation in [
-        #         constants.Constants.TRAIN_Q_NETWORK,
-        #         constants.Constants.TRAIN_TARGET_NETWORK,
-        #     ]:
-        #         penalty = torch.Tensor(sample_penalty).to(
-        #             device=self._device, dtype=torch.float
-        #         )
-        #     elif self._shaping_implementation in [constants.Constants.ACT]:
-        #         penalty = torch.from_numpy(experience_sample[6]).to(
-        #             device=self._device, dtype=torch.float
-        #         )
+            if self._shaping_implementation in [
+                constants.Constants.TRAIN_Q_NETWORK,
+                constants.Constants.TRAIN_TARGET_NETWORK,
+            ]:
+                penalty = torch.Tensor(sample_penalty).to(
+                    device=self._device, dtype=torch.float
+                )
+            elif self._shaping_implementation in [constants.Constants.ACT]:
+                penalty = torch.from_numpy(experience_sample[6]).to(
+                    device=self._device, dtype=torch.float
+                )
 
         #     if self._ensemble:
         #         loss, epsilon = self._learner.step(
