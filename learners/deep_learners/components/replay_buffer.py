@@ -101,6 +101,11 @@ class ReplayBuffer:
             active: whether episode is over.
         """
         insertion_index = self._insertion_index % self._replay_size
+        print(
+            insertion_index,
+            self._insertion_index,
+            self._insertion_index % self._replay_size,
+        )
 
         assert (
             insertion_index < self._replay_size
