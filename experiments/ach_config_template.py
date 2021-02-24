@@ -10,9 +10,7 @@ class AChConfigTemplate:
             config_field.Field(
                 name=constants.Constants.SIZE,
                 types=[list],
-                requirements=[
-                    lambda x: all(isinstance(y, int) and y > 0 for y in x)
-                ],
+                requirements=[lambda x: all(isinstance(y, int) and y > 0 for y in x)],
             ),
             config_field.Field(
                 name=constants.Constants.LIVING_REWARD,
@@ -28,8 +26,7 @@ class AChConfigTemplate:
                 name=constants.Constants.STARTING_POSITION,
                 types=[list, type(None)],
                 requirements=[
-                    lambda x: x is None or
-                    (len(x) == 2 and all(y >= 0 for y in x))
+                    lambda x: x is None or (len(x) == 2 and all(y >= 0 for y in x))
                 ],
             ),
             config_field.Field(
@@ -43,8 +40,7 @@ class AChConfigTemplate:
                 requirements=[
                     lambda x: x is None or all(isinstance(y, list) for y in x),
                     lambda x: x is None or all(len(y) == 2 for y in x),
-                    lambda x: x is None or all(
-                        all(z >= 0 for z in y) for y in x),
+                    lambda x: x is None or all(all(z >= 0 for z in y) for y in x),
                 ],
             ),
             config_field.Field(
@@ -65,8 +61,8 @@ class AChConfigTemplate:
                 name=constants.Constants.PLOT_ORIGIN,
                 types=[str],
                 requirements=[
-                    lambda x: x in
-                    [constants.Constants.UPPER, constants.Constants.LOWER]
+                    lambda x: x
+                    in [constants.Constants.UPPER, constants.Constants.LOWER]
                 ],
             ),
         ],
@@ -92,14 +88,12 @@ class AChConfigTemplate:
             constants.Constants.ENVIRONMENT,
             constants.Constants.APPLY_CURRICULUM,
         ],
-        dependent_variables_required_values=[[constants.Constants.MINIGRID],
-                                             [True]],
+        dependent_variables_required_values=[[constants.Constants.MINIGRID], [True]],
     )
 
     _multiroom_template = config_template.Template(
         fields=[
-            config_field.Field(name=constants.Constants.ASCII_MAP_PATH,
-                               types=[str]),
+            config_field.Field(name=constants.Constants.ASCII_MAP_PATH, types=[str]),
             config_field.Field(
                 name=constants.Constants.EPISODE_TIMEOUT,
                 types=[type(None), int],
@@ -109,8 +103,8 @@ class AChConfigTemplate:
                 name=constants.Constants.PLOT_ORIGIN,
                 types=[str],
                 requirements=[
-                    lambda x: x in
-                    [constants.Constants.UPPER, constants.Constants.LOWER]
+                    lambda x: x
+                    in [constants.Constants.UPPER, constants.Constants.LOWER]
                 ],
             ),
         ],
@@ -132,10 +126,8 @@ class AChConfigTemplate:
                 name=constants.Constants.IMPLEMENTATION,
                 types=[str],
                 requirements=[
-                    lambda x: x in [
-                        constants.Constants.FUNCTIONAL, constants.Constants.
-                        WRAPPER
-                    ]
+                    lambda x: x
+                    in [constants.Constants.FUNCTIONAL, constants.Constants.WRAPPER]
                 ],
             ),
             config_field.Field(
@@ -161,16 +153,14 @@ class AChConfigTemplate:
             config_field.Field(
                 name=constants.Constants.ENCODED_STATE_DIMENSIONS,
                 types=[list],
-                requirements=[
-                    lambda x: all(isinstance(y, int) and y > 0 for y in x)
-                ],
+                requirements=[lambda x: all(isinstance(y, int) and y > 0 for y in x)],
             ),
             config_field.Field(
                 name=constants.Constants.PLOT_ORIGIN,
                 types=[str],
                 requirements=[
-                    lambda x: x in
-                    [constants.Constants.UPPER, constants.Constants.LOWER]
+                    lambda x: x
+                    in [constants.Constants.UPPER, constants.Constants.LOWER]
                 ],
             ),
         ],
@@ -185,8 +175,7 @@ class AChConfigTemplate:
                 name=constants.Constants.VP_SCHEDULE,
                 types=[list],
                 requirements=[
-                    lambda x: all(
-                        isinstance(y, list) and len(y) == 2 for y in x)
+                    lambda x: all(isinstance(y, list) and len(y) == 2 for y in x)
                 ],
             )
         ],
@@ -205,7 +194,8 @@ class AChConfigTemplate:
                 name=constants.Constants.ACTION_FUNCTION,
                 types=[str],
                 requirements=[
-                    lambda x: x in [
+                    lambda x: x
+                    in [
                         constants.Constants.MEAN,
                         constants.Constants.MAX,
                         constants.Constants.SELECT,
@@ -213,14 +203,11 @@ class AChConfigTemplate:
                 ],
             ),
         ],
-        level=[
-            constants.Constants.LEARNER,
-            constants.Constants.ADAPTIVE_UNCERTAINTY
-        ],
+        level=[constants.Constants.LEARNER, constants.Constants.ADAPTIVE_UNCERTAINTY],
         dependent_variables=[constants.Constants.VISITATION_PENALTY_TYPE],
-        dependent_variables_required_values=[[
-            constants.Constants.ADAPTIVE_UNCERTAINTY
-        ]],
+        dependent_variables_required_values=[
+            [constants.Constants.ADAPTIVE_UNCERTAINTY]
+        ],
     )
 
     _adaptive_arriving_uncertainty_template = config_template.Template(
@@ -233,7 +220,8 @@ class AChConfigTemplate:
                 name=constants.Constants.ACTION_FUNCTION,
                 types=[str],
                 requirements=[
-                    lambda x: x in [
+                    lambda x: x
+                    in [
                         constants.Constants.MEAN,
                         constants.Constants.MAX,
                     ]
@@ -245,9 +233,9 @@ class AChConfigTemplate:
             constants.Constants.ADAPTIVE_ARRIVING_UNCERTAINTY,
         ],
         dependent_variables=[constants.Constants.VISITATION_PENALTY_TYPE],
-        dependent_variables_required_values=[[
-            constants.Constants.ADAPTIVE_ARRIVING_UNCERTAINTY
-        ]],
+        dependent_variables_required_values=[
+            [constants.Constants.ADAPTIVE_ARRIVING_UNCERTAINTY]
+        ],
     )
 
     _potential_based_adaptive_uncertainty_template = config_template.Template(
@@ -260,7 +248,8 @@ class AChConfigTemplate:
                 name=constants.Constants.PRE_ACTION_FUNCTION,
                 types=[str],
                 requirements=[
-                    lambda x: x in [
+                    lambda x: x
+                    in [
                         constants.Constants.MEAN,
                         constants.Constants.MAX,
                         constants.Constants.SELECT,
@@ -271,7 +260,8 @@ class AChConfigTemplate:
                 name=constants.Constants.POST_ACTION_FUNCTION,
                 types=[str],
                 requirements=[
-                    lambda x: x in [
+                    lambda x: x
+                    in [
                         constants.Constants.MEAN,
                         constants.Constants.MAX,
                     ]
@@ -283,9 +273,9 @@ class AChConfigTemplate:
             constants.Constants.POTENTIAL_BASED_ADAPTIVE_UNCERTAINTY,
         ],
         dependent_variables=[constants.Constants.VISITATION_PENALTY_TYPE],
-        dependent_variables_required_values=[[
-            constants.Constants.POTENTIAL_BASED_ADAPTIVE_UNCERTAINTY
-        ]],
+        dependent_variables_required_values=[
+            [constants.Constants.POTENTIAL_BASED_ADAPTIVE_UNCERTAINTY]
+        ],
     )
 
     _policy_entropy_penalty_template = config_template.Template(
@@ -300,9 +290,9 @@ class AChConfigTemplate:
             constants.Constants.POLICY_ENTROPY_PENALTY,
         ],
         dependent_variables=[constants.Constants.VISITATION_PENALTY_TYPE],
-        dependent_variables_required_values=[[
-            constants.Constants.POLICY_ENTROPY_PENALTY
-        ]],
+        dependent_variables_required_values=[
+            [constants.Constants.POLICY_ENTROPY_PENALTY]
+        ],
     )
 
     _constant_epsilon_template = config_template.Template(
@@ -357,17 +347,13 @@ class AChConfigTemplate:
                 name=constants.Constants.SCHEDULE,
                 types=[str],
                 requirements=[
-                    lambda x: x in [
-                        constants.Constants.CONSTANT, constants.Constants.
-                        LINEAR_DECAY
-                    ]
+                    lambda x: x
+                    in [constants.Constants.CONSTANT, constants.Constants.LINEAR_DECAY]
                 ],
             ),
         ],
         level=[constants.Constants.LEARNER, constants.Constants.EPSILON],
-        nested_templates=[
-            _constant_epsilon_template, _linear_decay_epsilon_template
-        ],
+        nested_templates=[_constant_epsilon_template, _linear_decay_epsilon_template],
     )
 
     _learner_template = config_template.Template(
@@ -376,12 +362,14 @@ class AChConfigTemplate:
                 name=constants.Constants.TYPE,
                 types=[str],
                 requirements=[
-                    lambda x: x in [
-                        constants.Constants.SARSA_LAMBDA, constants.Constants.
-                        Q_LEARNING, constants.Constants.DQN, constants.Constants
-                        .ENSEMBLE_Q_LEARNING, constants.Constants.
-                        BOOTSTRAPPED_ENSEMBLE_DQN, constants.Constants.
-                        INDEPENDENT_ENSEMBLE_DQN
+                    lambda x: x
+                    in [
+                        constants.Constants.SARSA_LAMBDA,
+                        constants.Constants.Q_LEARNING,
+                        constants.Constants.VANILLA_DQN,
+                        constants.Constants.ENSEMBLE_Q_LEARNING,
+                        constants.Constants.BOOTSTRAPPED_ENSEMBLE_DQN,
+                        constants.Constants.INDEPENDENT_ENSEMBLE_DQN,
                     ]
                 ],
             ),
@@ -414,36 +402,41 @@ class AChConfigTemplate:
                 name=constants.Constants.INITIALISATION,
                 types=[str, float, int],
                 requirements=[
-                    lambda x: x in [
+                    lambda x: x
+                    in [
                         constants.Constants.RANDOM,
                         constants.Constants.ZEROS,
                         constants.Constants.ONES,
-                    ] or isinstance(x, (int, float))
+                    ]
+                    or isinstance(x, (int, float))
                 ],
             ),
             config_field.Field(
                 name=constants.Constants.VISITATION_PENALTY_TYPE,
                 types=[str],
                 requirements=[
-                    lambda x: x in [
+                    lambda x: x
+                    in [
                         constants.Constants.HARD_CODED,
                         constants.Constants.ADAPTIVE_UNCERTAINTY,
                         constants.Constants.ADAPTIVE_ARRIVING_UNCERTAINTY,
-                        constants.Constants.
-                        POTENTIAL_BASED_ADAPTIVE_UNCERTAINTY,
+                        constants.Constants.POTENTIAL_BASED_ADAPTIVE_UNCERTAINTY,
                         constants.Constants.POLICY_ENTROPY_PENALTY,
                     ]
                 ],
             ),
-            config_field.Field(name=constants.Constants.SHAPING_IMPLEMENTATION,
-                               types=[str],
-                               requirements=[
-                                   lambda x: x in [
-                                       constants.Constants.ACT, constants.
-                                       Constants.TRAIN_Q_NETWORK, constants.
-                                       Constants.TRAIN_TARGET_NETWORK
-                                   ]
-                               ])
+            config_field.Field(
+                name=constants.Constants.SHAPING_IMPLEMENTATION,
+                types=[str],
+                requirements=[
+                    lambda x: x
+                    in [
+                        constants.Constants.ACT,
+                        constants.Constants.TRAIN_Q_NETWORK,
+                        constants.Constants.TRAIN_TARGET_NETWORK,
+                    ]
+                ],
+            ),
         ],
         level=[constants.Constants.LEARNER],
         nested_templates=[
@@ -467,20 +460,16 @@ class AChConfigTemplate:
                 name=constants.Constants.BEHAVIOUR,
                 types=[str],
                 requirements=[
-                    lambda x: x in [
-                        constants.Constants.GREEDY, constants.Constants.
-                        EPSILON_GREEDY
-                    ]
+                    lambda x: x
+                    in [constants.Constants.GREEDY, constants.Constants.EPSILON_GREEDY]
                 ],
             ),
             config_field.Field(
                 name=constants.Constants.TARGET,
                 types=[str],
                 requirements=[
-                    lambda x: x in [
-                        constants.Constants.GREEDY, constants.Constants.
-                        EPSILON_GREEDY
-                    ]
+                    lambda x: x
+                    in [constants.Constants.GREEDY, constants.Constants.EPSILON_GREEDY]
                 ],
             ),
         ],
@@ -497,20 +486,16 @@ class AChConfigTemplate:
                 name=constants.Constants.BEHAVIOUR,
                 types=[str],
                 requirements=[
-                    lambda x: x in [
-                        constants.Constants.GREEDY, constants.Constants.
-                        EPSILON_GREEDY
-                    ]
+                    lambda x: x
+                    in [constants.Constants.GREEDY, constants.Constants.EPSILON_GREEDY]
                 ],
             ),
             config_field.Field(
                 name=constants.Constants.TARGET,
                 types=[str],
                 requirements=[
-                    lambda x: x in [
-                        constants.Constants.GREEDY, constants.Constants.
-                        EPSILON_GREEDY
-                    ]
+                    lambda x: x
+                    in [constants.Constants.GREEDY, constants.Constants.EPSILON_GREEDY]
                 ],
             ),
         ],
@@ -534,31 +519,56 @@ class AChConfigTemplate:
                 name=constants.Constants.BEHAVIOUR,
                 types=[str],
                 requirements=[
-                    lambda x: x in [
-                        constants.Constants.GREEDY, constants.Constants.
-                        EPSILON_GREEDY
-                    ]
+                    lambda x: x
+                    in [constants.Constants.GREEDY, constants.Constants.EPSILON_GREEDY]
                 ],
             ),
             config_field.Field(
                 name=constants.Constants.TARGETS,
                 types=[list],
                 requirements=[
-                    lambda x: x is None or all(y in [
-                        constants.Constants.GREEDY_SAMPLE,
-                        constants.Constants.GREEDY_MEAN,
-                        constants.Constants.GREEDY_VOTE,
-                    ] for y in x)
+                    lambda x: x is None
+                    or all(
+                        y
+                        in [
+                            constants.Constants.GREEDY_SAMPLE,
+                            constants.Constants.GREEDY_MEAN,
+                            constants.Constants.GREEDY_VOTE,
+                        ]
+                        for y in x
+                    )
                 ],
             ),
-            config_field.Field(name=constants.Constants.PARALLELISE_ENSEMBLE,
-                               types=[bool]),
+            config_field.Field(
+                name=constants.Constants.PARALLELISE_ENSEMBLE, types=[bool]
+            ),
         ],
         dependent_variables=[constants.Constants.TYPE],
-        dependent_variables_required_values=[[
-            constants.Constants.ENSEMBLE_Q_LEARNING
-        ]],
+        dependent_variables_required_values=[[constants.Constants.ENSEMBLE_Q_LEARNING]],
         level=[constants.Constants.ENSEMBLE_Q_LEARNING],
+    )
+
+    _vanilla_dqn_template = config_template.Template(
+        fields=[
+            config_field.Field(
+                name=constants.Constants.BEHAVIOUR,
+                types=[str],
+                requirements=[
+                    lambda x: x
+                    in [constants.Constants.GREEDY, constants.Constants.EPSILON_GREEDY]
+                ],
+            ),
+            config_field.Field(
+                name=constants.Constants.TARGETS,
+                types=[list, type(None)],
+                requirements=[lambda x: x is None or all(y in [] for y in x)],
+            ),
+        ],
+        dependent_variables=[constants.Constants.TYPE],
+        dependent_variables_required_values=[
+            [constants.Constants.VANILLA_DQN],
+        ],
+        level=[constants.Constants.VANILLA_DQN],
     )
 
     _independent_ensemble_dqn_template = config_template.Template(
@@ -572,16 +582,15 @@ class AChConfigTemplate:
                 name=constants.Constants.COPY_LEARNER_INITIALISATION,
                 types=[bool],
             ),
-            config_field.Field(name=constants.Constants.SHARE_REPLAY_BUFFER,
-                               types=[bool]),
+            config_field.Field(
+                name=constants.Constants.SHARE_REPLAY_BUFFER, types=[bool]
+            ),
             config_field.Field(
                 name=constants.Constants.BEHAVIOUR,
                 types=[str],
                 requirements=[
-                    lambda x: x in [
-                        constants.Constants.GREEDY, constants.Constants.
-                        EPSILON_GREEDY
-                    ]
+                    lambda x: x
+                    in [constants.Constants.GREEDY, constants.Constants.EPSILON_GREEDY]
                 ],
             ),
             config_field.Field(
@@ -589,8 +598,9 @@ class AChConfigTemplate:
                 types=[list, type(None)],
                 requirements=[lambda x: x is None or all(y in [] for y in x)],
             ),
-            config_field.Field(name=constants.Constants.PARALLELISE_ENSEMBLE,
-                               types=[bool]),
+            config_field.Field(
+                name=constants.Constants.PARALLELISE_ENSEMBLE, types=[bool]
+            ),
         ],
         dependent_variables=[constants.Constants.TYPE],
         dependent_variables_required_values=[
@@ -614,17 +624,16 @@ class AChConfigTemplate:
                 name=constants.Constants.SHARED_LAYERS,
                 types=[list, type(None)],
                 requirements=[
-                    lambda x: x is None or
-                    (isinstance(x, list) and all(isinstance(y, int) for y in x))
-                ]),
+                    lambda x: x is None
+                    or (isinstance(x, list) and all(isinstance(y, int) for y in x))
+                ],
+            ),
             config_field.Field(
                 name=constants.Constants.BEHAVIOUR,
                 types=[str],
                 requirements=[
-                    lambda x: x in [
-                        constants.Constants.GREEDY, constants.Constants.
-                        EPSILON_GREEDY
-                    ]
+                    lambda x: x
+                    in [constants.Constants.GREEDY, constants.Constants.EPSILON_GREEDY]
                 ],
             ),
             config_field.Field(
@@ -632,9 +641,11 @@ class AChConfigTemplate:
                 types=[list, type(None)],
                 requirements=[lambda x: x is None or all(y in [] for y in x)],
             ),
-            config_field.Field(name=constants.Constants.MASK_PROBABILITY,
-                               types=[int, float],
-                               requirements=[lambda x: x >= 0 and x <= 1])
+            config_field.Field(
+                name=constants.Constants.MASK_PROBABILITY,
+                types=[int, float],
+                requirements=[lambda x: x >= 0 and x <= 1],
+            ),
         ],
         dependent_variables=[constants.Constants.TYPE],
         dependent_variables_required_values=[
@@ -665,23 +676,24 @@ class AChConfigTemplate:
                 types=[int],
                 requirements=[lambda x: x >= 0],
             ),
-            config_field.Field(name=constants.Constants.NORMALISE_STATE,
-                               types=[bool]),
+            config_field.Field(name=constants.Constants.NORMALISE_STATE, types=[bool]),
             config_field.Field(
                 name=constants.Constants.GRADIENT_CLIPPING,
                 types=[list, type(None)],
                 requirements=[
-                    lambda x: x is None or (len(x) == 2 and all(
-                        (isinstance(y, float) or isinstance(y, int))
-                        for y in x))
+                    lambda x: x is None
+                    or (
+                        len(x) == 2
+                        and all((isinstance(y, float) or isinstance(y, int)) for y in x)
+                    )
                 ],
             ),
             config_field.Field(
                 name=constants.Constants.OPTIMISER,
                 types=[str],
                 requirements=[
-                    lambda x: x in
-                    [constants.Constants.ADAM, constants.Constants.RMS_PROP]
+                    lambda x: x
+                    in [constants.Constants.ADAM, constants.Constants.RMS_PROP]
                 ],
             ),
             config_field.Field(
@@ -690,11 +702,13 @@ class AChConfigTemplate:
             ),
         ],
         dependent_variables=[constants.Constants.TYPE],
-        dependent_variables_required_values=[[
-            constants.Constants.DQN,
-            constants.Constants.BOOTSTRAPPED_ENSEMBLE_DQN,
-            constants.Constants.INDEPENDENT_ENSEMBLE_DQN
-        ]],
+        dependent_variables_required_values=[
+            [
+                constants.Constants.VANILLA_DQN,
+                constants.Constants.BOOTSTRAPPED_ENSEMBLE_DQN,
+                constants.Constants.INDEPENDENT_ENSEMBLE_DQN,
+            ]
+        ],
         level=[constants.Constants.DQN],
     )
 
@@ -737,7 +751,8 @@ class AChConfigTemplate:
                 name=constants.Constants.ANIMATION_LIBRARY,
                 types=[str],
                 requirements=[
-                    lambda x: x in [
+                    lambda x: x
+                    in [
                         constants.Constants.MATPLOTLIB_ANIMATION,
                         constants.Constants.IMAGEIO,
                     ]
@@ -747,8 +762,7 @@ class AChConfigTemplate:
                 name=constants.Constants.ANIMATION_FILE_FORMAT,
                 types=[str],
                 requirements=[
-                    lambda x: x in
-                    [constants.Constants.MP4, constants.Constants.GIF]
+                    lambda x: x in [constants.Constants.MP4, constants.Constants.GIF]
                 ],
             ),
             config_field.Field(
@@ -756,13 +770,20 @@ class AChConfigTemplate:
                 types=[list, type(None)],
                 requirements=[
                     lambda x: all(
-                        isinstance(y, list) and isinstance(y[1], int)
-                        for y in x),
-                    lambda x: all((isinstance(z, str) or
-                                   (isinstance(z, list) and isinstance(
-                                       z[0], str) and isinstance(z[1], int))
-                                   for z in y[0])
-                                  for y in x),
+                        isinstance(y, list) and isinstance(y[1], int) for y in x
+                    ),
+                    lambda x: all(
+                        (
+                            isinstance(z, str)
+                            or (
+                                isinstance(z, list)
+                                and isinstance(z[0], str)
+                                and isinstance(z[1], int)
+                            )
+                            for z in y[0]
+                        )
+                        for y in x
+                    ),
                 ],
             ),
             config_field.Field(
@@ -770,26 +791,41 @@ class AChConfigTemplate:
                 types=[list],
                 requirements=[
                     lambda x: all(
-                        isinstance(y, list) and isinstance(y[1], int)
-                        for y in x),
-                    lambda x: all((isinstance(z, str) or
-                                   (isinstance(z, list) and isinstance(
-                                       z[0], str) and isinstance(z[1], int))
-                                   for z in y[0])
-                                  for y in x),
+                        isinstance(y, list) and isinstance(y[1], int) for y in x
+                    ),
+                    lambda x: all(
+                        (
+                            isinstance(z, str)
+                            or (
+                                isinstance(z, list)
+                                and isinstance(z[0], str)
+                                and isinstance(z[1], int)
+                            )
+                            for z in y[0]
+                        )
+                        for y in x
+                    ),
                 ],
             ),
             config_field.Field(
                 name=constants.Constants.VISUALISATIONS,
                 types=[list, type(None)],
                 requirements=[
-                    lambda x: x is None or all(
-                        isinstance(y, list) and isinstance(y[1], int)
-                        for y in x),
-                    lambda x: x is None or all(
-                        (isinstance(z, str) or
-                         (isinstance(z, list) and isinstance(z[0], str) and
-                          isinstance(z[1], int)) for z in y[0]) for y in x),
+                    lambda x: x is None
+                    or all(isinstance(y, list) and isinstance(y[1], int) for y in x),
+                    lambda x: x is None
+                    or all(
+                        (
+                            isinstance(z, str)
+                            or (
+                                isinstance(z, list)
+                                and isinstance(z[0], str)
+                                and isinstance(z[1], int)
+                            )
+                            for z in y[0]
+                        )
+                        for y in x
+                    ),
                 ],
             ),
             config_field.Field(
@@ -840,7 +876,8 @@ class AChConfigTemplate:
                 name=constants.Constants.ENVIRONMENT,
                 types=[str],
                 requirements=[
-                    lambda x: x in [
+                    lambda x: x
+                    in [
                         constants.Constants.MINIGRID,
                         constants.Constants.ATARI,
                         constants.Constants.MULTIROOM,
@@ -860,6 +897,7 @@ class AChConfigTemplate:
             _learner_template,
             _sarsa_lambda_template,
             _q_learning_template,
+            _vanilla_dqn_template,
             _ensemble_q_learning_template,
             _bootstrapped_ensemble_dqn_template,
             _independent_ensemble_dqn_template,
