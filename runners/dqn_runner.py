@@ -289,29 +289,29 @@ class DQNRunner(base_runner.BaseRunner):
                     device=self._device, dtype=torch.float
                 )
 
-        #     if self._ensemble:
-        #         loss, epsilon = self._learner.step(
-        #             state=state_sample,
-        #             action=action_sample,
-        #             reward=reward_sample,
-        #             next_state=next_state_sample,
-        #             active=active_sample,
-        #             visitation_penalty=penalty,
-        #             mask=mask_sample,
-        #         )
-        #     else:
-        #         loss, epsilon = self._learner.step(
-        #             state=state_sample,
-        #             action=action_sample,
-        #             reward=reward_sample,
-        #             next_state=next_state_sample,
-        #             active=active_sample,
-        #             visitation_penalty=penalty,
-        #         )
+            if self._ensemble:
+                loss, epsilon = self._learner.step(
+                    state=state_sample,
+                    action=action_sample,
+                    reward=reward_sample,
+                    next_state=next_state_sample,
+                    active=active_sample,
+                    visitation_penalty=penalty,
+                    mask=mask_sample,
+                )
+            else:
+                loss, epsilon = self._learner.step(
+                    state=state_sample,
+                    action=action_sample,
+                    reward=reward_sample,
+                    next_state=next_state_sample,
+                    active=active_sample,
+                    visitation_penalty=penalty,
+                )
 
-        #     state = next_state
-        #     episode_reward += reward
-        #     episode_loss += loss
+            state = next_state
+            episode_reward += reward
+            episode_loss += loss
 
         # mean_sample_penalty = np.mean(sample_penalties)
         # mean_sample_penalty_info = {
