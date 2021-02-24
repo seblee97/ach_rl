@@ -28,6 +28,7 @@ class ReplayBuffer:
         self._mask_length = mask_length
         self._penalties = penalties
         self._initialise_buffers()
+        self._check_buffer_dimensions()
 
         self._insertion_index = 0
 
@@ -49,6 +50,32 @@ class ReplayBuffer:
             self._mask_buffer = None
         if self._penalties:
             self._penalty_buffer = np.zeros(self._replay_size, dtype=np.float32)
+
+    def _check_buffer_dimensions(self):
+        assert (
+            self._states_buffer.shape == (self._replay_size,) + self._state_dim
+        ), "states buffer shape corrupted."
+        assert self._actions_buffer.shape == (
+            self._replay_size,
+        ), "actions buffer shape corrupted."
+        assert self._rewards_buffer.shape == (
+            self._replay_size,
+        ), "rewards buffer shape corrupted."
+        assert (
+            self._next_states_buffer.shape == (self._replay_size,) + self._state_dim
+        ), "next states buffer shape corrupted."
+        assert self._active_buffer.shape == (
+            self._replay_size,
+        ), "active buffer shape corrupted."
+        if self._mask_length is not None:
+            assert self._mask_buffer.shape == (
+                self._replay_size,
+                self._mask_length,
+            ), "mask buffer shape corrupted."
+        if self._penalties:
+            assert self._penalty_buffer.shape == (
+                self._replay_size,
+            ), "penalties buffer shape corrupted."
 
     @property
     def states(self) -> np.ndarray:
@@ -79,6 +106,11 @@ class ReplayBuffer:
             insertion_index < self._replay_size
         ), "Insertion index must be below buffer size."
 
+        if insertion_index == 0:
+            import pdb
+
+            pdb.set_trace()
+
         self._states_buffer[insertion_index] = state
         self._actions_buffer[insertion_index] = action
         self._rewards_buffer[insertion_index] = reward
@@ -89,6 +121,8 @@ class ReplayBuffer:
         if penalty is not None:
             self._penalty_buffer[insertion_index] = penalty
         self._insertion_index += 1
+
+        self._check_buffer_dimensions()
 
     def sample(self, batch_size: int) -> namedtuple:
         """Sample experience from buffer.
