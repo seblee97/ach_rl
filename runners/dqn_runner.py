@@ -232,37 +232,37 @@ class DQNRunner(base_runner.BaseRunner):
             else:
                 mask = None
 
-            self._replay_buffer.add(
-                state=state,
-                action=action,
-                reward=reward,
-                next_state=next_state,
-                active=self._environment.active,
-                mask=mask,
-                penalty=buffer_penalty,
+            # self._replay_buffer.add(
+            #     state=state,
+            #     action=action,
+            #     reward=reward,
+            #     next_state=next_state,
+            #     active=self._environment.active,
+            #     mask=mask,
+            #     penalty=buffer_penalty,
+            # )
+
+            experience_sample = self._replay_buffer.sample(self._batch_size)
+
+            state_sample = torch.from_numpy(experience_sample[0]).to(
+                device=self._device, dtype=torch.float
             )
-
-        #     experience_sample = self._replay_buffer.sample(self._batch_size)
-
-        #     state_sample = torch.from_numpy(experience_sample[0]).to(
-        #         device=self._device, dtype=torch.float
-        #     )
-        #     action_sample = torch.from_numpy(experience_sample[1]).to(
-        #         device=self._device, dtype=torch.int
-        #     )
-        #     reward_sample = torch.from_numpy(experience_sample[2]).to(
-        #         device=self._device, dtype=torch.float
-        #     )
-        #     next_state_sample = torch.from_numpy(experience_sample[3]).to(
-        #         device=self._device, dtype=torch.float
-        #     )
-        #     active_sample = torch.from_numpy(experience_sample[4]).to(
-        #         device=self._device, dtype=torch.int
-        #     )
-        #     if self._ensemble:
-        #         mask_sample = torch.from_numpy(experience_sample[5]).to(
-        #             device=self._device, dtype=torch.int
-        #         )
+            action_sample = torch.from_numpy(experience_sample[1]).to(
+                device=self._device, dtype=torch.int
+            )
+            reward_sample = torch.from_numpy(experience_sample[2]).to(
+                device=self._device, dtype=torch.float
+            )
+            next_state_sample = torch.from_numpy(experience_sample[3]).to(
+                device=self._device, dtype=torch.float
+            )
+            active_sample = torch.from_numpy(experience_sample[4]).to(
+                device=self._device, dtype=torch.int
+            )
+            if self._ensemble:
+                mask_sample = torch.from_numpy(experience_sample[5]).to(
+                    device=self._device, dtype=torch.int
+                )
 
         #     sample_penalty, sample_penalty_infos = self._visitation_penalty(
         #         episode=episode,
