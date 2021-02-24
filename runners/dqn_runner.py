@@ -232,15 +232,15 @@ class DQNRunner(base_runner.BaseRunner):
             else:
                 mask = None
 
-            # self._replay_buffer.add(
-            #     state=state,
-            #     action=action,
-            #     reward=reward,
-            #     next_state=next_state,
-            #     active=self._environment.active,
-            #     mask=mask,
-            #     penalty=buffer_penalty,
-            # )
+            self._replay_buffer.add(
+                state=state,
+                action=action,
+                reward=reward,
+                next_state=next_state,
+                active=self._environment.active,
+                mask=mask,
+                penalty=buffer_penalty,
+            )
 
         #     experience_sample = self._replay_buffer.sample(self._batch_size)
 
