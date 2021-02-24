@@ -199,48 +199,49 @@ class DQNRunner(base_runner.BaseRunner):
 
         while self._environment.active:
 
-            if self._ensemble:
-                action = self._learner.select_behaviour_action(state, branch=branch)
-            else:
-                action = self._learner.select_behaviour_action(state)
-            reward, next_state = self._environment.step(action)
+            pass
+            # if self._ensemble:
+            #     action = self._learner.select_behaviour_action(state, branch=branch)
+            # else:
+            #     action = self._learner.select_behaviour_action(state)
+            # reward, next_state = self._environment.step(action)
 
-            acting_penalty, acting_penalty_info = self._visitation_penalty(
-                episode=episode,
-                state=torch.from_numpy(state).to(
-                    device=self._device, dtype=torch.float
-                ),
-                action=action,
-                next_state=torch.from_numpy(next_state).to(
-                    device=self._device, dtype=torch.float
-                ),
-            )
+            # acting_penalty, acting_penalty_info = self._visitation_penalty(
+            #     episode=episode,
+            #     state=torch.from_numpy(state).to(
+            #         device=self._device, dtype=torch.float
+            #     ),
+            #     action=action,
+            #     next_state=torch.from_numpy(next_state).to(
+            #         device=self._device, dtype=torch.float
+            #     ),
+            # )
 
-            acting_penalties.append(acting_penalty)
+            # acting_penalties.append(acting_penalty)
 
-            for info_key, info in acting_penalty_info.items():
-                if info_key not in acting_penalties_infos.keys():
-                    acting_penalties_infos[info_key] = []
-                acting_penalties_infos[info_key].append(info)
+            # for info_key, info in acting_penalty_info.items():
+            #     if info_key not in acting_penalties_infos.keys():
+            #         acting_penalties_infos[info_key] = []
+            #     acting_penalties_infos[info_key].append(info)
 
-            if self._shaping_implementation == constants.Constants.ACT:
-                buffer_penalty = None
-            else:
-                buffer_penalty = acting_penalty
-            if self._ensemble:
-                mask = self._get_random_mask()
-            else:
-                mask = None
+            # if self._shaping_implementation == constants.Constants.ACT:
+            #     buffer_penalty = None
+            # else:
+            #     buffer_penalty = acting_penalty
+            # if self._ensemble:
+            #     mask = self._get_random_mask()
+            # else:
+            #     mask = None
 
-            self._replay_buffer.add(
-                state=state,
-                action=action,
-                reward=reward,
-                next_state=next_state,
-                active=self._environment.active,
-                mask=mask,
-                penalty=buffer_penalty,
-            )
+            # self._replay_buffer.add(
+            #     state=state,
+            #     action=action,
+            #     reward=reward,
+            #     next_state=next_state,
+            #     active=self._environment.active,
+            #     mask=mask,
+            #     penalty=buffer_penalty,
+            # )
 
         #     experience_sample = self._replay_buffer.sample(self._batch_size)
 
