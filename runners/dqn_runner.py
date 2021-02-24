@@ -205,16 +205,16 @@ class DQNRunner(base_runner.BaseRunner):
                 action = self._learner.select_behaviour_action(state)
             reward, next_state = self._environment.step(0)
 
-            # acting_penalty, acting_penalty_info = self._visitation_penalty(
-            #     episode=episode,
-            #     state=torch.from_numpy(state).to(
-            #         device=self._device, dtype=torch.float
-            #     ),
-            #     action=action,
-            #     next_state=torch.from_numpy(next_state).to(
-            #         device=self._device, dtype=torch.float
-            #     ),
-            # )
+            acting_penalty, acting_penalty_info = self._visitation_penalty(
+                episode=episode,
+                state=torch.from_numpy(state).to(
+                    device=self._device, dtype=torch.float
+                ),
+                action=action,
+                next_state=torch.from_numpy(next_state).to(
+                    device=self._device, dtype=torch.float
+                ),
+            )
 
             # acting_penalties.append(acting_penalty)
 
