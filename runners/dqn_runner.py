@@ -216,12 +216,12 @@ class DQNRunner(base_runner.BaseRunner):
                 ),
             )
 
-            # acting_penalties.append(acting_penalty)
+            acting_penalties.append(acting_penalty)
 
-            # for info_key, info in acting_penalty_info.items():
-            #     if info_key not in acting_penalties_infos.keys():
-            #         acting_penalties_infos[info_key] = []
-            #     acting_penalties_infos[info_key].append(info)
+            for info_key, info in acting_penalty_info.items():
+                if info_key not in acting_penalties_infos.keys():
+                    acting_penalties_infos[info_key] = []
+                acting_penalties_infos[info_key].append(info)
 
             if self._shaping_implementation == constants.Constants.ACT:
                 buffer_penalty = None
