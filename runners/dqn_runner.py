@@ -223,14 +223,14 @@ class DQNRunner(base_runner.BaseRunner):
             #         acting_penalties_infos[info_key] = []
             #     acting_penalties_infos[info_key].append(info)
 
-            # if self._shaping_implementation == constants.Constants.ACT:
-            #     buffer_penalty = None
-            # else:
-            #     buffer_penalty = acting_penalty
-            # if self._ensemble:
-            #     mask = self._get_random_mask()
-            # else:
-            #     mask = None
+            if self._shaping_implementation == constants.Constants.ACT:
+                buffer_penalty = None
+            else:
+                buffer_penalty = acting_penalty
+            if self._ensemble:
+                mask = self._get_random_mask()
+            else:
+                mask = None
 
             # self._replay_buffer.add(
             #     state=state,
