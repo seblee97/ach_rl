@@ -199,10 +199,10 @@ class DQNRunner(base_runner.BaseRunner):
 
         while self._environment.active:
 
-            # if self._ensemble:
-            #     action = self._learner.select_behaviour_action(state, branch=branch)
-            # else:
-            #     action = self._learner.select_behaviour_action(state)
+            if self._ensemble:
+                action = self._learner.select_behaviour_action(state, branch=branch)
+            else:
+                action = self._learner.select_behaviour_action(state)
             reward, next_state = self._environment.step(0)
 
             # acting_penalty, acting_penalty_info = self._visitation_penalty(
