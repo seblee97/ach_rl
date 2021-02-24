@@ -101,20 +101,10 @@ class ReplayBuffer:
             active: whether episode is over.
         """
         insertion_index = self._insertion_index % self._replay_size
-        print(
-            insertion_index,
-            self._insertion_index,
-            self._insertion_index % self._replay_size,
-        )
 
         assert (
             insertion_index < self._replay_size
         ), "Insertion index must be below buffer size."
-
-        if insertion_index == 0:
-            import pdb
-
-            pdb.set_trace()
 
         self._states_buffer[insertion_index] = state
         self._actions_buffer[insertion_index] = action
