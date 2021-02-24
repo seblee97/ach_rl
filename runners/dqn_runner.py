@@ -46,7 +46,13 @@ class DQNRunner(base_runner.BaseRunner):
         """Instantiate replay buffer object to store experiences."""
         state_dim = tuple(config.encoded_state_dimensions)
         replay_size = config.replay_buffer_size
-        return replay_buffer.ReplayBuffer(replay_size=replay_size, state_dim=state_dim)
+        penalties = config.shaping_implementation in [
+            constants.Constants.TRAIN_Q_NETWORK,
+            constants.Constants.TRAIN_TARGET_NETWORK,
+        ]
+        return replay_buffer.ReplayBuffer(
+            replay_size=replay_size, state_dim=state_dim, penalties=penalties
+        )
 
     def _fill_replay_buffer(self, num_trajectories: int):
         """Build up store of experiences before training begins.
@@ -60,12 +66,28 @@ class DQNRunner(base_runner.BaseRunner):
         for _ in range(num_trajectories):
             action = random.choice(self._environment.action_space)
             reward, next_state = self._environment.step(action)
+
+            if self._shaping_implementation == constants.Constants.ACT:
+                penalty = None
+            else:
+                penalty, _ = self._visitation_penalty(
+                    episode=0,
+                    state=torch.from_numpy(state).to(
+                        device=self._device, dtype=torch.float
+                    ),
+                    action=action,
+                    next_state=torch.from_numpy(next_state).to(
+                        device=self._device, dtype=torch.float
+                    ),
+                )
+
             self._replay_buffer.add(
                 state=state,
                 action=action,
                 reward=reward,
                 next_state=next_state,
                 active=self._environment.active,
+                penalty=penalty,
             )
             if not self._environment.active:
                 state = self._environment.reset_environment(train=True)
@@ -96,7 +118,8 @@ class DQNRunner(base_runner.BaseRunner):
         episode_loss = 0
         episode_steps = 0
 
-        visitation_penalty = self._visitation_penalty(episode)
+        visitation_penalty = 0
+        # visitation_penalty = self._visitation_penalty(episode)
 
         state = self._environment.reset_environment(train=True)
 
