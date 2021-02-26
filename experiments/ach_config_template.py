@@ -295,6 +295,23 @@ class AChConfigTemplate:
         ],
     )
 
+    _potential_based_policy_entropy_penalty_template = config_template.Template(
+        fields=[
+            config_field.Field(
+                name=constants.Constants.MULTIPLICATIVE_FACTOR,
+                types=[float, int],
+            ),
+        ],
+        level=[
+            constants.Constants.LEARNER,
+            constants.Constants.POTENTIAL_BASED_POLICY_ENTROPY_PENALTY,
+        ],
+        dependent_variables=[constants.Constants.VISITATION_PENALTY_TYPE],
+        dependent_variables_required_values=[
+            [constants.Constants.POTENTIAL_BASED_POLICY_ENTROPY_PENALTY]
+        ],
+    )
+
     _constant_epsilon_template = config_template.Template(
         fields=[
             config_field.Field(
@@ -423,6 +440,7 @@ class AChConfigTemplate:
                         constants.Constants.ADAPTIVE_ARRIVING_UNCERTAINTY,
                         constants.Constants.POTENTIAL_BASED_ADAPTIVE_UNCERTAINTY,
                         constants.Constants.POLICY_ENTROPY_PENALTY,
+                        constants.Constants.POTENTIAL_BASED_POLICY_ENTROPY_PENALTY,
                     ]
                 ],
             ),
@@ -447,6 +465,7 @@ class AChConfigTemplate:
             _adaptive_arriving_uncertainty_template,
             _potential_based_adaptive_uncertainty_template,
             _policy_entropy_penalty_template,
+            _potential_based_policy_entropy_penalty_template,
         ],
     )
 
