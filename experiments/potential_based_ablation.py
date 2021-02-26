@@ -1,14 +1,14 @@
 _baseline = {
     "baseline": [
         {"learner": {"visitation_penalty_type": "hard_coded"}},
-        {"hard_coded": {"vp_schedule": [0, 0]}},
+        {"hard_coded": {"vp_schedule": [[0, 0]]}},
     ],
 }
 
 _hard_coded = {
     f"hard_coded_{i}": [
         {"learner": {"visitation_penalty_type": "hard_coded"}},
-        {"hard_coded": {"vp_schedule": [0, i]}},
+        {"hard_coded": {"vp_schedule": [[0, i]]}},
     ]
     for i in [-0.1, -0.01, -1]
 }
