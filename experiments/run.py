@@ -1,6 +1,7 @@
 import argparse
 import importlib
 import os
+import shutil
 from typing import Dict
 from typing import List
 from typing import Union
@@ -88,6 +89,8 @@ if __name__ == "__main__":
     experiment_path = os.path.join(results_folder, timestamp)
 
     os.makedirs(name=experiment_path, exist_ok=True)
+    config_copy_path = os.path.join(experiment_path, "config.yaml")
+    shutil.copyfile(args.config_path, config_copy_path)
 
     # logger at root of experiment i.e. not individual runs or seeds
     logger = experiment_logger.get_logger(
@@ -100,7 +103,7 @@ if __name__ == "__main__":
         )
         os.makedirs(name=single_checkpoint_path, exist_ok=True)
         single_run.single_run(
-            config_path=args.config_path, checkpoint_path=single_checkpoint_path
+            config_path=config_copy_path, checkpoint_path=single_checkpoint_path
         )
     else:
         seeds = _process_seed_arguments(args.seeds)
@@ -119,11 +122,11 @@ if __name__ == "__main__":
         )
         if args.mode == constants.Constants.PARALLEL:
             parallel_run.parallel_run(
-                config_path=args.config_path, checkpoint_paths=checkpoint_paths
+                config_path=config_copy_path, checkpoint_paths=checkpoint_paths
             )
         elif args.mode == constants.Constants.SERIAL:
             serial_run.serial_run(
-                config_path=args.config_path, checkpoint_paths=checkpoint_paths
+                config_path=config_copy_path, checkpoint_paths=checkpoint_paths
             )
         elif args.mode == constants.Constants.CLUSTER:
             if args.num_cpus:
@@ -140,7 +143,7 @@ if __name__ == "__main__":
                 )
             cluster_run.cluster_run(
                 experiment_path=experiment_path,
-                config_path=args.config_path,
+                config_path=config_copy_path,
                 num_cpus=num_cpus,
                 memory_per_node=args.memory,
                 num_gpus=args.num_gpus,
