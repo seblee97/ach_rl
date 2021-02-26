@@ -1,7 +1,11 @@
 _baseline = {
     "baseline": [
-        {"learner": {"visitation_penalty_type": "hard_coded"}},
-        {"hard_coded": {"vp_schedule": [[0, 0]]}},
+        {
+            "learner": {
+                "visitation_penalty_type": "hard_coded",
+                "hard_coded": {"vp_schedule": [[0, 0]]},
+            }
+        },
     ],
 }
 
