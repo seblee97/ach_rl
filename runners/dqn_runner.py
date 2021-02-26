@@ -41,10 +41,11 @@ class DQNRunner(base_runner.BaseRunner):
         self._batch_size = config.batch_size
         self._shaping_implementation = config.shaping_implementation
 
-        self._visitation_penalty.q_network = copy.deepcopy(self._learner.q_network)
-        self._visitation_penalty.target_q_network = copy.deepcopy(
-            self._learner.target_q_network
-        )
+        if self._visitation_penalty is not None:
+            self._visitation_penalty.q_network = copy.deepcopy(self._learner.q_network)
+            self._visitation_penalty.target_q_network = copy.deepcopy(
+                self._learner.target_q_network
+            )
 
         self._replay_buffer = self._setup_replay_buffer(config=config)
         self._fill_replay_buffer(num_trajectories=config.num_replay_fill_trajectories)
@@ -86,7 +87,10 @@ class DQNRunner(base_runner.BaseRunner):
             action = random.choice(self._environment.action_space)
             reward, next_state = self._environment.step(action)
 
-            if self._shaping_implementation == constants.Constants.ACT:
+            if (
+                self._visitation_penalty is None
+                or self._shaping_implementation == constants.Constants.ACT
+            ):
                 penalty = None
             else:
                 penalty, _ = self._visitation_penalty(
@@ -177,10 +181,11 @@ class DQNRunner(base_runner.BaseRunner):
             episode_reward: mean scalar reward accumulated over ensemble episodes.
             num_steps: mean number of steps taken for ensemble episodes.
         """
-        self._visitation_penalty.q_network = copy.deepcopy(self._learner.q_network)
-        self._visitation_penalty.target_q_network = copy.deepcopy(
-            self._learner.target_q_network
-        )
+        if self._visitation_penalty is not None:
+            self._visitation_penalty.q_network = copy.deepcopy(self._learner.q_network)
+            self._visitation_penalty.target_q_network = copy.deepcopy(
+                self._learner.target_q_network
+            )
 
         if self._ensemble:
             # select branch uniformly at random for rollout
@@ -205,28 +210,32 @@ class DQNRunner(base_runner.BaseRunner):
                 action = self._learner.select_behaviour_action(state)
             reward, next_state = self._environment.step(action)
 
-            acting_penalty, acting_penalty_info = self._visitation_penalty(
-                episode=episode,
-                state=torch.from_numpy(state).to(
-                    device=self._device, dtype=torch.float
-                ),
-                action=action,
-                next_state=torch.from_numpy(next_state).to(
-                    device=self._device, dtype=torch.float
-                ),
-            )
+            if self._visitation_penalty is not None:
+                acting_penalty, acting_penalty_info = self._visitation_penalty(
+                    episode=episode,
+                    state=torch.from_numpy(state).to(
+                        device=self._device, dtype=torch.float
+                    ),
+                    action=action,
+                    next_state=torch.from_numpy(next_state).to(
+                        device=self._device, dtype=torch.float
+                    ),
+                )
 
-            acting_penalties.append(acting_penalty)
+                acting_penalties.append(acting_penalty)
 
-            for info_key, info in acting_penalty_info.items():
-                if info_key not in acting_penalties_infos.keys():
-                    acting_penalties_infos[info_key] = []
-                acting_penalties_infos[info_key].append(info)
+                for info_key, info in acting_penalty_info.items():
+                    if info_key not in acting_penalties_infos.keys():
+                        acting_penalties_infos[info_key] = []
+                    acting_penalties_infos[info_key].append(info)
 
-            if self._shaping_implementation == constants.Constants.ACT:
+            if self._visitation_penalty is None:
                 buffer_penalty = None
             else:
-                buffer_penalty = acting_penalty
+                if self._shaping_implementation == constants.Constants.ACT:
+                    buffer_penalty = None
+                else:
+                    buffer_penalty = acting_penalty
             if self._ensemble:
                 mask = self._get_random_mask()
             else:
@@ -264,30 +273,32 @@ class DQNRunner(base_runner.BaseRunner):
                     device=self._device, dtype=torch.int
                 )
 
-            sample_penalty, sample_penalty_infos = self._visitation_penalty(
-                episode=episode,
-                state=state_sample,
-                action=experience_sample[1],
-                next_state=next_state_sample,
-            )
-
-            sample_penalties.append(np.mean(sample_penalty))
-            for info_key, info in sample_penalty_infos.items():
-                if info_key not in sample_penalties_infos.keys():
-                    sample_penalties_infos[info_key] = []
-                sample_penalties_infos[info_key].append(np.mean(info))
-
-            if self._shaping_implementation in [
-                constants.Constants.TRAIN_Q_NETWORK,
-                constants.Constants.TRAIN_TARGET_NETWORK,
-            ]:
-                penalty = torch.Tensor(sample_penalty).to(
-                    device=self._device, dtype=torch.float
+            if self._visitation_penalty is None:
+                penalty = 0
+            else:
+                sample_penalty, sample_penalty_infos = self._visitation_penalty(
+                    episode=episode,
+                    state=state_sample,
+                    action=experience_sample[1],
+                    next_state=next_state_sample,
                 )
-            elif self._shaping_implementation in [constants.Constants.ACT]:
-                penalty = torch.from_numpy(experience_sample[6]).to(
-                    device=self._device, dtype=torch.float
-                )
+                sample_penalties.append(np.mean(sample_penalty))
+                for info_key, info in sample_penalty_infos.items():
+                    if info_key not in sample_penalties_infos.keys():
+                        sample_penalties_infos[info_key] = []
+                    sample_penalties_infos[info_key].append(np.mean(info))
+
+                if self._shaping_implementation in [
+                    constants.Constants.TRAIN_Q_NETWORK,
+                    constants.Constants.TRAIN_TARGET_NETWORK,
+                ]:
+                    penalty = torch.Tensor(sample_penalty).to(
+                        device=self._device, dtype=torch.float
+                    )
+                elif self._shaping_implementation in [constants.Constants.ACT]:
+                    penalty = torch.from_numpy(experience_sample[6]).to(
+                        device=self._device, dtype=torch.float
+                    )
 
             if self._ensemble:
                 loss, epsilon = self._learner.step(
@@ -327,6 +338,7 @@ class DQNRunner(base_runner.BaseRunner):
         std_acting_penalty_info = {
             k: np.std(v) for k, v in acting_penalties_infos.items()
         }
+
         episode_steps = self._environment.episode_step_count
 
         self._write_scalar(
