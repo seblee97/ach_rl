@@ -43,13 +43,14 @@ atari:
 
     frame_stack: 4
     frame_skip: 4
-    episode_timeout: 500 # infinity if not given
+    episode_timeout: 2000 # infinity if not given
     encoded_state_dimensions: [4, 84, 84]
     plot_origin: upper
 
 
 learner: 
     type: ensemble_q_learning
+
     learning_rate: 0.01
     gradient_momentum: 0.95
     squared_gradient_momentum: 0.95
@@ -88,11 +89,15 @@ learner:
         multiplicative_factor: 0.5
 
     potential_based_adaptive_uncertainty:
-        action_function: mean # mean or max or select
+        pre_action_function: mean # mean or max or select
+        post_action_function: mean # mean or max or select
         multiplicative_factor: 0.5
 
     policy_entropy_penalty:
         multiplicative_factor: 0.5
+
+    potential_based_policy_entropy_penalty:
+        multiplicative_factor: 0.5        
 
 sarsa_lambda:
     trace_lambda: 0.05
@@ -135,13 +140,13 @@ bootstrapped_ensemble_dqn:
 
 dqn:
     batch_size: 32
-    num_replay_fill_trajectories: 500
-    replay_buffer_size: 1000000
+    num_replay_fill_trajectories: 10000
+    replay_buffer_size: 100000
     target_network_update_period: 10000
     normalise_state: True
     gradient_clipping: [-1, 1]
 
-    optimiser: rms_prop
+    optimiser: adam
 
     layer_specifications:
         - conv:
