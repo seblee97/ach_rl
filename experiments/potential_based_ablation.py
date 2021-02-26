@@ -22,7 +22,7 @@ _policy_entropy = {
 }
 
 _potential_policy_entropy = {
-    f"policy_entropy_{i}": [
+    f"potential_policy_entropy_{i}": [
         {
             "learner": {
                 "visitation_penalty_type": "potential_based_policy_entropy_penalty"
@@ -34,7 +34,7 @@ _potential_policy_entropy = {
 }
 
 _adaptive_uncertainty = {
-    f"hard_coded_{i}": [
+    f"uncertainty_{i}": [
         {"learner": {"visitation_penalty_type": "adaptive_uncertainty"}},
         {"adaptive_uncertainty": {"multiplicative_factor": i}},
     ]
@@ -42,7 +42,7 @@ _adaptive_uncertainty = {
 }
 
 _potential_based_adaptive_uncertainty = {
-    f"hard_coded_{i}": [
+    f"potential_uncertainty_{i}": [
         {
             "learner": {
                 "visitation_penalty_type": "potential_based_adaptive_uncertainty"
