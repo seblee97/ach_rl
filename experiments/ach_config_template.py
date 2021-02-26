@@ -413,9 +413,10 @@ class AChConfigTemplate:
             ),
             config_field.Field(
                 name=constants.Constants.VISITATION_PENALTY_TYPE,
-                types=[str],
+                types=[str, type(None)],
                 requirements=[
-                    lambda x: x
+                    lambda x: x is None
+                    or x
                     in [
                         constants.Constants.HARD_CODED,
                         constants.Constants.ADAPTIVE_UNCERTAINTY,
