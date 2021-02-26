@@ -33,6 +33,7 @@ from visitation_penalties import hard_coded_visitation_penalty
 from visitation_penalties import network_visitation_penalty
 from visitation_penalties import policy_entropy_penalty
 from visitation_penalties import potential_adaptive_uncertainty_penalty
+from visitation_penalties import potential_policy_entropy_penalty
 from visitation_penalties import tabular_visitation_penalty
 
 
@@ -234,6 +235,16 @@ class BaseRunner(abc.ABC):
         ):
             penalty_computer = policy_entropy_penalty.PolicyEntropyPenalty(
                 multiplicative_factor=config.multiplicative_factor
+            )
+        elif (
+            config.visitation_penalty_type
+            == constants.Constants.POTENTIAL_BASED_POLICY_ENTROPY_PENALTY
+        ):
+            penalty_computer = (
+                potential_policy_entropy_penalty.PotentialPolicyEntropyPenalty(
+                    gamma=config.discount_factor,
+                    multiplicative_factor=config.multiplicative_factor,
+                )
             )
         else:
             raise ValueError(
