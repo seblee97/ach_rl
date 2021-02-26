@@ -132,8 +132,8 @@ if __name__ == "__main__":
                 num_cpus = len(checkpoint_paths)
             elif len(checkpoint_paths) <= 32:
                 num_cpus = 32
-            elif len(checkpoint_paths) <= 64:
-                num_cpus = 64
+            elif len(checkpoint_paths) <= 48:
+                num_cpus = 48
             else:
                 raise ValueError(
                     f"{len(checkpoint_paths)} is too many run combinations."
