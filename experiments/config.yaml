@@ -144,7 +144,7 @@ dqn:
     replay_buffer_size: 100000
     target_network_update_period: 10000
     normalise_state: True
-    gradient_clipping: [-1, 1]
+    gradient_clipping:
 
     optimiser: adam
 
