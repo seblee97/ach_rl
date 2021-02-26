@@ -67,7 +67,7 @@ class BaseVisitationPenalty(abc.ABC):
                         custom_functions.policy_entropy(
                             indices, num_actions=num_actions
                         )
-                        for indices in state_max_action_indices
+                        for indices in state_max_action_indices.T
                     ]
                 )
 
