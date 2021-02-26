@@ -41,7 +41,10 @@ class BaseRunner(abc.ABC):
 
     def __init__(self, config: ach_config.AchConfig) -> None:
         self._environment = self._setup_environment(config=config)
-        self._visitation_penalty = self._setup_visitation_penalty(config=config)
+        if config.visitation_penalty_type is None:
+            self._visitation_penalty = None
+        else:
+            self._visitation_penalty = self._setup_visitation_penalty(config=config)
         self._epsilon_function = self._setup_epsilon_function(config=config)
         self._learner = self._setup_learner(config=config)
         self._logger = experiment_logger.get_logger(
@@ -250,7 +253,8 @@ class BaseRunner(abc.ABC):
             ):
                 use_target_network = True
             visitation_penalty = network_visitation_penalty.NetworkVisitationPenalty(
-                penalty_computer=penalty_computer, use_target_network=use_target_network
+                penalty_computer=penalty_computer,
+                use_target_network=use_target_network,
             )
         elif config.type in [
             constants.Constants.Q_LEARNING,
