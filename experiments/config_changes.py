@@ -18,43 +18,19 @@ systematically modify it for each different run.
 # }
 
 CONFIG_CHANGES = {
-    "baseline": [{
-        "learner": {
-            "hard_coded": {
-                "vp_schedule": [[0, 0]]
-            }
-        }
-    }, {
-        "learner": {
-            "visitation_penalty_type": "hard_coded"
-        }
-    }, {
-        "gpu_id": 0
-    }],
-    "hard_coded": [{
-        "learner": {
-            "hard_coded": {
-                "vp_schedule": [[0, -0.025]]
-            }
-        }
-    }, {
-        "learner": {
-            "visitation_penalty_type": "hard_coded"
-        }
-    }, {
-        "gpu_id": 1
-    }],
-    "policy_entropy": [{
-        "learner": {
-            "policy_entropy_penalty": {
-                "multiplicative_factor": -0.01
-            }
-        }
-    }, {
-        "learner": {
-            "visitation_penalty_type": "policy_entropy_penalty"
-        }
-    }, {
-        "gpu_id": 2
-    }]
+    "baseline": [
+        {"learner": {"hard_coded": {"vp_schedule": [[0, 0]]}}},
+        {"learner": {"visitation_penalty_type": "hard_coded"}},
+        {"gpu_id": 0},
+    ],
+    "hard_coded": [
+        {"learner": {"hard_coded": {"vp_schedule": [[0, -0.025]]}}},
+        {"learner": {"visitation_penalty_type": "hard_coded"}},
+        {"gpu_id": 1},
+    ],
+    "policy_entropy": [
+        {"learner": {"policy_entropy_penalty": {"multiplicative_factor": -0.01}}},
+        {"learner": {"visitation_penalty_type": "policy_entropy_penalty"}},
+        {"gpu_id": 2},
+    ],
 }
