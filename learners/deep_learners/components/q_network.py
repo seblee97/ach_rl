@@ -18,6 +18,9 @@ class QNetwork(nn.Module):
         state_dim: Tuple[int, int, int],
         num_actions: int,
         layer_specifications: List[Dict[str, Any]],
+        shared_layers: Union[List[int], None] = None,
+        num_branches: int = 0,
+        copy_initialisation: bool = False,
     ):
         """Class constructor.
 
@@ -29,6 +32,11 @@ class QNetwork(nn.Module):
         self._state_dim = state_dim
         self._num_actions = num_actions
         self._layer_specifications = layer_specifications
+        self._shared_layers = shared_layers or list(
+            range(len(self._layer_specifications))
+        )
+        self._num_branches = num_branches
+        self._copy_initialisation = copy_initialisation
 
         super().__init__()
 
@@ -36,7 +44,10 @@ class QNetwork(nn.Module):
 
     def _construct_layers(self):
         """Method to setup network architecture."""
-        self._layers = nn.ModuleList([])
+        self._core_layers = nn.ModuleList([])
+        self._branched_layers = nn.ModuleList(
+            [nn.ModuleList([]) for _ in range(self._num_branches)]
+        )
 
         for layer_index, layer_specification in enumerate(self._layer_specifications):
 
@@ -44,8 +55,8 @@ class QNetwork(nn.Module):
                 layer_specification=layer_specification
             )
 
-            self._layers.append(layer)
-            self._layers.append(nonlinearity)
+            self._core_layers.append(layer)
+            self._core_layers.append(nonlinearity)
 
     def _construct_layer(
         self, layer_specification: Dict
@@ -120,7 +131,7 @@ class QNetwork(nn.Module):
 
     def forward(self, x: torch.Tensor):
         """Forward pass through network."""
-        for layer in self._layers:
+        for layer in self._core_layers:
             x = layer(x)
 
         return x
