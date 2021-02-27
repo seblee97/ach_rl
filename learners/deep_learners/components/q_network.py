@@ -131,9 +131,14 @@ class QNetwork(nn.Module):
         elif initialisation == constants.Constants.XAVIER_UNIFORM:
             nn.init.xavier_uniform_(layer_weights)
 
-    def forward(self, x: torch.Tensor):
+    def forward(self, x: torch.Tensor, branch: Union[int, None] = None):
         """Forward pass through network."""
+
         for layer in self._core_layers:
             x = layer(x)
+
+        if branch is not None:
+            for layer in self._branched_layers[branch]:
+                x = layer(x)
 
         return x
