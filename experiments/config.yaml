@@ -3,7 +3,7 @@ seed: 0
 use_gpu: True
 gpu_id: 0
 
-environment: multiroom
+environment: atari
 apply_curriculum: False
     
 minigrid:
@@ -49,21 +49,21 @@ atari:
 
 
 learner: 
-    type: ensemble_q_learning
+    type: dqn
 
-    learning_rate: 0.01
+    learning_rate: 0.0001
     gradient_momentum: 0.95
     squared_gradient_momentum: 0.95
     min_squared_gradient: 0.01
     discount_factor: 0.99 
     epsilon:
-        schedule: constant
+        schedule: linear_decay
 
         constant:
             value: 0.1
         
         linear_decay:
-            initial_value: 0.9
+            initial_value: 1
             final_value: 0.02
             anneal_duration: 100000
     
@@ -71,14 +71,14 @@ learner:
 
     # hard_coded, adaptive_uncertainty, adaptive_arriving_uncertainty, 
     # policy_entropy_penalty or potential_based_adaptive_uncertainty
-    visitation_penalty_type: hard_coded
+    visitation_penalty_type: 
 
     # train_q_network, train_target_network, act; only relevant for DQN-based
     shaping_implementation: train_q_network
 
     hard_coded: 
         vp_schedule:
-            - [0, -0.05] # from step 0, 0 penalty
+            - [0, 0] # from step 0, 0 penalty
         
     adaptive_uncertainty:
         action_function: mean # mean or max or select
@@ -141,8 +141,8 @@ bootstrapped_ensemble_dqn:
 dqn:
     batch_size: 32
     num_replay_fill_trajectories: 10000
-    replay_buffer_size: 100000
-    target_network_update_period: 10000
+    replay_buffer_size: 10000
+    target_network_update_period: 1000
     normalise_state: True
     gradient_clipping:
 
@@ -196,26 +196,26 @@ training:
 
 logging:
     print_frequency: 1
-    checkpoint_frequency: 500
+    checkpoint_frequency: 5
     animation_library: imageio
     animation_file_format: mp4
     arrays:
-        - [value_function, 10]
+        #- [value_function, 10]
         # - [individual_value_functions, 50]
-        - [value_function_std, 10]
-        - [policy_entropy, 10]
+        #- [value_function_std, 10]
+        - [policy_entropy, 10000]
     scalars:
         - [train_episode_reward, 1]
         - [train_episode_length, 1]
         # - [average_action_value, 50]
-        # - [loss, 1]
-        # - [epsilon, 1]
-        - [[train_episode_reward_ensemble_runner, 4], 1]
-        - [[train_episode_length_ensemble_runner, 4], 1]
-        - [ensemble_episode_reward_std, 1]
-        - [ensemble_episode_length_std, 1]
-        - [mean_visitation_penalty, 1]
-        - [mean_penalty_info, 1]
+        - [loss, 1]
+        - [epsilon, 1]
+        #- [[train_episode_reward_ensemble_runner, 4], 1]
+        #- [[train_episode_length_ensemble_runner, 4], 1]
+        #- [ensemble_episode_reward_std, 1]
+        #- [ensemble_episode_length_std, 1]
+        #- [mean_visitation_penalty, 1]
+        #- [mean_penalty_info, 1]
         # - [no_repeat_test_episode_reward, 1]
         # - [no_repeat_test_episode_length, 1]
         # - [cycle_count, 1]
