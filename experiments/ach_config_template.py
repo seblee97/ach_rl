@@ -725,6 +725,7 @@ class AChConfigTemplate:
         dependent_variables=[constants.Constants.TYPE],
         dependent_variables_required_values=[
             [
+                constants.Constants.DQN,
                 constants.Constants.VANILLA_DQN,
                 constants.Constants.BOOTSTRAPPED_ENSEMBLE_DQN,
                 constants.Constants.INDEPENDENT_ENSEMBLE_DQN,
