@@ -51,12 +51,14 @@ class QNetwork(nn.Module):
 
         for layer_index, layer_specification in enumerate(self._layer_specifications):
 
-            layer, nonlinearity = self._construct_layer(
-                layer_specification=layer_specification
-            )
+            if layer_index in self._shared_layers:
 
-            self._core_layers.append(layer)
-            self._core_layers.append(nonlinearity)
+                layer, nonlinearity = self._construct_layer(
+                    layer_specification=layer_specification
+                )
+
+                self._core_layers.append(layer)
+                self._core_layers.append(nonlinearity)
 
     def _construct_layer(
         self, layer_specification: Dict
