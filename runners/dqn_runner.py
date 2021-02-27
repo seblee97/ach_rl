@@ -347,6 +347,9 @@ class DQNRunner(base_runner.BaseRunner):
             scalar=episode_loss / episode_steps,
         )
         self._write_scalar(
+            tag=constants.Constants.EPSILON, episode=episode, scalar=epsilon
+        )
+        self._write_scalar(
             tag=constants.Constants.MEAN_VISITATION_PENALTY,
             episode=episode,
             scalar=mean_sample_penalty,
