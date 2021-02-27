@@ -22,6 +22,7 @@ import constants
 from experiments import ach_config
 from runners import dqn_ensemble_independent_runner
 from runners import dqn_runner
+from runners import individual_dqn_runner
 from runners import q_learning_ensemble_runner
 from runners import q_learning_runner
 from runners import sarsa_lambda_runner
@@ -90,6 +91,8 @@ def single_run(
         r = sarsa_lambda_runner.SARSALambdaRunner(config=config)
     elif config.type == constants.Constants.Q_LEARNING:
         r = q_learning_runner.QLearningRunner(config=config)
+    elif config.type == constants.Constants.DQN:
+        r = individual_dqn_runner.DQNRunner(config=config)
     elif config.type == constants.Constants.VANILLA_DQN:
         r = dqn_runner.DQNRunner(config=config)
     elif config.type == constants.Constants.ENSEMBLE_Q_LEARNING:

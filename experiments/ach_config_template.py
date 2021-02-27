@@ -383,6 +383,7 @@ class AChConfigTemplate:
                     in [
                         constants.Constants.SARSA_LAMBDA,
                         constants.Constants.Q_LEARNING,
+                        constants.Constants.DQN,
                         constants.Constants.VANILLA_DQN,
                         constants.Constants.ENSEMBLE_Q_LEARNING,
                         constants.Constants.BOOTSTRAPPED_ENSEMBLE_DQN,
