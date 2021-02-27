@@ -96,7 +96,7 @@ class DQNRunner(base_runner.BaseRunner):
         episode_loss = 0
         episode_steps = 0
 
-        visitation_penalty = self._visitation_penalty(episode)
+        visitation_penalty = 0
 
         state = self._environment.reset_environment(train=True)
 
