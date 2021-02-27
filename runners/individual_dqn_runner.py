@@ -157,6 +157,8 @@ class DQNRunner(base_runner.BaseRunner):
             tag=constants.Constants.EPSILON, episode=episode, scalar=epsilon
         )
 
+        self._logger.info(f"Loss: {episode_loss / episode_steps}")
+
         return episode_reward, self._environment.episode_step_count
 
     def _run_specific_tests(self, episode: int):
