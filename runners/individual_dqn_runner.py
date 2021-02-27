@@ -181,3 +181,6 @@ class DQNRunner(base_runner.BaseRunner):
         self._learner.train()
 
         return average_value
+
+    def _post_visualisation(self):
+        pass
