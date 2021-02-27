@@ -11,7 +11,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 from learners import base_learner
-from learners.deep_learners.components import q_network
+from learners.deep_learners.components import new_q_network
 from utils import epsilon_schedules
 
 
@@ -84,18 +84,20 @@ class DQNLearner(base_learner.BaseLearner):
 
     def _initialise_q_network(self):
         """Setup a q-network."""
-        return q_network.QNetwork(
+        return new_q_network.QNetwork(
             state_dim=self._state_dimensions,
             num_actions=len(self._action_space),
-            layer_specifications=self._layer_specifications)
+            layer_specifications=self._layer_specifications,
+        )
 
     def _setup_optimiser(self):
         """Setup optimiser.
 
         Supports adam and rms_prop."""
         if self._optimiser_type == constants.Constants.ADAM:
-            optimiser = torch.optim.Adam(self._q_network.parameters(),
-                                         lr=self._learning_rate)
+            optimiser = torch.optim.Adam(
+                self._q_network.parameters(), lr=self._learning_rate
+            )
         elif self._optimiser_type == constants.Constants.RMS_PROP:
             optimiser = torch.optim.RMSprop(
                 self._q_network.parameters(),
@@ -164,11 +166,14 @@ class DQNLearner(base_learner.BaseLearner):
 
         # add batch dimension to action for indexing
         action_index = action.unsqueeze(-1).to(torch.int64)
-        estimate = torch.gather(state_value_estimates, 1,
-                                action_index).squeeze()
+        estimate = torch.gather(state_value_estimates, 1, action_index).squeeze()
 
-        max_target = torch.max(self._target_q_network(next_state,),
-                               axis=1).values.detach()
+        max_target = torch.max(
+            self._target_q_network(
+                next_state,
+            ),
+            axis=1,
+        ).values.detach()
 
         target = reward + visitation_penalty + active * self._gamma * max_target
 
@@ -180,8 +185,9 @@ class DQNLearner(base_learner.BaseLearner):
         if self._gradient_clipping is not None:
             for param in self._q_network.parameters():
                 if param.requires_grad:
-                    param.grad.data.clamp_(self._gradient_clipping[0],
-                                           self._gradient_clipping[1])
+                    param.grad.data.clamp_(
+                        self._gradient_clipping[0], self._gradient_clipping[1]
+                    )
 
         self._optimiser.step()
 
