@@ -130,6 +130,8 @@ class AchConfig(base_configuration.BaseConfiguration):
                 constants.Constants.TEST_EPISODE_LENGTH,
                 constants.Constants.LOSS,
                 constants.Constants.EPSILON,
+                constants.Constants.BRANCH_LOSS,
+                constants.Constants.BRANCH_REWARD,
                 "_".join(
                     [
                         constants.Constants.TRAIN_EPISODE_REWARD,
