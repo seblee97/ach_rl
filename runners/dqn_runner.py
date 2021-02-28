@@ -347,6 +347,18 @@ class DQNRunner(base_runner.BaseRunner):
             scalar=episode_loss / episode_steps,
         )
         self._write_scalar(
+            tag=constants.Constants.BRANCH_LOSS,
+            episode=episode,
+            scalar=episode_loss / episode_steps,
+            df_tag=f"branch_{branch}_loss",
+        )
+        self._write_scalar(
+            tag=constants.Constants.BRANCH_REWARD,
+            episode=episode,
+            scalar=episode_reward,
+            df_tag=f"branch_{branch}_reward",
+        )
+        self._write_scalar(
             tag=constants.Constants.EPSILON, episode=episode, scalar=epsilon
         )
         self._write_scalar(
@@ -415,16 +427,6 @@ class DQNRunner(base_runner.BaseRunner):
         # greedy_mean = constants.Constants.GREEDY_MEAN
         # greedy_vote = constants.Constants.GREEDY_VOTE
 
-        # no_rep_greedy_sample = "_".join(
-        #     [constants.Constants.NO_REP, constants.Constants.GREEDY_SAMPLE]
-        # )
-        # no_rep_greedy_mean = "_".join(
-        #     [constants.Constants.NO_REP, constants.Constants.GREEDY_MEAN]
-        # )
-        # no_rep_greedy_vote = "_".join(
-        #     [constants.Constants.NO_REP, constants.Constants.GREEDY_VOTE]
-        # )
-
         # if greedy_sample in self._targets:
         #     self._greedy_test_episode(
         #         episode=episode,
@@ -451,33 +453,6 @@ class DQNRunner(base_runner.BaseRunner):
         #             constants.Constants.LEARNERS: self._learner.ensemble
         #         },
         #         tag_=f"_{greedy_vote}",
-        #     )
-        # if no_rep_greedy_sample in self._targets:
-        #     self._non_repeat_test_episode(
-        #         episode=episode,
-        #         action_selection_method=SampleGreedyEnsemble.select_target_action,
-        #         action_selection_method_args={
-        #             constants.Constants.LEARNERS: self._learner.ensemble
-        #         },
-        #         tag_=f"_{no_rep_greedy_sample}",
-        #     )
-        # if no_rep_greedy_mean in self._targets:
-        #     self._non_repeat_test_episode(
-        #         episode=episode,
-        #         action_selection_method=MeanGreedyEnsemble.select_target_action,
-        #         action_selection_method_args={
-        #             constants.Constants.LEARNERS: self._learner.ensemble
-        #         },
-        #         tag_=f"_{no_rep_greedy_mean}",
-        #     )
-        # if no_rep_greedy_vote in self._targets:
-        #     self._non_repeat_test_episode(
-        #         episode=episode,
-        #         action_selection_method=MajorityVoteEnsemble.select_target_action,
-        #         action_selection_method_args={
-        #             constants.Constants.LEARNERS: self._learner.ensemble
-        #         },
-        #         tag_=f"_{no_rep_greedy_vote}",
         #     )
 
     def _post_visualisation(self):
