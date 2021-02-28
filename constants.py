@@ -257,6 +257,8 @@ class Constants:
     LOG_EPSILON = 1e-8
     VANILLA_DQN = "vanilla_dqn"
     POTENTIAL_BASED_POLICY_ENTROPY_PENALTY = "potential_based_policy_entropy_penalty"
+    BRANCH_LOSS = "branch_loss"
+    BRANCH_REWARD = "branch_reward"
 
     ATARI_ENVS = ["PongNoFrameskip-v4"]
 
