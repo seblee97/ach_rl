@@ -801,10 +801,10 @@ class AChConfigTemplate:
                 name=constants.Constants.ARRAYS,
                 types=[list, type(None)],
                 requirements=[
-                    lambda x: all(
-                        isinstance(y, list) and isinstance(y[1], int) for y in x
-                    ),
-                    lambda x: all(
+                    lambda x: x is None
+                    or all(isinstance(y, list) and isinstance(y[1], int) for y in x),
+                    lambda x: x is None
+                    or all(
                         (
                             isinstance(z, str)
                             or (
