@@ -39,8 +39,9 @@ class Plotter:
         num_rows: int,
     ) -> Tuple:
 
-        fig = plt.figure(constrained_layout=False,
-                         figsize=(num_columns * width, num_rows * height))
+        fig = plt.figure(
+            constrained_layout=False, figsize=(num_columns * width, num_rows * height)
+        )
 
         heights = [height for _ in range(num_rows)]
         widths = [width for _ in range(num_columns)]
@@ -54,7 +55,13 @@ class Plotter:
 
         return fig, spec
 
-    def plot_learning_curves(self) -> None:
+    def plot_learning_curves(self):
+        # unsmoothed
+        self._plot_learning_curves(smoothing=None)
+        # smoothed
+        self._plot_learning_curves(smoothing=self._smoothing)
+
+    def _plot_learning_curves(self, smoothing: int) -> None:
 
         num_graphs = len(self._plot_tags)
 
@@ -62,16 +69,14 @@ class Plotter:
             math.ceil(np.sqrt(num_graphs)),
             math.ceil(np.sqrt(num_graphs)),
         )
-        graph_layout = constants.Constants.GRAPH_LAYOUTS.get(
-            num_graphs, default_layout)
+        graph_layout = constants.Constants.GRAPH_LAYOUTS.get(num_graphs, default_layout)
 
         num_rows = graph_layout[0]
         num_columns = graph_layout[1]
 
-        self.fig, self.spec = self.get_figure_skeleton(height=4,
-                                                       width=5,
-                                                       num_columns=num_columns,
-                                                       num_rows=num_rows)
+        self.fig, self.spec = self.get_figure_skeleton(
+            height=4, width=5, num_columns=num_columns, num_rows=num_rows
+        )
 
         for row in range(num_rows):
             for col in range(num_columns):
@@ -80,24 +85,20 @@ class Plotter:
 
                 if graph_index < num_graphs:
 
-                    print("Plotting graph {}/{}".format(graph_index + 1,
-                                                        num_graphs))
-                    self._plot_scalar(row=row,
-                                      col=col,
-                                      data_tag=self._plot_tags[graph_index])
+                    print("Plotting graph {}/{}".format(graph_index + 1, num_graphs))
+                    self._plot_scalar(
+                        row=row,
+                        col=col,
+                        data_tag=self._plot_tags[graph_index],
+                        smoothing=smoothing,
+                    )
 
-        save_path = os.path.join(self._save_folder,
-                                 constants.Constants.PLOT_PDF)
+        save_path = os.path.join(self._save_folder, constants.Constants.PLOT_PDF)
         plt.tight_layout()
         self.fig.savefig(save_path, dpi=100)
         plt.close()
 
-    def _plot_scalar(
-        self,
-        row: int,
-        col: int,
-        data_tag: str,
-    ):
+    def _plot_scalar(self, row: int, col: int, data_tag: str, smoothing: int):
         fig_sub = self.fig.add_subplot(self.spec[row, col])
 
         # labelling
@@ -106,36 +107,34 @@ class Plotter:
 
         # grids
         fig_sub.minorticks_on()
-        fig_sub.grid(which="major",
-                     linestyle="-",
-                     linewidth="0.5",
-                     color="red",
-                     alpha=0.2)
-        fig_sub.grid(which="minor",
-                     linestyle=":",
-                     linewidth="0.5",
-                     color="black",
-                     alpha=0.4)
+        fig_sub.grid(
+            which="major", linestyle="-", linewidth="0.5", color="red", alpha=0.2
+        )
+        fig_sub.grid(
+            which="minor", linestyle=":", linewidth="0.5", color="black", alpha=0.4
+        )
 
         # plot data
         if data_tag in self._log_df.columns:
             sub_fig_tags = [data_tag]
             sub_fig_data = [self._log_df[data_tag].dropna()]
         else:
-            sub_fig_tags = [
-                tag for tag in self._log_df.columns if data_tag in tag
-            ]
+            sub_fig_tags = [tag for tag in self._log_df.columns if data_tag in tag]
             sub_fig_data = [self._log_df[tag].dropna() for tag in sub_fig_tags]
 
-        smoothed_data = [
-            plotting_functions.smooth_data(data=data.to_numpy(),
-                                           window_width=min(
-                                               len(data), self._smoothing))
-            for data in sub_fig_data
-        ]
+        if smoothing is not None:
+            smoothed_data = [
+                plotting_functions.smooth_data(
+                    data=data.to_numpy(), window_width=min(len(data), smoothing)
+                )
+                for data in sub_fig_data
+            ]
+        else:
+            smoothed_data = sub_fig_data
 
-        x_data = [(self._scaling / len(data)) * np.arange(len(data))
-                  for data in smoothed_data]
+        x_data = [
+            (self._scaling / len(data)) * np.arange(len(data)) for data in smoothed_data
+        ]
 
         for x, y, label in zip(x_data, smoothed_data, sub_fig_tags):
             fig_sub.plot(x, y, label=label)
