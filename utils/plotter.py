@@ -93,7 +93,12 @@ class Plotter:
                         smoothing=smoothing,
                     )
 
-        save_path = os.path.join(self._save_folder, constants.Constants.PLOT_PDF)
+        if smoothing is not None:
+            save_path = os.path.join(self._save_folder, constants.Constants.PLOT_PDF)
+        else:
+            save_path = os.path.join(
+                self._save_folder, constants.Constants.RAW_PLOT_PDF
+            )
         plt.tight_layout()
         self.fig.savefig(save_path, dpi=100)
         plt.close()
