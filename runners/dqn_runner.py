@@ -346,18 +346,25 @@ class DQNRunner(base_runner.BaseRunner):
             episode=episode,
             scalar=episode_loss / episode_steps,
         )
-        self._write_scalar(
-            tag=constants.Constants.BRANCH_LOSS,
-            episode=episode,
-            scalar=episode_loss / episode_steps,
-            df_tag=f"branch_{branch}_loss",
-        )
-        self._write_scalar(
-            tag=constants.Constants.BRANCH_REWARD,
-            episode=episode,
-            scalar=episode_reward,
-            df_tag=f"branch_{branch}_reward",
-        )
+        for i in range(self._num_learners):
+            if i == branch:
+                loss_scalar = episode_loss / episode_steps
+                reward_scalar = episode_reward
+            else:
+                loss_scalar = np.nan
+                reward_scalar = np.nan
+            self._write_scalar(
+                tag=constants.Constants.BRANCH_LOSS,
+                episode=episode,
+                scalar=loss_scalar,
+                df_tag=f"branch_{i}_loss",
+            )
+            self._write_scalar(
+                tag=constants.Constants.BRANCH_REWARD,
+                episode=episode,
+                scalar=reward_scalar,
+                df_tag=f"branch_{i}_reward",
+            )
         self._write_scalar(
             tag=constants.Constants.EPSILON, episode=episode, scalar=epsilon
         )
