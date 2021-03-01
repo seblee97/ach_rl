@@ -659,7 +659,19 @@ class AChConfigTemplate:
             config_field.Field(
                 name=constants.Constants.TARGETS,
                 types=[list, type(None)],
-                requirements=[lambda x: x is None or all(y in [] for y in x)],
+                requirements=[
+                    lambda x: x is None
+                    or all(
+                        y
+                        in [
+                            constants.Constants.GREEDY_INDIVIDUAL,
+                            constants.Constants.GREEDY_SAMPLE,
+                            constants.Constants.GREEDY_MEAN,
+                            constants.Constants.GREEDY_VOTE,
+                        ]
+                        for y in x
+                    )
+                ],
             ),
             config_field.Field(
                 name=constants.Constants.MASK_PROBABILITY,
