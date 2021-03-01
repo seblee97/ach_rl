@@ -93,15 +93,17 @@ class MultiHeadDQNLearner(base_learner.BaseLearner):
             num_actions=len(self._action_space),
             layer_specifications=self._layer_specifications,
             shared_layers=self._shared_layers,
-            num_branches=self._num_branches)
+            num_branches=self._num_branches,
+        )
 
     def _setup_optimiser(self):
         """Setup optimiser.
 
         Supports adam and rms_prop."""
         if self._optimiser_type == constants.Constants.ADAM:
-            optimiser = torch.optim.Adam(self._q_network.parameters(),
-                                         lr=self._learning_rate)
+            optimiser = torch.optim.Adam(
+                self._q_network.parameters(), lr=self._learning_rate
+            )
         elif self._optimiser_type == constants.Constants.RMS_PROP:
             optimiser = torch.optim.RMSprop(
                 self._q_network.parameters(),
@@ -124,9 +126,9 @@ class MultiHeadDQNLearner(base_learner.BaseLearner):
         self._target_q_network.load_state_dict(self._q_network.state_dict())
         self._target_q_network.eval()
 
-    def select_behaviour_action(self,
-                                state: np.ndarray,
-                                branch: Union[int, None] = None):
+    def select_behaviour_action(
+        self, state: np.ndarray, branch: Union[int, None] = None
+    ):
         """Action to select for behaviour i.e. for training."""
         # cast state to tensor
         state = torch.from_numpy(state).to(torch.float).to(self._device)
@@ -141,9 +143,7 @@ class MultiHeadDQNLearner(base_learner.BaseLearner):
             self._q_network.train()
         return action
 
-    def select_target_action(self,
-                             state: np.ndarray,
-                             branch: Union[int, None] = None):
+    def select_target_action(self, state: np.ndarray, branch: Union[int, None] = None):
         """Action to select for target, i.e. final policy."""
         with torch.no_grad():
             # cast state to tensor
@@ -153,26 +153,63 @@ class MultiHeadDQNLearner(base_learner.BaseLearner):
             action = torch.argmax(state_action_values).item()
         return action
 
-    def step(self,
-             state: torch.Tensor,
-             action: torch.Tensor,
-             reward: torch.Tensor,
-             next_state: torch.Tensor,
-             active: torch.Tensor,
-             visitation_penalty: float,
-             mask: Union[torch.Tensor, None] = None) -> Tuple[float, float]:
+    def _ensemble_values_at_state(self, state: np.ndarray, max: bool):
+        """For a given state, evaluate max action for each member of ensemble"""
+        with torch.no_grad():
+            # cast state to tensor
+            state = torch.from_numpy(state).to(torch.float).to(self._device)
+
+            state_action_values = self._q_network.forward_all_heads(state)
+        if max:
+            return torch.argmax(state_action_values, axis=2).numpy().flatten()
+        else:
+            return state_action_values.squeeze().numpy()
+
+    def select_greedy_sample_target_action(self, state: np.ndarray):
+        ensemble_max_actions = self._ensemble_values_at_state(state=state, max=True)
+        action_probabilities = np.bincount(
+            ensemble_max_actions, minlength=len(self._action_space)
+        ) / len(ensemble_max_actions)
+
+        action = np.random.choice(self._action_space, p=action_probabilities)
+        return action
+
+    def select_greedy_mean_target_action(self, state: np.ndarray):
+        ensemble_max_actions = self._ensemble_values_at_state(state=state, max=False)
+        mean_over_ensemble = np.mean(ensemble_max_actions, axis=0)
+        action = np.argmax(mean_over_ensemble)
+        return action
+
+    def select_greedy_vote_target_action(self, state: np.ndarray):
+        ensemble_max_actions = self._ensemble_values_at_state(state=state, max=True)
+        max_action_value_counts = np.bincount(
+            ensemble_max_actions, minlength=len(self._action_space)
+        )
+        action = np.argmax(max_action_value_counts)
+        return action
+
+    def step(
+        self,
+        state: torch.Tensor,
+        action: torch.Tensor,
+        reward: torch.Tensor,
+        next_state: torch.Tensor,
+        active: torch.Tensor,
+        visitation_penalty: float,
+        mask: Union[torch.Tensor, None] = None,
+    ) -> Tuple[float, float]:
         """Training step."""
         state_value_estimates = self._q_network.forward_all_heads(state)
 
         # add batch dimension, copy for each branch dimension for indexing
-        action_index = action.unsqueeze(-1).repeat(self._num_branches, 1,
-                                                   1).to(torch.int64)
-        estimate = torch.gather(state_value_estimates, 2,
-                                action_index).squeeze()
+        action_index = (
+            action.unsqueeze(-1).repeat(self._num_branches, 1, 1).to(torch.int64)
+        )
+        estimate = torch.gather(state_value_estimates, 2, action_index).squeeze()
 
         max_target = torch.max(
-            self._target_q_network.forward_all_heads(next_state),
-            axis=2).values.detach()
+            self._target_q_network.forward_all_heads(next_state), axis=2
+        ).values.detach()
 
         target = reward + visitation_penalty + active * self._gamma * max_target
 
@@ -184,8 +221,9 @@ class MultiHeadDQNLearner(base_learner.BaseLearner):
         # clip gradients
         if self._gradient_clipping is not None:
             for param in self._q_network.parameters():
-                param.grad.data.clamp_(self._gradient_clipping[0],
-                                       self._gradient_clipping[1])
+                param.grad.data.clamp_(
+                    self._gradient_clipping[0], self._gradient_clipping[1]
+                )
 
         self._optimiser.step()
 
