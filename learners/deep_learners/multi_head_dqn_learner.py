@@ -161,9 +161,9 @@ class MultiHeadDQNLearner(base_learner.BaseLearner):
 
             state_action_values = self._q_network.forward_all_heads(state)
         if max:
-            return torch.argmax(state_action_values, axis=2).numpy().flatten()
+            return torch.argmax(state_action_values, axis=2).cpu().numpy().flatten()
         else:
-            return state_action_values.squeeze().numpy()
+            return state_action_values.squeeze().cpu().numpy()
 
     def select_greedy_sample_target_action(self, state: np.ndarray):
         ensemble_max_actions = self._ensemble_values_at_state(state=state, max=True)
