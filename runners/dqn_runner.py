@@ -429,38 +429,38 @@ class DQNRunner(base_runner.BaseRunner):
 
         Here, there are various methods for performing inference.
         """
-        pass
-        # greedy_sample = constants.Constants.GREEDY_SAMPLE
-        # greedy_mean = constants.Constants.GREEDY_MEAN
-        # greedy_vote = constants.Constants.GREEDY_VOTE
+        greedy_sample = constants.Constants.GREEDY_SAMPLE
+        greedy_mean = constants.Constants.GREEDY_MEAN
+        greedy_vote = constants.Constants.GREEDY_VOTE
+        greedy_individual = constants.Constants.GREEDY_INDIVIDUAL
 
-        # if greedy_sample in self._targets:
-        #     self._greedy_test_episode(
-        #         episode=episode,
-        #         action_selection_method=SampleGreedyEnsemble.select_target_action,
-        #         action_selection_method_args={
-        #             constants.Constants.LEARNERS: self._learner.ensemble
-        #         },
-        #         tag_=f"_{greedy_sample}",
-        #     )
-        # if greedy_mean in self._targets:
-        #     self._greedy_test_episode(
-        #         episode=episode,
-        #         action_selection_method=MeanGreedyEnsemble.select_target_action,
-        #         action_selection_method_args={
-        #             constants.Constants.LEARNERS: self._learner.ensemble
-        #         },
-        #         tag_=f"_{greedy_mean}",
-        #     )
-        # if greedy_vote in self._targets:
-        #     self._greedy_test_episode(
-        #         episode=episode,
-        #         action_selection_method=MajorityVoteEnsemble.select_target_action,
-        #         action_selection_method_args={
-        #             constants.Constants.LEARNERS: self._learner.ensemble
-        #         },
-        #         tag_=f"_{greedy_vote}",
-        #     )
+        if greedy_individual in self._targets:
+            for i in range(self._num_learners):
+                self._greedy_test_episode(
+                    episode=episode,
+                    action_selection_method=self._learner.select_target_action,
+                    action_selection_method_args={constants.Constants.BRANCH: i},
+                    tag_=f"{greedy_individual}_{i}",
+                )
+
+        if greedy_sample in self._targets:
+            self._greedy_test_episode(
+                episode=episode,
+                action_selection_method=self._learner.select_greedy_sample_target_action,
+                tag_=f"_{greedy_sample}",
+            )
+        if greedy_mean in self._targets:
+            self._greedy_test_episode(
+                episode=episode,
+                action_selection_method=self._learner.select_greedy_mean_target_action,
+                tag_=f"_{greedy_mean}",
+            )
+        if greedy_vote in self._targets:
+            self._greedy_test_episode(
+                episode=episode,
+                action_selection_method=self._learner.select_greedy_vote_target_action,
+                tag_=f"_{greedy_vote}",
+            )
 
     def _post_visualisation(self):
         pass
