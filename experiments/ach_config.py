@@ -134,18 +134,28 @@ class AchConfig(base_configuration.BaseConfiguration):
                 constants.Constants.BRANCH_REWARD,
                 "_".join(
                     [
-                        constants.Constants.TRAIN_EPISODE_REWARD,
-                        constants.Constants.ENSEMBLE_RUNNER,
+                        constants.Constants.TEST,
+                        constants.Constants.ENSEMBLE_EPISODE_REWARD_STD,
                     ]
                 ),
                 "_".join(
                     [
-                        constants.Constants.TRAIN_EPISODE_LENGTH,
-                        constants.Constants.ENSEMBLE_RUNNER,
+                        constants.Constants.TEST,
+                        constants.Constants.ENSEMBLE_EPISODE_LENGTH_STD,
                     ]
                 ),
-                constants.Constants.ENSEMBLE_EPISODE_REWARD_STD,
-                constants.Constants.ENSEMBLE_EPISODE_LENGTH_STD,
+                "_".join(
+                    [
+                        constants.Constants.TEST,
+                        constants.Constants.ENSEMBLE_EPISODE_REWARD_MEAN,
+                    ]
+                ),
+                "_".join(
+                    [
+                        constants.Constants.TEST,
+                        constants.Constants.ENSEMBLE_EPISODE_LENGTH_MEAN,
+                    ]
+                ),
                 constants.Constants.MEAN_VISITATION_PENALTY,
                 constants.Constants.MEAN_PENALTY_INFO,
                 constants.Constants.STD_PENALTY_INFO,
@@ -158,14 +168,12 @@ class AchConfig(base_configuration.BaseConfiguration):
                 constants.Constants.GREEDY_SAMPLE,
                 constants.Constants.GREEDY_VOTE,
                 constants.Constants.GREEDY_MEAN,
+                constants.Constants.GREEDY_INDIVIDUAL,
             ]
 
             permitted_visuals = [
                 constants.Constants.INDIVIDUAL_TRAIN_RUN,
                 constants.Constants.INDIVIDUAL_TEST_RUN,
-                constants.Constants.VALUE_FUNCTION,
-                constants.Constants.INDIVIDUAL_VALUE_FUNCTIONS,
-                constants.Constants.VALUE_FUNCTION_STD,
             ]
         else:
             raise ValueError(
