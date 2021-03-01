@@ -259,6 +259,8 @@ class Constants:
     POTENTIAL_BASED_POLICY_ENTROPY_PENALTY = "potential_based_policy_entropy_penalty"
     BRANCH_LOSS = "branch_loss"
     BRANCH_REWARD = "branch_reward"
+    GREEDY_INDIVIDUAL = "greedy_individual"
+    BRANCH = "branch"
 
     ATARI_ENVS = ["PongNoFrameskip-v4"]
 
