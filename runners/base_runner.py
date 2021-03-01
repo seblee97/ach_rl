@@ -445,6 +445,7 @@ class BaseRunner(abc.ABC):
         action_selection_method: Optional[Callable] = None,
         action_selection_method_args: Optional[Dict] = {},
         tag_: Optional[str] = "",
+        output: bool = False,
     ) -> None:
         """Perform 'test' rollout with target policy
 
@@ -486,6 +487,9 @@ class BaseRunner(abc.ABC):
                     name=f"{constants.Constants.INDIVIDUAL_TEST_RUN + tag_}_{episode}",
                     data=self._environment.plot_episode_history(),
                 )
+
+        if output:
+            return episode_reward, self._environment.episode_step_count
 
     def _non_repeat_test_episode(
         self,
