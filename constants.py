@@ -181,6 +181,8 @@ class Constants:
     ENSEMBLE_RUNNER = "ensemble_runner"
     ENSEMBLE_EPISODE_REWARD_STD = "ensemble_episode_reward_std"
     ENSEMBLE_EPISODE_LENGTH_STD = "ensemble_episode_length_std"
+    ENSEMBLE_EPISODE_REWARD_MEAN = "ensemble_episode_reward_mean"
+    ENSEMBLE_EPISODE_LENGTH_MEAN = "ensemble_episode_length_mean"
     MEAN_VISITATION_PENALTY = "mean_visitation_penalty"
     SMOOTHING = "smoothing"
     MULTIPLICATIVE_FACTOR = "multiplicative_factor"
@@ -262,6 +264,7 @@ class Constants:
     GREEDY_INDIVIDUAL = "greedy_individual"
     BRANCH = "branch"
     RAW_PLOT_PDF = "raw_plot.pdf"
+    TEST = "test"
 
     ATARI_ENVS = ["PongNoFrameskip-v4"]
 
