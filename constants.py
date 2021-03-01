@@ -261,6 +261,7 @@ class Constants:
     BRANCH_REWARD = "branch_reward"
     GREEDY_INDIVIDUAL = "greedy_individual"
     BRANCH = "branch"
+    RAW_PLOT_PDF = "raw_plot.pdf"
 
     ATARI_ENVS = ["PongNoFrameskip-v4"]
 
