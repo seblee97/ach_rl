@@ -435,13 +435,38 @@ class DQNRunner(base_runner.BaseRunner):
         greedy_individual = constants.Constants.GREEDY_INDIVIDUAL
 
         if greedy_individual in self._targets:
+            test_episode_rewards = []
+            test_episode_lengths = []
             for i in range(self._num_learners):
-                self._greedy_test_episode(
+                reward, length = self._greedy_test_episode(
                     episode=episode,
                     action_selection_method=self._learner.select_target_action,
                     action_selection_method_args={constants.Constants.BRANCH: i},
                     tag_=f"_{greedy_individual}_{i}",
+                    output=True,
                 )
+                test_episode_rewards.append(reward)
+                test_episode_lengths.append(length)
+            self._write_scalar(
+                tag=f"{constants.Constants.TEST}_{constants.Constants.ENSEMBLE_EPISODE_REWARD_MEAN}",
+                episode=episode,
+                scalar=np.mean(test_episode_rewards),
+            )
+            self._write_scalar(
+                tag=f"{constants.Constants.TEST}_{constants.Constants.ENSEMBLE_EPISODE_LENGTH_MEAN}",
+                episode=episode,
+                scalar=np.mean(test_episode_lengths),
+            )
+            self._write_scalar(
+                tag=f"{constants.Constants.TEST}_{constants.Constants.ENSEMBLE_EPISODE_REWARD_STD}",
+                episode=episode,
+                scalar=np.std(test_episode_rewards),
+            )
+            self._write_scalar(
+                tag=f"{constants.Constants.TEST}_{constants.Constants.ENSEMBLE_EPISODE_LENGTH_STD}",
+                episode=episode,
+                scalar=np.std(test_episode_lengths),
+            )
 
         if greedy_sample in self._targets:
             self._greedy_test_episode(
