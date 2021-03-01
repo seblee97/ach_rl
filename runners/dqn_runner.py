@@ -440,7 +440,7 @@ class DQNRunner(base_runner.BaseRunner):
                     episode=episode,
                     action_selection_method=self._learner.select_target_action,
                     action_selection_method_args={constants.Constants.BRANCH: i},
-                    tag_=f"{greedy_individual}_{i}",
+                    tag_=f"_{greedy_individual}_{i}",
                 )
 
         if greedy_sample in self._targets:
