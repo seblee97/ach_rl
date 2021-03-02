@@ -1,4 +1,5 @@
 import argparse
+import copy
 import importlib
 import os
 import shutil
@@ -70,13 +71,14 @@ def _organise_config_changes_and_checkpoint_dirs(
     checkpoint_paths = []
     for i, (run_name, changes) in enumerate(config_changes.items()):
         for j, seed in enumerate(seeds):
+            changes_copy = copy.deepcopy(changes)
             checkpoint_path = os.path.join(experiment_path, run_name, str(seed))
             os.makedirs(name=checkpoint_path, exist_ok=True)
             if cluster:
-                changes.append({constants.Constants.GPU_ID: i * len(seeds) + j})
-            changes.append({constants.Constants.SEED: seed})
+                changes_copy.append({constants.Constants.GPU_ID: i * len(seeds) + j})
+            changes_copy.append({constants.Constants.SEED: seed})
             experiment_utils.config_changes_to_json(
-                config_changes=changes,
+                config_changes=changes_copy,
                 json_path=os.path.join(
                     checkpoint_path, constants.Constants.CONFIG_CHANGES_JSON
                 ),
