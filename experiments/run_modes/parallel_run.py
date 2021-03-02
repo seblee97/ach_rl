@@ -10,32 +10,33 @@ It can either be called from the command line with the following required argume
 Else, the individual method 'parallel_run' can be imported for use in other workflows.
 """
 import argparse
-import multiprocessing as mp
 import os
 from typing import List
 
 import constants
+import torch.multiprocessing as mp
 from experiments.run_modes import single_run
 from utils import experiment_utils
 
 parser = argparse.ArgumentParser()
 
-parser.add_argument("--config_path",
-                    metavar="-C",
-                    type=str,
-                    help="path to yaml file.",
-                    required=True)
-parser.add_argument("--config_changes_paths",
-                    metavar="-CC",
-                    type=str,
-                    help="path to json config changes file.",
-                    required=False)
-parser.add_argument("--experiment_path",
-                    metavar="-EP",
-                    type=str,
-                    help=("path to dir containing subdirs of checkpoint paths"
-                          "for each experiment."),
-                    required=True)
+parser.add_argument(
+    "--config_path", metavar="-C", type=str, help="path to yaml file.", required=True
+)
+parser.add_argument(
+    "--config_changes_paths",
+    metavar="-CC",
+    type=str,
+    help="path to json config changes file.",
+    required=False,
+)
+parser.add_argument(
+    "--experiment_path",
+    metavar="-EP",
+    type=str,
+    help=("path to dir containing subdirs of checkpoint paths" "for each experiment."),
+    required=True,
+)
 
 MAIN_FILE_PATH = os.path.dirname(os.path.realpath(__file__))
 
@@ -51,10 +52,11 @@ def parallel_run(config_path: str, checkpoint_paths: List[str]) -> None:
 
     for checkpoint_path in checkpoint_paths:
         changes = experiment_utils.json_to_config_changes(
-            os.path.join(checkpoint_path,
-                         constants.Constants.CONFIG_CHANGES_JSON))
-        process = mp.Process(target=single_run.single_run,
-                             args=(config_path, checkpoint_path, changes))
+            os.path.join(checkpoint_path, constants.Constants.CONFIG_CHANGES_JSON)
+        )
+        process = mp.Process(
+            target=single_run.single_run, args=(config_path, checkpoint_path, changes)
+        )
         process.start()
         processes.append(process)
 
@@ -74,9 +76,7 @@ def _get_checkpoint_paths_from_experiment_path(experiment_path: str):
     return checkpoint_paths
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     args = parser.parse_args()
-    checkpoint_paths = _get_checkpoint_paths_from_experiment_path(
-        args.experiment_path)
-    parallel_run(config_path=args.config_path,
-                 checkpoint_paths=checkpoint_paths)
+    checkpoint_paths = _get_checkpoint_paths_from_experiment_path(args.experiment_path)
+    parallel_run(config_path=args.config_path, checkpoint_paths=checkpoint_paths)
