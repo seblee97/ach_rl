@@ -265,6 +265,7 @@ class Constants:
     BRANCH = "branch"
     RAW_PLOT_PDF = "raw_plot.pdf"
     TEST = "test"
+    SUMMARY_FIGSIZE = (16, 12)  # wider than tall to ensure legend fits to right of plot
 
     ATARI_ENVS = ["PongNoFrameskip-v4"]
 
