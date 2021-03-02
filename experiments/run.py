@@ -62,13 +62,18 @@ def _process_seed_arguments(seeds: Union[str, List[int]]):
 
 
 def _organise_config_changes_and_checkpoint_dirs(
-    experiment_path, config_changes: Dict[str, List[Dict]], seeds: List[int]
+    experiment_path,
+    config_changes: Dict[str, List[Dict]],
+    seeds: List[int],
+    cluster: bool,
 ) -> List[str]:
     checkpoint_paths = []
-    for run_name, changes in config_changes.items():
-        for seed in seeds:
+    for i, (run_name, changes) in enumerate(config_changes.items()):
+        for j, seed in enumerate(seeds):
             checkpoint_path = os.path.join(experiment_path, run_name, str(seed))
             os.makedirs(name=checkpoint_path, exist_ok=True)
+            if cluster:
+                changes.append({constants.Constants.GPU_ID: i * len(seeds) + j})
             changes.append({constants.Constants.SEED: seed})
             experiment_utils.config_changes_to_json(
                 config_changes=changes,
@@ -118,7 +123,10 @@ if __name__ == "__main__":
             ),
         )
         checkpoint_paths = _organise_config_changes_and_checkpoint_dirs(
-            experiment_path=experiment_path, config_changes=config_changes, seeds=seeds
+            experiment_path=experiment_path,
+            config_changes=config_changes,
+            seeds=seeds,
+            cluster=args.mode == constants.Constants.CLUSTER,
         )
         if args.mode == constants.Constants.PARALLEL:
             parallel_run.parallel_run(
