@@ -6,9 +6,12 @@ from typing import Tuple
 from typing import Union
 
 import constants
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from cycler import cycler
+from matplotlib import cm
 
 
 def smooth_data(data: List[float], window_width: int) -> List[float]:
@@ -21,15 +24,17 @@ def smooth_data(data: List[float], window_width: int) -> List[float]:
     Returns:
         smoothed_values: averaged data
     """
+
     def _smooth(single_dataset):
         cumulative_sum = np.cumsum(single_dataset, dtype=np.float32)
-        cumulative_sum[window_width:] = (cumulative_sum[window_width:] -
-                                         cumulative_sum[:-window_width])
+        cumulative_sum[window_width:] = (
+            cumulative_sum[window_width:] - cumulative_sum[:-window_width]
+        )
         # explicitly forcing data type to 32 bits avoids floating point errors
         # with constant dat.
-        smoothed_values = np.array(cumulative_sum[window_width - 1:] /
-                                   window_width,
-                                   dtype=np.float32)
+        smoothed_values = np.array(
+            cumulative_sum[window_width - 1 :] / window_width, dtype=np.float32
+        )
         return smoothed_values
 
     if all(isinstance(d, list) for d in data):
@@ -38,14 +43,20 @@ def smooth_data(data: List[float], window_width: int) -> List[float]:
             smoothed_data.append(_smooth(dataset))
     elif all(
         (isinstance(d, float) or isinstance(d, int) or isinstance(d, np.int64))
-            for d in data):
+        for d in data
+    ):
         smoothed_data = _smooth(data)
 
     return smoothed_data
 
 
-def plot_all_multi_seed_multi_run(folder_path: str, exp_names: List[str],
-                                  window_width: int):
+def plot_all_multi_seed_multi_run(
+    folder_path: str,
+    exp_names: List[str],
+    window_width: int,
+    linewidth: int = 3,
+    colormap: str = "tab20c",
+):
     """Expected structure of folder_path is:
 
     - folder_path
@@ -72,8 +83,7 @@ def plot_all_multi_seed_multi_run(folder_path: str, exp_names: List[str],
     with a file called data_logger.csv in each leaf folder.
     """
     experiment_folders = {
-        exp_name: os.path.join(folder_path, exp_name)
-        for exp_name in exp_names
+        exp_name: os.path.join(folder_path, exp_name) for exp_name in exp_names
     }
 
     tag_set = {}
@@ -81,8 +91,7 @@ def plot_all_multi_seed_multi_run(folder_path: str, exp_names: List[str],
     # arbitrarily select one seed's dataframe for each run to find set of column names
     for exp, exp_path in experiment_folders.items():
         ex_seed = [
-            f for f in os.listdir(exp_path)
-            if os.path.isdir(os.path.join(exp_path, f))
+            f for f in os.listdir(exp_path) if os.path.isdir(os.path.join(exp_path, f))
         ][0]
 
         ex_df = pd.read_csv(os.path.join(exp_path, ex_seed, "data_logger.csv"))
@@ -92,46 +101,75 @@ def plot_all_multi_seed_multi_run(folder_path: str, exp_names: List[str],
                 tag_set[tag] = []
             tag_set[tag].append(exp)
 
+    cmap = cm.get_cmap(colormap)
+
+    assert isinstance(
+        cmap, mpl.colors.ListedColormap
+    ), "colormap must be discrete, i.e. ListedColormap."
+
+    color_cycle = mpl.cycler(color=cmap.colors)
+    mpl.rcParams["axes.prop_cycle"] = color_cycle
+
     for tag, relevant_experiments in tag_set.items():
-        fig = plt.figure()
+        # if tag == "test_ensemble_episode_reward_mean":
+        #     import pdb
+
+        #     pdb.set_trace()
+        fig = plt.figure(figsize=(constants.Constants.SUMMARY_FIGSIZE))
         for exp in relevant_experiments:
             attribute_data = []
             seed_folders = [
-                f for f in os.listdir(experiment_folders[exp])
+                f
+                for f in os.listdir(experiment_folders[exp])
                 if os.path.isdir(os.path.join(experiment_folders[exp], f))
             ]
 
             for seed in seed_folders:
                 df = pd.read_csv(
-                    os.path.join(experiment_folders[exp], seed,
-                                 "data_logger.csv"))
-                tag_data = df[tag]
+                    os.path.join(experiment_folders[exp], seed, "data_logger.csv")
+                )
+                tag_data = df[tag].dropna()
                 attribute_data.append(tag_data)
             mean_attribute_data = np.mean(attribute_data, axis=0)
             std_attribute_data = np.std(attribute_data, axis=0)
-            smooth_mean_data = smooth_data(mean_attribute_data,
-                                           window_width=window_width)
-            smooth_std_data = smooth_data(std_attribute_data,
-                                          window_width=window_width)
+            smooth_mean_data = smooth_data(
+                mean_attribute_data, window_width=window_width
+            )
+            smooth_std_data = smooth_data(std_attribute_data, window_width=window_width)
+            scaled_x = (len(df) / len(smooth_mean_data)) * np.arange(
+                len(smooth_mean_data)
+            )
             plt.plot(
-                range(len(smooth_mean_data)),
+                scaled_x,
                 smooth_mean_data,
+                linewidth=linewidth,
                 label=exp,
             )
             plt.fill_between(
-                range(len(smooth_mean_data)),
+                scaled_x,
                 smooth_mean_data - smooth_std_data,
                 smooth_mean_data + smooth_std_data,
                 alpha=0.3,
             )
-            plt.legend()
-            plt.xlabel(constants.Constants.EPISODE)
-            plt.ylabel(tag)
+        plt.legend(
+            bbox_to_anchor=(
+                1.01,
+                1.0,
+            ),
+            loc="upper left",
+            ncol=1,
+            borderaxespad=0.0,
+        )
+        plt.xlabel(constants.Constants.EPISODE)
+        plt.ylabel(tag)
+
+        fig.tight_layout()
 
         os.makedirs(os.path.join(folder_path, "figures"), exist_ok=True)
         fig.savefig(
-            os.path.join(folder_path, "figures",
-                         f"{tag}_plot_multi_seed_multi_run.pdf"),
+            os.path.join(
+                folder_path, "figures", f"{tag}_plot_multi_seed_multi_run.pdf"
+            ),
             dpi=100,
         )
         plt.close()
@@ -160,8 +198,7 @@ def plot_multi_seed_multi_run(
         save: whether or not to save plot as image in folder path.
     """
     exp_names = [
-        f for f in os.listdir(folder_path)
-        if (f != "figures" and not f.startswith("."))
+        f for f in os.listdir(folder_path) if (f != "figures" and not f.startswith("."))
     ]
 
     def _is_number(s: str):
@@ -184,12 +221,11 @@ def plot_multi_seed_multi_run(
             non_sortable_exp_names.append(exp_name)
 
     sorted_exp_names = (
-        sorted(sortable_exp_names, key=lambda x: float(x.split("_")[1])) +
-        non_sortable_exp_names)
+        sorted(sortable_exp_names, key=lambda x: float(x.split("_")[1]))
+        + non_sortable_exp_names
+    )
 
-    experiment_folders = [
-        os.path.join(folder_path, f) for f in sorted_exp_names
-    ]
+    experiment_folders = [os.path.join(folder_path, f) for f in sorted_exp_names]
     fig = plt.figure()
     for i, exp in enumerate(experiment_folders):
         attribute_data = []
@@ -200,13 +236,11 @@ def plot_multi_seed_multi_run(
             attribute_data.append(tag_data)
         mean_attribute_data = np.mean(attribute_data, axis=0)
         std_attribute_data = np.std(attribute_data, axis=0)
-        smooth_mean_data = smooth_data(mean_attribute_data,
-                                       window_width=window_width)
-        smooth_std_data = smooth_data(std_attribute_data,
-                                      window_width=window_width)
-        plt.plot(range(len(smooth_mean_data)),
-                 smooth_mean_data,
-                 label=sorted_exp_names[i])
+        smooth_mean_data = smooth_data(mean_attribute_data, window_width=window_width)
+        smooth_std_data = smooth_data(std_attribute_data, window_width=window_width)
+        plt.plot(
+            range(len(smooth_mean_data)), smooth_mean_data, label=sorted_exp_names[i]
+        )
         plt.fill_between(
             range(len(smooth_mean_data)),
             smooth_mean_data - smooth_std_data,
@@ -224,8 +258,9 @@ def plot_multi_seed_multi_run(
     if save:
         os.makedirs(os.path.join(folder_path, "figures"), exist_ok=True)
         fig.savefig(
-            os.path.join(folder_path, "figures",
-                         f"{tag}_plot_multi_seed_multi_run.pdf"),
+            os.path.join(
+                folder_path, "figures", f"{tag}_plot_multi_seed_multi_run.pdf"
+            ),
             dpi=100,
         )
         plt.close()
@@ -241,9 +276,9 @@ def plot_value_function(
     fig = plt.figure()
     if quiver:
         action_arrow_mapping = {0: [-1, 0], 1: [0, 1], 2: [1, 0], 3: [0, -1]}
-        X, Y = np.meshgrid(np.arange(grid_size[0]),
-                           np.arange(grid_size[1]),
-                           indexing="ij")
+        X, Y = np.meshgrid(
+            np.arange(grid_size[0]), np.arange(grid_size[1]), indexing="ij"
+        )
         arrow_x_directions = np.zeros(grid_size)
         arrow_y_directions = np.zeros(grid_size)
         for state, action_values in state_action_values.items():
