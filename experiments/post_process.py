@@ -13,7 +13,7 @@ parser.add_argument(
     "--smoothing", type=int, help="window width for moving averaging.", default=40
 )
 parser.add_argument(
-    "--cmap", type=str, help="matplotlib colormap to use for plots.", default="tab20c"
+    "--cmap", type=str, help="matplotlib colormap to use for plots.", default=None
 )
 parser.add_argument("--linewidth", type=int, help="width of line in plots", default=3)
 parser.add_argument(
