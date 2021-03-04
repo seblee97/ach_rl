@@ -267,7 +267,7 @@ class Constants:
     TEST = "test"
     SUMMARY_FIGSIZE = (16, 12)  # wider than tall to ensure legend fits to right of plot
 
-    ATARI_ENVS = ["PongNoFrameskip-v4"]
+    ATARI_ENVS = ["PongNoFrameskip-v4", "Gravitar-v0"]
 
     GRAPH_LAYOUTS = {
         1: (1, 1),
