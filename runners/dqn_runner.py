@@ -346,25 +346,26 @@ class DQNRunner(base_runner.BaseRunner):
             episode=episode,
             scalar=episode_loss / episode_steps,
         )
-        for i in range(self._num_learners):
-            if i == branch:
-                loss_scalar = episode_loss / episode_steps
-                reward_scalar = episode_reward
-            else:
-                loss_scalar = np.nan
-                reward_scalar = np.nan
-            self._write_scalar(
-                tag=constants.Constants.BRANCH_LOSS,
-                episode=episode,
-                scalar=loss_scalar,
-                df_tag=f"branch_{i}_loss",
-            )
-            self._write_scalar(
-                tag=constants.Constants.BRANCH_REWARD,
-                episode=episode,
-                scalar=reward_scalar,
-                df_tag=f"branch_{i}_reward",
-            )
+        if self._ensemble:
+            for i in range(self._num_learners):
+                if i == branch:
+                    loss_scalar = episode_loss / episode_steps
+                    reward_scalar = episode_reward
+                else:
+                    loss_scalar = np.nan
+                    reward_scalar = np.nan
+                self._write_scalar(
+                    tag=constants.Constants.BRANCH_LOSS,
+                    episode=episode,
+                    scalar=loss_scalar,
+                    df_tag=f"branch_{i}_loss",
+                )
+                self._write_scalar(
+                    tag=constants.Constants.BRANCH_REWARD,
+                    episode=episode,
+                    scalar=reward_scalar,
+                    df_tag=f"branch_{i}_reward",
+                )
         self._write_scalar(
             tag=constants.Constants.EPSILON, episode=episode, scalar=epsilon
         )
@@ -434,58 +435,62 @@ class DQNRunner(base_runner.BaseRunner):
         greedy_vote = constants.Constants.GREEDY_VOTE
         greedy_individual = constants.Constants.GREEDY_INDIVIDUAL
 
-        if greedy_individual in self._targets:
-            test_episode_rewards = []
-            test_episode_lengths = []
-            for i in range(self._num_learners):
-                reward, length = self._greedy_test_episode(
-                    episode=episode,
-                    action_selection_method=self._learner.select_target_action,
-                    action_selection_method_args={constants.Constants.BRANCH: i},
-                    tag_=f"_{greedy_individual}_{i}",
-                    output=True,
-                )
-                test_episode_rewards.append(reward)
-                test_episode_lengths.append(length)
-            self._write_scalar(
-                tag=f"{constants.Constants.TEST}_{constants.Constants.ENSEMBLE_EPISODE_REWARD_MEAN}",
-                episode=episode,
-                scalar=np.mean(test_episode_rewards),
-            )
-            self._write_scalar(
-                tag=f"{constants.Constants.TEST}_{constants.Constants.ENSEMBLE_EPISODE_LENGTH_MEAN}",
-                episode=episode,
-                scalar=np.mean(test_episode_lengths),
-            )
-            self._write_scalar(
-                tag=f"{constants.Constants.TEST}_{constants.Constants.ENSEMBLE_EPISODE_REWARD_STD}",
-                episode=episode,
-                scalar=np.std(test_episode_rewards),
-            )
-            self._write_scalar(
-                tag=f"{constants.Constants.TEST}_{constants.Constants.ENSEMBLE_EPISODE_LENGTH_STD}",
-                episode=episode,
-                scalar=np.std(test_episode_lengths),
-            )
+        if self._targets is None:
+            pass
 
-        if greedy_sample in self._targets:
-            self._greedy_test_episode(
-                episode=episode,
-                action_selection_method=self._learner.select_greedy_sample_target_action,
-                tag_=f"_{greedy_sample}",
-            )
-        if greedy_mean in self._targets:
-            self._greedy_test_episode(
-                episode=episode,
-                action_selection_method=self._learner.select_greedy_mean_target_action,
-                tag_=f"_{greedy_mean}",
-            )
-        if greedy_vote in self._targets:
-            self._greedy_test_episode(
-                episode=episode,
-                action_selection_method=self._learner.select_greedy_vote_target_action,
-                tag_=f"_{greedy_vote}",
-            )
+        else:
+            if greedy_individual in self._targets:
+                test_episode_rewards = []
+                test_episode_lengths = []
+                for i in range(self._num_learners):
+                    reward, length = self._greedy_test_episode(
+                        episode=episode,
+                        action_selection_method=self._learner.select_target_action,
+                        action_selection_method_args={constants.Constants.BRANCH: i},
+                        tag_=f"_{greedy_individual}_{i}",
+                        output=True,
+                    )
+                    test_episode_rewards.append(reward)
+                    test_episode_lengths.append(length)
+                self._write_scalar(
+                    tag=f"{constants.Constants.TEST}_{constants.Constants.ENSEMBLE_EPISODE_REWARD_MEAN}",
+                    episode=episode,
+                    scalar=np.mean(test_episode_rewards),
+                )
+                self._write_scalar(
+                    tag=f"{constants.Constants.TEST}_{constants.Constants.ENSEMBLE_EPISODE_LENGTH_MEAN}",
+                    episode=episode,
+                    scalar=np.mean(test_episode_lengths),
+                )
+                self._write_scalar(
+                    tag=f"{constants.Constants.TEST}_{constants.Constants.ENSEMBLE_EPISODE_REWARD_STD}",
+                    episode=episode,
+                    scalar=np.std(test_episode_rewards),
+                )
+                self._write_scalar(
+                    tag=f"{constants.Constants.TEST}_{constants.Constants.ENSEMBLE_EPISODE_LENGTH_STD}",
+                    episode=episode,
+                    scalar=np.std(test_episode_lengths),
+                )
+
+            if greedy_sample in self._targets:
+                self._greedy_test_episode(
+                    episode=episode,
+                    action_selection_method=self._learner.select_greedy_sample_target_action,
+                    tag_=f"_{greedy_sample}",
+                )
+            if greedy_mean in self._targets:
+                self._greedy_test_episode(
+                    episode=episode,
+                    action_selection_method=self._learner.select_greedy_mean_target_action,
+                    tag_=f"_{greedy_mean}",
+                )
+            if greedy_vote in self._targets:
+                self._greedy_test_episode(
+                    episode=episode,
+                    action_selection_method=self._learner.select_greedy_vote_target_action,
+                    tag_=f"_{greedy_vote}",
+                )
 
     def _post_visualisation(self):
         pass
