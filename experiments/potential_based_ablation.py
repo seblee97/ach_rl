@@ -33,17 +33,17 @@ _policy_entropy = {
     for i in [-0.1, -0.01, -1]
 }
 
-_potential_policy_entropy = {
-    f"potential_policy_entropy_{i}": [
-        {
-            "learner": {
-                "visitation_penalty_type": "potential_based_policy_entropy_penalty",
-                "potential_based_policy_entropy_penalty": {"multiplicative_factor": i},
-            }
-        },
-    ]
-    for i in [-0.1, -0.01, -1]
-}
+# _potential_policy_entropy = {
+#     f"potential_policy_entropy_{i}": [
+#         {
+#             "learner": {
+#                 "visitation_penalty_type": "potential_based_policy_entropy_penalty",
+#                 "potential_based_policy_entropy_penalty": {"multiplicative_factor": i},
+#             }
+#         },
+#     ]
+#     for i in [-0.1, -0.01, -1]
+# }
 
 _adaptive_uncertainty = {
     f"uncertainty_{i}": [
@@ -54,26 +54,26 @@ _adaptive_uncertainty = {
             }
         },
     ]
-    for i in [-0.1, -0.01, -1]
+    for i in [-0.1, -0.01, -1, -10, -100]
 }
 
-_potential_based_adaptive_uncertainty = {
-    f"potential_uncertainty_{i}": [
-        {
-            "learner": {
-                "visitation_penalty_type": "potential_based_adaptive_uncertainty",
-                "potential_based_adaptive_uncertainty": {"multiplicative_factor": i},
-            }
-        },
-    ]
-    for i in [-0.1, -0.01, -1]
-}
+# _potential_based_adaptive_uncertainty = {
+#     f"potential_uncertainty_{i}": [
+#         {
+#             "learner": {
+#                 "visitation_penalty_type": "potential_based_adaptive_uncertainty",
+#                 "potential_based_adaptive_uncertainty": {"multiplicative_factor": i},
+#             }
+#         },
+#     ]
+#     for i in [-0.1, -0.01, -1]
+# }
 
 CONFIG_CHANGES = {
     **_baseline,
     **_hard_coded,
     **_policy_entropy,
-    **_potential_policy_entropy,
+    # **_potential_policy_entropy,
     **_adaptive_uncertainty,
-    **_potential_based_adaptive_uncertainty,
+    # **_potential_based_adaptive_uncertainty,
 }
