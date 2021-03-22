@@ -77,6 +77,8 @@ class TabularQLearner(tabular_learner.TabularLearner):
         else:
             discount = 0
 
+        self._state_visitation_counts[state] += 1
+
         updated_state_action_value = (
             initial_state_action_value
             + self._learning_rate
