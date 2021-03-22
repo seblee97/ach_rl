@@ -299,17 +299,18 @@ class MultiRoom(base_environment.BaseEnvironment):
             save_path: path to save location for animation.
             over_actions: method to perform over actions e.g. mean.
         """
-        if len(self._key_positions) <= 0:
-            fig, axes = plt.subplots(nrows=1, ncols=1)
-        elif len(self._key_positions) <= 2:
+        caxes = []
+
+        if 0 < len(self._key_positions) <= 2:
             fig, axes = plt.subplots(nrows=1 + 2 * len(self._key_positions),
                                      ncols=1)
+            for ax in axes:
+                divider = make_axes_locatable(ax)
+                cax = divider.append_axes('right', '5%', '5%')
+                caxes.append(cax)
         else:
             fig, axes = plt.subplots(nrows=1, ncols=1)
-
-        caxes = []
-        for ax in axes:
-            divider = make_axes_locatable(ax)
+            divider = make_axes_locatable(axes)
             cax = divider.append_axes('right', '5%', '5%')
             caxes.append(cax)
 
@@ -370,7 +371,7 @@ class MultiRoom(base_environment.BaseEnvironment):
                 fig, axes = plt.subplots(nrows=1, ncols=1)
             averaged_values_axis = axes
 
-        caxes = caxes or [None for _ in range(len(axes))]
+        caxes = caxes or [None]
 
         fig.subplots_adjust(hspace=0.5)
 
