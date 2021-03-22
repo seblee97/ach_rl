@@ -216,6 +216,11 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
             episode=episode,
             array=self._learner.policy_entropy,
         )
+        self._write_array(
+            tag=constants.Constants.VISITATION_COUNTS,
+            episode=episode,
+            array=self._learner.state_visitation_counts,
+        )
 
     def _train_episode(self, episode: int) -> Tuple[float, int]:
         """Perform single training loop (per learner in ensemble).
@@ -418,6 +423,7 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
             ensemble_episode_step_counts,
             mean_penalties,
             mean_penalty_infos,
+            std_penalty_infos,
         )
 
     @staticmethod
@@ -586,6 +592,7 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
             constants.Constants.VALUE_FUNCTION: constants.Constants.MAX,
             constants.Constants.VALUE_FUNCTION_STD: constants.Constants.MEAN,
             constants.Constants.POLICY_ENTROPY: constants.Constants.MEAN,
+            constants.Constants.VISITATION_COUNTS: constants.Constants.MEAN,
         }
 
         for tag, over_actions in value_function_visualisations.items():
