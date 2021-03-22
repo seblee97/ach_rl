@@ -266,6 +266,7 @@ class Constants:
     RAW_PLOT_PDF = "raw_plot.pdf"
     TEST = "test"
     SUMMARY_FIGSIZE = (16, 12)  # wider than tall to ensure legend fits to right of plot
+    VISITATION_COUNTS = "visitation_counts"
 
     ATARI_ENVS = ["PongNoFrameskip-v4", "Gravitar-v0"]
 
