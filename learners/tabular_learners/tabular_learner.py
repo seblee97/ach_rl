@@ -5,13 +5,10 @@ from typing import List
 from typing import Optional
 from typing import Tuple
 
-from utils import epsilon_schedules
-
-import numpy as np
-
-from learners import base_learner
-
 import constants
+import numpy as np
+from learners import base_learner
+from utils import epsilon_schedules
 
 
 class TabularLearner(base_learner.BaseLearner):
@@ -49,6 +46,8 @@ class TabularLearner(base_learner.BaseLearner):
         self._state_action_values = self._initialise_values(
             initialisation_strategy=initialisation_strategy
         )
+
+        self._state_visitation_counts = {s: 0 for s in self._state_space}
 
         self._behaviour = behaviour
         self._target = target
