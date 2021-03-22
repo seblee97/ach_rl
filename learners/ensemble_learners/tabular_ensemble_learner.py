@@ -8,7 +8,6 @@ from utils import custom_functions
 
 class TabularEnsembleLearner(base_learner.BaseLearner):
     """Learner consisting of ensemble."""
-
     def __init__(self, learner_ensemble: List[base_learner.BaseLearner]):
         """Class constructor.
 
@@ -16,6 +15,23 @@ class TabularEnsembleLearner(base_learner.BaseLearner):
             learner_ensemble: list of learners forming ensemble.
         """
         self._learner_ensemble = learner_ensemble
+
+    @property
+    def state_visitation_counts(self):
+        all_state_visitation_counts = [
+            learner._state_visitation_counts for learner in self._learner_ensemble
+        ]
+
+        averaged_counts = {}
+
+        states = all_state_visitation_counts[0].keys()
+
+        for state in states:
+            state_counts = [counts[state] for counts in all_state_visitation_counts]
+            mean_state_counts = np.mean(state_counts, axis=0)
+            averaged_counts[state] = mean_state_counts
+
+        return averaged_counts
 
     @property
     def state_action_values(self):
