@@ -84,7 +84,7 @@ class DQNRunner(base_runner.BaseRunner):
 
         state = self._environment.reset_environment(train=True)
         for _ in range(num_trajectories):
-            action = random.choice(self._environment.action_space)
+            action = self._environment.get_random_action()
             reward, next_state = self._environment.step(action)
 
             if (
