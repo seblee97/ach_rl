@@ -267,8 +267,11 @@ class Constants:
     TEST = "test"
     SUMMARY_FIGSIZE = (16, 12)  # wider than tall to ensure legend fits to right of plot
     VISITATION_COUNTS = "visitation_counts"
+    MUJOCO_ENV_NAME = "mujoco_env_name"
+    MUJOCO = "mujoco"
 
     ATARI_ENVS = ["PongNoFrameskip-v4", "GravitarNoFrameskip-v4"]
+    MUJOCO_ENVS = ["Ant-v2"]
 
     GRAPH_LAYOUTS = {
         1: (1, 1),
