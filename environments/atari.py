@@ -3,10 +3,9 @@ from typing import List
 from typing import Optional
 from typing import Tuple
 
+import constants
 import gym
 import numpy as np
-
-import constants
 from environments import base_environment
 from utils import pre_processing_functions
 
@@ -134,6 +133,9 @@ class AtariEnv(base_environment.BaseEnvironment):
     @property
     def action_space(self) -> List[int]:
         return self._action_space
+
+    def get_random_action(self):
+        return self._env.action_space.sample()
 
     @property
     def state_dimension(self) -> Tuple[int, int, int]:
