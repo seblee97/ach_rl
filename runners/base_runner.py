@@ -17,6 +17,7 @@ from curricula import minigrid_curriculum
 from environments import atari
 from environments import base_environment
 from environments import minigrid
+from environments import mujoco
 from environments import multi_room
 from environments import wrapper_atari
 from experiments import ach_config
@@ -125,6 +126,13 @@ class BaseRunner(abc.ABC):
                     environment = atari.AtariEnv(**environment_args)
             elif config.environment == constants.Constants.MULTIROOM:
                 environment = multi_room.MultiRoom(**environment_args)
+            elif config.environment == constants.Constants.MUJOCO:
+                environment = mujoco.MujocoEnv(**environment_args)
+
+            else:
+                raise NotImplementedError(
+                    f"environment setup method not yet implemented for env: {config.environment}"
+                )
 
         return environment
 
@@ -166,6 +174,16 @@ class BaseRunner(abc.ABC):
                 ),
                 constants.Constants.EPISODE_TIMEOUT: config.episode_timeout,
             }
+        elif config.environment == constants.Constants.MUJOCO:
+            env_args = {
+                constants.Constants.MUJOCO_ENV_NAME: config.mujoco_env_name,
+                constants.Constants.EPISODE_TIMEOUT: config.episode_timeout,
+            }
+
+        else:
+            raise NotImplementedError(
+                f"environment_args method not yet implemented for env: {config.environment}"
+            )
         return env_args
 
     def _get_curriculum_args(self, config: ach_config.AchConfig) -> Dict[str, Any]:
