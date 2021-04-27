@@ -169,6 +169,24 @@ class AChConfigTemplate:
         level=[constants.Constants.ATARI],
     )
 
+    _mujoco_template = config_template.Template(
+        fields=[
+            config_field.Field(
+                name=constants.Constants.MUJOCO_ENV_NAME,
+                types=[str],
+                requirements=[lambda x: x in constants.Constants.MUJOCO_ENVS],
+            ),
+            config_field.Field(
+                name=constants.Constants.EPISODE_TIMEOUT,
+                types=[int, type(None)],
+                requirements=[lambda x: x is None or x > 0],
+            ),
+        ],
+        dependent_variables=[constants.Constants.ENVIRONMENT],
+        dependent_variables_required_values=[[constants.Constants.MUJOCO]],
+        level=[constants.Constants.MUJOCO],
+    )
+
     _hard_coded_vp_template = config_template.Template(
         fields=[
             config_field.Field(
@@ -912,6 +930,7 @@ class AChConfigTemplate:
                     in [
                         constants.Constants.MINIGRID,
                         constants.Constants.ATARI,
+                        constants.Constants.MUJOCO,
                         constants.Constants.MULTIROOM,
                     ]
                 ],
@@ -926,6 +945,7 @@ class AChConfigTemplate:
             _minigrid_curriculum_template,
             _multiroom_template,
             _atari_template,
+            _mujoco_template,
             _learner_template,
             _sarsa_lambda_template,
             _q_learning_template,
