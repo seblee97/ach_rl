@@ -48,7 +48,19 @@ class AchConfig(base_configuration.BaseConfiguration):
         visuals = getattr(self, constants.Constants.VISUALISATIONS)
         learner = getattr(self, constants.Constants.TYPE)
 
-        if learner == constants.Constants.VANILLA_DQN:
+        if learner == constants.Constants.Q_LEARNING:
+            permitted_scalars = [
+                constants.Constants.TRAIN_EPISODE_REWARD,
+                constants.Constants.TRAIN_EPISODE_LENGTH,
+                constants.Constants.TEST_EPISODE_REWARD,
+                constants.Constants.TEST_EPISODE_LENGTH,
+            ]
+            permitted_visuals = [
+                constants.Constants.VALUE_FUNCTION,
+                constants.Constants.VISITATION_COUNT_HEATMAP,
+                constants.Constants.INDIVIDUAL_TRAIN_RUN
+            ]
+        elif learner == constants.Constants.VANILLA_DQN:
             permitted_scalars = [
                 constants.Constants.TRAIN_EPISODE_REWARD,
                 constants.Constants.TRAIN_EPISODE_LENGTH,
