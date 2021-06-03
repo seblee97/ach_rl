@@ -44,11 +44,13 @@ class Constants:
     INDIVIDUAL_NO_REP_TRAIN_RUN = "individual_no_rep_train_run"
     FULL_TEST_LOG_FREQUENCY = "full_test_log_frequency"
     VISITATION_COUNT_HEATMAP = "visitation_count_heatmap"
+    VISITATION_COUNT_HEATMAP_PDF = "visitation_count_heatmap.pdf"
     TRAIN_LOG_FREQUENCY = "train_log_frequency"
     GREEDY = "greedy"
     BEHAVIOUR = "behaviour"
     TARGET = "target"
     TARGETS = "targets"
+    REWARD_SPECIFICATIONS = "reward_specifications"
     NUM_REWARDS = "num_rewards"
     REWARD_MAGNITUDES = "reward_magnitudes"
     REPEAT_REWARDS = "repeat_rewards"
@@ -267,6 +269,10 @@ class Constants:
     TEST = "test"
     SUMMARY_FIGSIZE = (16, 12)  # wider than tall to ensure legend fits to right of plot
     VISITATION_COUNTS = "visitation_counts"
+    GAUSSIAN = "gaussian"
+    MEAN = "mean"
+    VARIANCE = "variance"
+    MULTIIROOM_CURRICULUM = "multiroom_curriculum"
 
     ATARI_ENVS = ["PongNoFrameskip-v4", "GravitarNoFrameskip-v4"]
 
