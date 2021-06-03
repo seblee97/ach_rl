@@ -81,7 +81,7 @@ class DataLogger:
             )
         elif isinstance(data, np.ndarray):
             fig = plt.figure()
-            plt.imshow(data, plot_origin=self._plot_origin)
+            plt.imshow(data, origin=self._plot_origin)
             plt.colorbar()
             fig.savefig(fname=full_path)
             plt.close(fig)
