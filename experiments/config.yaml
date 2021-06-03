@@ -23,10 +23,20 @@ minigrid_curriculum:
     environment_changes: 
         - []
 
+multiroom_curriculum:
+    transition_episodes: [100]
+    environment_changes:
+        - ["change_gaussian_reward_distributions", (1, 0), (0, 0.1)]
+
 multiroom:
     ascii_map_path: simple_map_1.txt
     episode_timeout: 400 # infinity if not given
     plot_origin: lower
+    
+    reward_specifications:
+        - gaussian:
+            mean: 1
+            variance: 0
 
 atari:
     atari_env_name: "PongNoFrameskip-v4"
