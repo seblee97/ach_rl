@@ -165,6 +165,7 @@ class BaseRunner(abc.ABC):
                     config.run_path, config.ascii_map_path
                 ),
                 constants.Constants.EPISODE_TIMEOUT: config.episode_timeout,
+                constants.Constants.REWARD_SPECIFICATIONS: config.reward_specifications,
             }
         return env_args
 
