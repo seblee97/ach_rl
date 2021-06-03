@@ -74,6 +74,10 @@ class TabularLearner(base_learner.BaseLearner):
         return self._id_state_mapping
 
     @property
+    def state_visitation_counts(self) -> Dict[Tuple[int, int], int]:
+        return self._state_visitation_counts
+
+    @property
     def state_action_values(self) -> Dict[Tuple[int, int], np.ndarray]:
         return {
             self._id_state_mapping[i]: action_values
@@ -94,7 +98,7 @@ class TabularLearner(base_learner.BaseLearner):
                 (len(self._state_space), len(self._action_space))
             )
         elif initialisation_strategy == constants.Constants.RANDOM:
-            return np.random.rand(len(self._state_space), len(self._action_space))
+            return np.random.normal(loc=0, scale=0.1, size=(len(self._state_space), len(self._action_space)))
         elif initialisation_strategy == constants.Constants.ZEROS:
             return np.zeros((len(self._state_space), len(self._action_space)))
         elif initialisation_strategy == constants.Constants.ONES:
