@@ -91,6 +91,26 @@ class AChConfigTemplate:
         dependent_variables_required_values=[[constants.Constants.MINIGRID], [True]],
     )
 
+    _multiroom_curriculum_template = config_template.Template(
+        fields=[
+            config_field.Field(
+                name=constants.Constants.TRANSITION_EPISODES,
+                types=[list],
+                requirements=[lambda x: all(isinstance(y, int) for y in x)],
+            ),
+            config_field.Field(
+                name=constants.Constants.ENVIRONMENT_CHANGES,
+                types=[list],
+            ),
+        ],
+        level=[constants.Constants.MULTIIROOM_CURRICULUM],
+        dependent_variables=[
+            constants.Constants.ENVIRONMENT,
+            constants.Constants.APPLY_CURRICULUM,
+        ],
+        dependent_variables_required_values=[[constants.Constants.MULTIROOM], [True]],
+    )
+
     _multiroom_template = config_template.Template(
         fields=[
             config_field.Field(name=constants.Constants.ASCII_MAP_PATH, types=[str]),
@@ -106,6 +126,11 @@ class AChConfigTemplate:
                     lambda x: x
                     in [constants.Constants.UPPER, constants.Constants.LOWER]
                 ],
+            ),
+            config_field.Field(
+                name=constants.Constants.REWARD_SPECIFICATIONS,
+                types=[list],
+                requirements=[lambda x: all(isinstance(y, dict) for y in x)],
             ),
         ],
         level=[constants.Constants.MULTIROOM],
@@ -924,6 +949,7 @@ class AChConfigTemplate:
         nested_templates=[
             _minigrid_template,
             _minigrid_curriculum_template,
+            _multiroom_curriculum_template,
             _multiroom_template,
             _atari_template,
             _learner_template,
