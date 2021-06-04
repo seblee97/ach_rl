@@ -18,17 +18,37 @@ class QLearningRunner(base_runner.BaseRunner):
 
     def _setup_learner(self, config: ach_config.AchConfig):  # TODO: similar to envs
         """Initialise learner specified in configuration."""
+        initialisation_strategy = self._get_initialisation_strategy(config)
         learner = q_learner.TabularQLearner(
             action_space=self._environment.action_space,
             state_space=self._environment.state_space,
             behaviour=config.behaviour,
             target=config.target,
-            initialisation_strategy=config.initialisation,
+            initialisation_strategy=initialisation_strategy,
             epsilon=self._epsilon_function,
             learning_rate=config.learning_rate,
             gamma=config.discount_factor,
         )
         return learner
+
+    def _get_initialisation_strategy(self, config: ach_config.AchConfig):
+        if config.initialisation == constants.Constants.RANDOM_UNIFORM:
+            initialisation_strategy = {
+                constants.Constants.RANDOM_UNIFORM: {
+                    constants.Constants.LOWER_BOUND: config.lower_bound,
+                    constants.Constants.UPPER_BOUND: config.upper_bound
+                }
+            }
+        elif config.initialisation == constants.Constants.RANDOM_NORMAL:
+            initialisation_strategy = {
+                constants.Constants.RANDOM_NORMAL: {
+                    constants.Constants.MEAN: config.mean,
+                    constants.Constants.VARIANCE: config.variance
+                }
+            }
+        else:
+            initialisation_strategy == {config.initialisation}
+        return initialisation_strategy
 
     def _pre_episode_log(self, episode: int):
         visualisation_configurations = [
