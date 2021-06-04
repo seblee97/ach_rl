@@ -77,7 +77,15 @@ learner:
             final_value: 0.02
             anneal_duration: 100000
     
-    initialisation: random
+    initialisation: random_uniform
+
+    random_uniform:
+        lower_bound: 0
+        upper_bound: 1
+
+    random_normal:
+        mean: 0
+        variance: 1
 
     # hard_coded, adaptive_uncertainty, adaptive_arriving_uncertainty, 
     # policy_entropy_penalty or potential_based_adaptive_uncertainty
