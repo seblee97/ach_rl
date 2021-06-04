@@ -398,6 +398,38 @@ class AChConfigTemplate:
         nested_templates=[_constant_epsilon_template, _linear_decay_epsilon_template],
     )
 
+    _random_uniform_template = config_template.Template(
+        fields=[
+            config_field.Field(
+                name=constants.Constants.LOWER_BOUND, 
+                types=[float, int]
+                ),
+            config_field.Field(
+                name=constants.Constants.UPPER_BOUND, 
+                types=[float, int]
+                ),
+        ],
+        level=[constants.Constants.LEARNER, constants.Constants.RANDOM_UNIFORM],
+        dependent_variables=[constants.Constants.INITIALISATION],
+        dependent_variables_required_values=[[constants.Constants.RANDOM_UNIFORM]]
+    )
+
+    _random_normal_template = config_template.Template(
+        fields=[
+            config_field.Field(
+                name=constants.Constants.MEAN, 
+                types=[float, int]
+                ),
+            config_field.Field(
+                name=constants.Constants.VARIANCE, 
+                types=[float, int]
+                ),
+        ],
+        level=[constants.Constants.LEARNER, constants.Constants.RANDOM_NORMAL],
+        dependent_variables=[constants.Constants.INITIALISATION],
+        dependent_variables_required_values=[[constants.Constants.RANDOM_NORMAL]]
+    )
+
     _learner_template = config_template.Template(
         fields=[
             config_field.Field(
@@ -446,7 +478,8 @@ class AChConfigTemplate:
                 requirements=[
                     lambda x: x
                     in [
-                        constants.Constants.RANDOM,
+                        constants.Constants.RANDOM_UNIFORM,
+                        constants.Constants.RANDOM_NORMAL,
                         constants.Constants.ZEROS,
                         constants.Constants.ONES,
                     ]
@@ -485,6 +518,8 @@ class AChConfigTemplate:
         level=[constants.Constants.LEARNER],
         nested_templates=[
             _epsilon_template,
+            _random_uniform_template,
+            _random_normal_template,
             _hard_coded_vp_template,
             _adaptive_uncertainty_template,
             _adaptive_arriving_uncertainty_template,
