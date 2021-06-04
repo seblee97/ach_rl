@@ -273,6 +273,10 @@ class Constants:
     MEAN = "mean"
     VARIANCE = "variance"
     MULTIIROOM_CURRICULUM = "multiroom_curriculum"
+    RANDOM_NORMAL = "random_normal"
+    RANDOM_UNIFORM = "random_uniform"
+    LOWER_BOUND = "lower_bound"
+    UPPER_BOUND = "upper_bound"
 
     ATARI_ENVS = ["PongNoFrameskip-v4", "GravitarNoFrameskip-v4"]
 
