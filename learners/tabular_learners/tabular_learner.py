@@ -21,7 +21,7 @@ class TabularLearner(base_learner.BaseLearner):
         learning_rate: float,
         gamma: float,
         epsilon: epsilon_schedules.EpsilonSchedule,
-        initialisation_strategy: str,
+        initialisation_strategy: Dict,
         behaviour: str,
         target: str,
     ):
@@ -93,15 +93,18 @@ class TabularLearner(base_learner.BaseLearner):
         Returns:
             initial_values: matrix containing state-action id / value mapping.
         """
-        if isinstance(initialisation_strategy, (int, float)):
-            return initialisation_strategy * np.ones(
+        initialisation_strategy_name = list(initialisation_strategy.keys())[0]
+        if isinstance(initialisation_strategy_name, (int, float)):
+            return initialisation_strategy_name * np.ones(
                 (len(self._state_space), len(self._action_space))
             )
-        elif initialisation_strategy == constants.Constants.RANDOM:
+        elif initialisation_strategy_name == constants.Constants.RANDOM_UNIFORM:
+            return np.random.rand(len(self._state_space), len(self._action_space))
+        elif initialisation_strategy_name == constants.Constants.RANDOM_NORMAL:
             return np.random.normal(loc=0, scale=0.1, size=(len(self._state_space), len(self._action_space)))
-        elif initialisation_strategy == constants.Constants.ZEROS:
+        elif initialisation_strategy_name == constants.Constants.ZEROS:
             return np.zeros((len(self._state_space), len(self._action_space)))
-        elif initialisation_strategy == constants.Constants.ONES:
+        elif initialisation_strategy_name == constants.Constants.ONES:
             return np.ones((len(self._state_space), len(self._action_space)))
 
     def _max_state_action_value(self, state: Tuple[int, int]) -> float:
