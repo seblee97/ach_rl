@@ -46,14 +46,20 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
 
     def _setup_learner(self, config: ach_config.AchConfig):  # TODO: similar to envs
         """Initialise learner specified in configuration."""
+        initialisation_strategy = self._get_initialisation_strategy(config)
         if config.copy_learner_initialisation:
-            single_learner = self._get_individual_q_learner(config=config)
+            single_learner = self._get_individual_q_learner(
+                config=config, initialisation_strategy=initialisation_strategy
+            )
             learners = [
                 copy.deepcopy(single_learner) for _ in range(self._num_learners)
             ]
         else:
             learners = [
-                self._get_individual_q_learner(config=config)
+                self._get_individual_q_learner(
+                    config=config,
+                    initialisation_strategy=initialisation_strategy
+                )
                 for _ in range(self._num_learners)
             ]
         learner = tabular_ensemble_learner.TabularEnsembleLearner(
@@ -61,14 +67,33 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
         )
         return learner
 
-    def _get_individual_q_learner(self, config: ach_config.AchConfig):
+    def _get_initialisation_strategy(self, config: ach_config.AchConfig):
+        if config.initialisation == constants.Constants.RANDOM_UNIFORM:
+            initialisation_strategy = {
+                constants.Constants.RANDOM_UNIFORM: {
+                    constants.Constants.LOWER_BOUND: config.lower_bound,
+                    constants.Constants.UPPER_BOUND: config.upper_bound
+                }
+            }
+        elif config.initialisation == constants.Constants.RANDOM_NORMAL:
+            initialisation_strategy = {
+                constants.Constants.RANDOM_NORMAL: {
+                    constants.Constants.MEAN: config.mean,
+                    constants.Constants.VARIANCE: config.variance
+                }
+            }
+        else:
+            initialisation_strategy == {config.initialisation}
+        return initialisation_strategy
+
+    def _get_individual_q_learner(self, config: ach_config.AchConfig, initialisation_strategy: Dict):
         """Setup a single q-learner."""
         return q_learner.TabularQLearner(
             action_space=self._environment.action_space,
             state_space=self._environment.state_space,
             behaviour=config.behaviour,
             target="",
-            initialisation_strategy=config.initialisation,
+            initialisation_strategy=initialisation_strategy,
             epsilon=self._epsilon_function,
             learning_rate=config.learning_rate,
             gamma=config.discount_factor,
