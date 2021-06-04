@@ -1,5 +1,6 @@
 from typing import List
 from typing import Tuple
+from typing import Dict
 
 from learners.tabular_learners import tabular_learner
 from utils import epsilon_schedules
@@ -14,7 +15,7 @@ class TabularQLearner(tabular_learner.TabularLearner):
         state_space: List[Tuple[int, int]],
         learning_rate: float,
         gamma: float,
-        initialisation_strategy: str,
+        initialisation_strategy: Dict,
         behaviour: str,
         target: str,
         epsilon: epsilon_schedules.EpsilonSchedule,
