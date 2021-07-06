@@ -7,6 +7,7 @@ from typing import Tuple
 
 import constants
 import numpy as np
+import copy
 from learners import base_learner
 from utils import epsilon_schedules
 
@@ -24,6 +25,7 @@ class TabularLearner(base_learner.BaseLearner):
         initialisation_strategy: Dict,
         behaviour: str,
         target: str,
+        split_value_function: bool
     ):
         """Class constructor.
 
@@ -39,6 +41,7 @@ class TabularLearner(base_learner.BaseLearner):
         """
         self._action_space = action_space
         self._state_space = state_space
+        self._split_value_function = split_value_function
 
         self._state_id_mapping = {state: i for i, state in enumerate(self._state_space)}
         self._id_state_mapping = {i: state for i, state in enumerate(self._state_space)}
@@ -46,6 +49,12 @@ class TabularLearner(base_learner.BaseLearner):
         self._state_action_values = self._initialise_values(
             initialisation_strategy=initialisation_strategy
         )
+
+        if self._split_value_function:
+            self._ancillary_state_action_values = self._initialise_values(
+            initialisation_strategy=initialisation_strategy
+        )
+            # copy.deepcopy(self._state_action_values)
 
         self._state_visitation_counts = {s: 0 for s in self._state_space}
 
@@ -79,10 +88,16 @@ class TabularLearner(base_learner.BaseLearner):
 
     @property
     def state_action_values(self) -> Dict[Tuple[int, int], np.ndarray]:
-        return {
+        values = {
             self._id_state_mapping[i]: action_values
             for i, action_values in enumerate(self._state_action_values)
         }
+        if self._split_value_function:
+            values = {
+                self._id_state_mapping[i]: action_values + values[self._id_state_mapping[i]]
+                for i, action_values in enumerate(self._ancillary_state_action_values)
+            }
+        return values
 
     def _initialise_values(self, initialisation_strategy: str) -> np.ndarray:
         """Initialise values for each state, action pair in state-action space.
@@ -107,7 +122,7 @@ class TabularLearner(base_learner.BaseLearner):
         elif initialisation_strategy_name == constants.Constants.ONES:
             return np.ones((len(self._state_space), len(self._action_space)))
 
-    def _max_state_action_value(self, state: Tuple[int, int]) -> float:
+    def _max_state_action_value(self, state: Tuple[int, int], other_state_action_values: Optional[Dict] = None) -> float:
         """Find highest value in given state.
 
         Args:
@@ -117,7 +132,13 @@ class TabularLearner(base_learner.BaseLearner):
             value: corresponding highest value.
         """
         state_id = self._state_id_mapping[state]
-        return np.amax(self._state_action_values[state_id])
+
+        if other_state_action_values is not None:
+            state_action_values = copy.deepcopy(other_state_action_values[state_id])
+        else:
+            state_action_values = copy.deepcopy(self._state_action_values[state_id])
+
+        return np.amax(state_action_values)
 
     def _greedy_action(self, state: Tuple[int, int]) -> int:
         """Find action with highest value in given state.
@@ -129,7 +150,12 @@ class TabularLearner(base_learner.BaseLearner):
             action: action with highest value in state given.
         """
         state_id = self._state_id_mapping[state]
-        return np.argmax(self._state_action_values[state_id])
+        state_action_values = copy.deepcopy(self._state_action_values[state_id])
+
+        if self._split_value_function:
+            state_action_values += copy.deepcopy(self._ancillary_state_action_values[state_id])
+
+        return np.argmax(state_action_values)
 
     def non_repeat_greedy_action(
         self, state: Tuple[int, int], excluded_actions: List[int]
