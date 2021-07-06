@@ -5,6 +5,8 @@ from typing import Dict
 from learners.tabular_learners import tabular_learner
 from utils import epsilon_schedules
 
+import copy
+
 
 class TabularQLearner(tabular_learner.TabularLearner):
     """Q-learning (Watkins)."""
@@ -19,6 +21,7 @@ class TabularQLearner(tabular_learner.TabularLearner):
         behaviour: str,
         target: str,
         epsilon: epsilon_schedules.EpsilonSchedule,
+        split_value_function: bool,
     ):
         """Class constructor.
 
@@ -41,6 +44,7 @@ class TabularQLearner(tabular_learner.TabularLearner):
             initialisation_strategy=initialisation_strategy,
             behaviour=behaviour,
             target=target,
+            split_value_function=split_value_function
         )
         self._epsilon = epsilon
 
@@ -71,7 +75,6 @@ class TabularQLearner(tabular_learner.TabularLearner):
             visitation_penalty: penalty to apply to state-action pair for visit.
         """
         state_id = self._state_id_mapping[state]
-        initial_state_action_value = self._state_action_values[state_id][action]
 
         if active:
             discount = self._gamma
@@ -79,6 +82,31 @@ class TabularQLearner(tabular_learner.TabularLearner):
             discount = 0
 
         self._state_visitation_counts[state] += 1
+
+        if self._split_value_function:
+            self._split_step(
+                state_id=state_id, 
+                action=action, 
+                reward=reward, 
+                visitation_penalty=visitation_penalty, 
+                discount=discount, 
+                new_state=new_state
+            )
+        else:
+            self._step(
+                state_id=state_id, 
+                action=action, 
+                reward=reward, 
+                visitation_penalty=visitation_penalty, 
+                discount=discount, 
+                new_state=new_state
+            )
+
+        # step epsilon
+        next(self._epsilon)
+
+    def _step(self, state_id, action, reward, visitation_penalty, discount, new_state):   
+        initial_state_action_value = self._state_action_values[state_id][action]
 
         updated_state_action_value = (
             initial_state_action_value
@@ -92,5 +120,31 @@ class TabularQLearner(tabular_learner.TabularLearner):
         )
         self._state_action_values[state_id][action] = updated_state_action_value
 
-        # step epsilon
-        next(self._epsilon)
+    def _split_step(self, state_id, action, reward, visitation_penalty, discount, new_state):
+        initial_state_action_value = copy.deepcopy(self._state_action_values[state_id][action])
+
+        updated_state_action_value = (
+            initial_state_action_value
+            + self._learning_rate
+            * (
+                reward
+                + discount * self._max_state_action_value(state=new_state)
+                - initial_state_action_value
+            )
+        )
+
+        self._state_action_values[state_id][action] = updated_state_action_value
+
+        initial_ancillary_state_action_value = copy.deepcopy(self._ancillary_state_action_values[state_id][action])
+
+        updated_ancillary_state_action_value = (
+            initial_ancillary_state_action_value
+            + self._learning_rate
+            * (
+                visitation_penalty
+                + discount * self._max_state_action_value(state=new_state, other_state_action_values=self._ancillary_state_action_values)
+                - initial_ancillary_state_action_value
+            )
+        )
+
+        self._ancillary_state_action_values[state_id][action] = updated_ancillary_state_action_value
