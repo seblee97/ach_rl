@@ -77,7 +77,9 @@ learner:
             final_value: 0.02
             anneal_duration: 100000
     
-    initialisation: random_uniform
+    initialisation: random_normal
+
+    split_value_function: True
 
     random_uniform:
         lower_bound: 0
@@ -206,7 +208,7 @@ dqn:
             weight_initialisation:
 
 training:
-    num_episodes: 100
+    num_episodes: 6000
     test_frequency: 1
     testing: 
         # - greedy
