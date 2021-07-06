@@ -410,7 +410,7 @@ class MultiRoom(base_environment.BaseEnvironment):
                 fig, axes = plt.subplots(nrows=1, ncols=1)
             averaged_values_axis = axes
 
-        caxes = caxes or [None]
+        caxes = caxes or [None for _ in range(1 + len(value_combinations))]
 
         fig.subplots_adjust(hspace=0.5)
 
