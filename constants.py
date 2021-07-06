@@ -277,6 +277,7 @@ class Constants:
     RANDOM_UNIFORM = "random_uniform"
     LOWER_BOUND = "lower_bound"
     UPPER_BOUND = "upper_bound"
+    SPLIT_VALUE_FUNCTION = "split_value_function"
 
     ATARI_ENVS = ["PongNoFrameskip-v4", "GravitarNoFrameskip-v4"]
 
