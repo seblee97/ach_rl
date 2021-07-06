@@ -487,6 +487,10 @@ class AChConfigTemplate:
                 ],
             ),
             config_field.Field(
+                name=constants.Constants.SPLIT_VALUE_FUNCTION,
+                types=[bool],
+            ),
+            config_field.Field(
                 name=constants.Constants.VISITATION_PENALTY_TYPE,
                 types=[str, type(None)],
                 requirements=[
