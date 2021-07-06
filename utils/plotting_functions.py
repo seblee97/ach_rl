@@ -55,7 +55,7 @@ def plot_all_multi_seed_multi_run(
     exp_names: List[str],
     window_width: int,
     linewidth: int = 3,
-    colormap: str = "tab20c",
+    colormap: Union[str, None] = None,
 ):
     """Expected structure of folder_path is:
 
@@ -101,78 +101,83 @@ def plot_all_multi_seed_multi_run(
                 tag_set[tag] = []
             tag_set[tag].append(exp)
 
-    cmap = cm.get_cmap(colormap)
+    if colormap is not None:
+        cmap = cm.get_cmap(colormap)
 
-    assert isinstance(
-        cmap, mpl.colors.ListedColormap
-    ), "colormap must be discrete, i.e. ListedColormap."
+        assert isinstance(
+            cmap, mpl.colors.ListedColormap
+        ), "colormap must be discrete, i.e. ListedColormap."
 
-    color_cycle = mpl.cycler(color=cmap.colors)
-    mpl.rcParams["axes.prop_cycle"] = color_cycle
+        color_cycle = mpl.cycler(color=cmap.colors)
+        mpl.rcParams["axes.prop_cycle"] = color_cycle
 
     for tag, relevant_experiments in tag_set.items():
         # if tag == "test_ensemble_episode_reward_mean":
         #     import pdb
 
         #     pdb.set_trace()
-        fig = plt.figure(figsize=(constants.Constants.SUMMARY_FIGSIZE))
-        for exp in relevant_experiments:
-            attribute_data = []
-            seed_folders = [
-                f
-                for f in os.listdir(experiment_folders[exp])
-                if os.path.isdir(os.path.join(experiment_folders[exp], f))
-            ]
+        print(tag)
+        if "branch" not in tag:
+            fig = plt.figure(figsize=(constants.Constants.SUMMARY_FIGSIZE))
+            for exp in relevant_experiments:
+                attribute_data = []
+                seed_folders = [
+                    f
+                    for f in os.listdir(experiment_folders[exp])
+                    if os.path.isdir(os.path.join(experiment_folders[exp], f))
+                ]
 
-            for seed in seed_folders:
-                df = pd.read_csv(
-                    os.path.join(experiment_folders[exp], seed, "data_logger.csv")
+                for seed in seed_folders:
+                    df = pd.read_csv(
+                        os.path.join(experiment_folders[exp], seed, "data_logger.csv")
+                    )
+                    tag_data = df[tag].dropna()
+                    attribute_data.append(tag_data)
+                mean_attribute_data = np.mean(attribute_data, axis=0)
+                std_attribute_data = np.std(attribute_data, axis=0)
+                smooth_mean_data = smooth_data(
+                    mean_attribute_data, window_width=window_width
                 )
-                tag_data = df[tag].dropna()
-                attribute_data.append(tag_data)
-            mean_attribute_data = np.mean(attribute_data, axis=0)
-            std_attribute_data = np.std(attribute_data, axis=0)
-            smooth_mean_data = smooth_data(
-                mean_attribute_data, window_width=window_width
+                smooth_std_data = smooth_data(
+                    std_attribute_data, window_width=window_width
+                )
+                scaled_x = (len(df) / len(smooth_mean_data)) * np.arange(
+                    len(smooth_mean_data)
+                )
+                plt.plot(
+                    scaled_x,
+                    smooth_mean_data,
+                    linewidth=linewidth,
+                    label=exp,
+                )
+                plt.fill_between(
+                    scaled_x,
+                    smooth_mean_data - smooth_std_data,
+                    smooth_mean_data + smooth_std_data,
+                    alpha=0.3,
+                )
+            plt.legend(
+                bbox_to_anchor=(
+                    1.01,
+                    1.0,
+                ),
+                loc="upper left",
+                ncol=1,
+                borderaxespad=0.0,
             )
-            smooth_std_data = smooth_data(std_attribute_data, window_width=window_width)
-            scaled_x = (len(df) / len(smooth_mean_data)) * np.arange(
-                len(smooth_mean_data)
-            )
-            plt.plot(
-                scaled_x,
-                smooth_mean_data,
-                linewidth=linewidth,
-                label=exp,
-            )
-            plt.fill_between(
-                scaled_x,
-                smooth_mean_data - smooth_std_data,
-                smooth_mean_data + smooth_std_data,
-                alpha=0.3,
-            )
-        plt.legend(
-            bbox_to_anchor=(
-                1.01,
-                1.0,
-            ),
-            loc="upper left",
-            ncol=1,
-            borderaxespad=0.0,
-        )
-        plt.xlabel(constants.Constants.EPISODE)
-        plt.ylabel(tag)
+            plt.xlabel(constants.Constants.EPISODE)
+            plt.ylabel(tag)
 
-        fig.tight_layout()
+            fig.tight_layout()
 
-        os.makedirs(os.path.join(folder_path, "figures"), exist_ok=True)
-        fig.savefig(
-            os.path.join(
-                folder_path, "figures", f"{tag}_plot_multi_seed_multi_run.pdf"
-            ),
-            dpi=100,
-        )
-        plt.close()
+            os.makedirs(os.path.join(folder_path, "figures"), exist_ok=True)
+            fig.savefig(
+                os.path.join(
+                    folder_path, "figures", f"{tag}_plot_multi_seed_multi_run.pdf"
+                ),
+                dpi=100,
+            )
+            plt.close()
 
 
 def plot_multi_seed_multi_run(
