@@ -114,6 +114,7 @@ class AChConfigTemplate:
     _multiroom_template = config_template.Template(
         fields=[
             config_field.Field(name=constants.Constants.ASCII_MAP_PATH, types=[str]),
+            config_field.Field(name=constants.Constants.JSON_MAP_PATH, types=[type(None), str]),
             config_field.Field(
                 name=constants.Constants.EPISODE_TIMEOUT,
                 types=[type(None), int],
