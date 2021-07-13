@@ -29,11 +29,24 @@ multiroom_curriculum:
         - ["change_gaussian_reward_distributions", (1, 0), (0, 0.1)]
 
 multiroom:
-    ascii_map_path: simple_map_1.txt
+    ascii_map_path: five_room.txt
+    json_map_path: five_room.json
     episode_timeout: 400 # infinity if not given
     plot_origin: lower
     
     reward_specifications:
+        - gaussian:
+            mean: 1
+            variance: 0
+        - gaussian:
+            mean: 1
+            variance: 0
+        - gaussian:
+            mean: 1
+            variance: 0
+        - gaussian:
+            mean: 1
+            variance: 0
         - gaussian:
             mean: 1
             variance: 0
@@ -79,7 +92,7 @@ learner:
     
     initialisation: random_normal
 
-    split_value_function: True
+    split_value_function: False
 
     random_uniform:
         lower_bound: 0
@@ -98,7 +111,7 @@ learner:
 
     hard_coded: 
         vp_schedule:
-            - [0, -0.05] # from step 0, 0 penalty
+            - [0, -0.0] # from step 0, 0 penalty
         
     adaptive_uncertainty:
         action_function: mean # mean or max or select
@@ -209,7 +222,7 @@ dqn:
 
 training:
     num_episodes: 6000
-    test_frequency: 1
+    test_frequency: 100
     testing: 
         # - greedy
         # - no_rep
@@ -217,8 +230,8 @@ training:
 logging:
     print_frequency: 1
     checkpoint_frequency: 500
-    animation_library: imageio
-    animation_file_format: mp4
+    animation_library: matplotlib_animation
+    animation_file_format: gif
     arrays:
         - [value_function, 10]
         # - [individual_value_functions, 50]
@@ -240,12 +253,12 @@ logging:
         # - [no_repeat_test_episode_length, 1]
         # - [cycle_count, 1]
     visualisations:
-        # - [value_function, 50]
+        - [value_function, 50]
         # - [value_function_std, 50]
         # - [individual_value_functions, 50]
         # - visitation_count_heatmap
         - [individual_test_run, 200]
-        - [individual_train_run, 200]
+        - [individual_train_run, 100]
     post_visualisations:
         - value_function
         - value_function_std
