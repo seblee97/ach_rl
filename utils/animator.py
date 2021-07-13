@@ -27,7 +27,7 @@ def animate(
     file_name = f"{file_name}.{file_format}"
 
     if library == constants.Constants.MATPLOTLIB_ANIMATION:
-        fig, ax = plt.subplots(figsize=(5, 5))
+        fig, ax = plt.subplots(figsize=(10, 10))
 
         def update(image):
             ax.imshow(image, origin=plot_origin)
