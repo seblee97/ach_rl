@@ -9,6 +9,8 @@ from typing import Union
 
 import constants
 import numpy as np
+import json
+import re
 from environments import base_environment
 from matplotlib import cm
 from matplotlib import pyplot as plt
@@ -38,6 +40,7 @@ class MultiRoom(base_environment.BaseEnvironment):
         ascii_map_path: str,
         reward_specifications: List,
         episode_timeout: Optional[int] = None,
+        json_map_path: Optional[str] = None
     ) -> None:
         """Class constructor.
 
@@ -56,7 +59,7 @@ class MultiRoom(base_environment.BaseEnvironment):
             self._key_positions,
             self._door_positions,
             reward_positions,
-        ) = self._parse_map(ascii_map_path)
+        ) = self._parse_map(ascii_map_path, json_map_path)
 
         state_indices = np.where(self._map == 0)
         wall_indices = np.where(self._map == 1)
@@ -85,14 +88,15 @@ class MultiRoom(base_environment.BaseEnvironment):
         # states are zero, -1 removes walls from counts.
         self._visitation_counts = -1 * copy.deepcopy(self._map)
 
-        self._episode_history: List[List[int]]
+        self._train_episode_history: List[List[int]]
+        self._test_episode_history: List[List[int]]
         self._agent_position: np.ndarray
         self._rewards_received: List[float]
         self._keys_state: np.ndarray
         self._key_collection_times: Dict[int, int]
 
     def _parse_map(
-        self, map_file_path: str
+        self, map_file_path: str, json_map_path: Optional[str] = None
     ) -> Tuple[np.ndarray, List, List, List, List]:
         """Method to parse ascii map.
 
@@ -130,22 +134,32 @@ class MultiRoom(base_environment.BaseEnvironment):
             for i, line in enumerate(map_lines[::-1]):
                 map_row = [MAPPING[char] for char in line]
                 map_rows.append(map_row)
-                if constants.Constants.REWARD_CHARACTER in line:
-                    reward_positions.append(
-                        (line.index(constants.Constants.REWARD_CHARACTER), i)
-                    )
-                if constants.Constants.KEY_CHARACTER in line:
-                    key_positions.append(
-                        (line.index(constants.Constants.KEY_CHARACTER), i)
-                    )
-                if constants.Constants.START_CHARACTER in line:
-                    start_positions.append(
-                        (line.index(constants.Constants.START_CHARACTER), i)
-                    )
-                if constants.Constants.DOOR_CHARACTER in line:
-                    door_positions.append(
-                        (line.index(constants.Constants.DOOR_CHARACTER), i)
-                    )
+
+        if json_map_path is None:
+            with open(map_file_path) as f:
+                map_lines = f.read().splitlines()
+                # flip indices for x, y referencing
+                for i, line in enumerate(map_lines[::-1]):
+                    if constants.Constants.REWARD_CHARACTER in line:
+                        line_reward_positions = [(r.start(), i) for r in re.finditer(constants.Constants.REWARD_CHARACTER, line)]
+                        reward_positions.extend(line_reward_positions)
+                    if constants.Constants.KEY_CHARACTER in line:
+                        line_key_positions = [(k.start(), i) for k in re.finditer(constants.Constants.KEY_CHARACTER, line)]
+                        key_positions.extend(line_key_positions)
+                    if constants.Constants.START_CHARACTER in line:
+                        start_positions.append(
+                            (line.index(constants.Constants.START_CHARACTER), i)
+                        )
+                    if constants.Constants.DOOR_CHARACTER in line:
+                        line_door_positions = [(d.start(), i) for d in re.finditer(constants.Constants.DOOR_CHARACTER, line)]
+                        door_positions.extend(line_door_positions)
+        else:
+            with open(json_map_path) as json_file:
+                map_data = json.load(json_file)
+                start_positions.append(tuple(map_data[constants.Constants.START_POSITION]))
+                reward_positions.extend([tuple(rp) for rp in map_data[constants.Constants.REWARD_POSITIONS]])
+                key_positions.extend([tuple(kp) for kp in map_data[constants.Constants.KEY_POSITIONS]])
+                door_positions.extend([tuple(dp) for dp in map_data[constants.Constants.DOOR_POSITIONS]])
 
         assert all(
             len(i) == len(map_rows[0]) for i in map_rows
@@ -154,6 +168,10 @@ class MultiRoom(base_environment.BaseEnvironment):
         assert (
             len(start_positions) == 1
         ), "maximally one start position 'S' should be specified in ASCII map."
+
+        assert (
+            len(door_positions) == len(key_positions)
+        ), "number of key positions must equal number of door positions."
 
         multi_room_grid = np.array(map_rows, dtype=float)
 
@@ -219,8 +237,16 @@ class MultiRoom(base_environment.BaseEnvironment):
         return self._visitation_counts
 
     @property
-    def episode_history(self) -> np.ndarray:
-        return np.array(self._episode_history)
+    def train_episode_history(self) -> np.ndarray:
+        return np.array(self._train_episode_history)
+
+    @property
+    def test_episode_history(self) -> np.ndarray:
+        return np.array(self._test_episode_history)
+
+    @train_episode_history.setter
+    def train_episode_history(self, train_episode_history: np.ndarray) -> None:
+        self._train_episode_history = [list(s) for s in train_episode_history]
 
     def _env_skeleton(
         self, show_rewards: bool = True, show_doors: bool = True, show_keys: bool = True
@@ -260,19 +286,24 @@ class MultiRoom(base_environment.BaseEnvironment):
 
         return skeleton
 
-    def plot_episode_history(self) -> List[np.ndarray]:
+    def plot_episode_history(self, train: bool = True) -> List[np.ndarray]:
         """Get list of state images for episode history."""
         heatmap = self._env_skeleton()
 
         state_rgb_images = []
 
+        if train:
+            history = self._train_episode_history
+        else:
+            history = self._test_episode_history
+
         # show agent in silver
-        for step, state in enumerate(self._episode_history):
+        for step, state in enumerate(history):
             state_image = copy.deepcopy(heatmap)
             for key_index, key_position in enumerate(self._key_positions):
                 if self._keys_state[key_index]:
                     if step > self._key_collection_times[key_index]:
-                        heatmap[tuple(key_position[::-1])] = np.ones(3)
+                        state_image[tuple(key_position[::-1])] = np.ones(3)
             state_image[tuple(state[::-1])] = 0.5 * np.ones(3)
             state_rgb_images.append(state_image)
 
@@ -595,11 +626,12 @@ class MultiRoom(base_environment.BaseEnvironment):
             self._visitation_counts[self._agent_position[1]][
                 self._agent_position[0]
             ] += 1
+            self._train_episode_history.append(copy.deepcopy(tuple(self._agent_position)))
+        else:
+            self._test_episode_history.append(copy.deepcopy(tuple(self._agent_position)))
 
         reward = self._compute_reward()
         self._active = self._remain_active(reward=reward)
-
-        self._episode_history.append(copy.deepcopy(tuple(self._agent_position)))
 
         new_state = tuple(self._agent_position) + tuple(self._keys_state)
 
@@ -646,10 +678,14 @@ class MultiRoom(base_environment.BaseEnvironment):
         self._episode_step_count = 0
         self._training = train
         self._agent_position = np.array(self._starting_xy)
-        self._episode_history = [copy.deepcopy(tuple(self._agent_position))]
         self._rewards_received = []
         self._keys_state = np.zeros(len(self._key_positions), dtype=int)
         self._key_collection_times = {}
+
+        if train:
+            self._train_episode_history = [copy.deepcopy(tuple(self._agent_position))]
+        else:
+            self._test_episode_history = [copy.deepcopy(tuple(self._agent_position))]
 
         initial_state = tuple(self._agent_position) + tuple(self._keys_state)
 
