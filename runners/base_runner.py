@@ -160,10 +160,15 @@ class BaseRunner(abc.ABC):
             if config.implementation == constants.Constants.FUNCTIONAL:
                 env_args[constants.Constants.PRE_PROCESSING] = config.pre_processing
         elif config.environment == constants.Constants.MULTIROOM:
+            if config.json_map_path is not None:
+                json_map_path = os.path.join(config.run_path, config.json_map_path)
+            else:
+                json_map_path = None
             env_args = {
                 constants.Constants.ASCII_MAP_PATH: os.path.join(
                     config.run_path, config.ascii_map_path
                 ),
+                constants.Constants.JSON_MAP_PATH: json_map_path,
                 constants.Constants.EPISODE_TIMEOUT: config.episode_timeout,
                 constants.Constants.REWARD_SPECIFICATIONS: config.reward_specifications,
             }
