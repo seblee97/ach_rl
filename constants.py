@@ -278,6 +278,11 @@ class Constants:
     LOWER_BOUND = "lower_bound"
     UPPER_BOUND = "upper_bound"
     SPLIT_VALUE_FUNCTION = "split_value_function"
+    JSON_MAP_PATH = "json_map_path"
+    START_POSITION = "start_position"
+    REWARD_POSITIONS = "reward_positions"
+    KEY_POSITIONS = "key_positions"
+    DOOR_POSITIONS = "door_positions"
 
     ATARI_ENVS = ["PongNoFrameskip-v4", "GravitarNoFrameskip-v4"]
 
