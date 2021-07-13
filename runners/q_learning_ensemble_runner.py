@@ -23,6 +23,7 @@ from learners.tabular_learners import q_learner
 from runners import base_runner
 from utils import cycle_counter
 from utils import experiment_utils
+from utils import decorators
 from visitation_penalties.adaptive_arriving_uncertainty_visitation_penalty import \
     AdaptiveArrivingUncertaintyPenalty
 from visitation_penalties.adaptive_uncertainty_visitation_penalty import \
@@ -103,10 +104,11 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
 
     def _pre_episode_log(self, episode: int):
         """Logging pre-episode. Includes value-function, individual run."""
-        self._logger.info(f"Episode {episode}: pre-episode data logging...")
+        self._logger.info(f"Episode {episode + 1}: pre-episode data logging...")
         self._pre_episode_visualisations(episode=episode)
         self._pre_episode_array_logging(episode=episode)
 
+    @decorators.timer
     def _pre_episode_visualisations(self, episode: int):
         visualisation_configurations = [
             (constants.Constants.MAX_VALUES_PDF, True, False),
@@ -227,6 +229,7 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
                     data=self._environment.plot_episode_history(),
                 )
 
+    @decorators.timer
     def _pre_episode_array_logging(self, episode: int):
         self._write_array(
             tag=constants.Constants.VALUE_FUNCTION,
@@ -280,7 +283,11 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
             ensemble_mean_penalties,
             ensemble_mean_penalty_infos,
             ensemble_std_penalty_infos,
+            train_episode_histories
         ) = train_fn(episode=episode, rng_state=rng_state)
+
+        # add episode history to environment (for now arbitrarily choose last of ensemble)
+        self._environment.train_episode_history = train_episode_histories[-1]
 
         # set again, to ensure serial/parallel consistency
         experiment_utils.set_random_seeds(rng_state)
@@ -360,6 +367,7 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
         mean_penalties = []
         mean_penalty_infos = {}
         std_penalty_infos = {}
+        train_episode_histories = []
 
         for i, learner in enumerate(self._learner.ensemble):
             self._logger.info(f"Training learner {i}/{len(self._learner.ensemble)}...")
@@ -370,6 +378,7 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
                 mean_penalty,
                 mean_penalty_info,
                 std_penalty_info,
+                train_episode_history
             ) = self._single_train_episode(
                 environment=copy.deepcopy(self._environment),
                 learner=learner,
@@ -389,6 +398,7 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
                 if info_key not in std_penalty_infos:
                     std_penalty_infos[info_key] = []
                 std_penalty_infos[info_key].append(std_info)
+            train_episode_histories.append(train_episode_history)
 
         return (
             ensemble_episode_rewards,
@@ -396,6 +406,7 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
             mean_penalties,
             mean_penalty_infos,
             std_penalty_infos,
+            train_episode_histories
         )
 
     def _parallelised_train_episode(
@@ -521,6 +532,7 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
             mean_penalties,
             mean_penalty_info,
             std_penalty_info,
+            environment.train_episode_history
         )
 
     def _get_visitation_penalty(self, episode: int, state, action: int, next_state):
