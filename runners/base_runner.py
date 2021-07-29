@@ -29,6 +29,7 @@ from visitation_penalties import \
     adaptive_arriving_uncertainty_visitation_penalty
 from visitation_penalties import adaptive_uncertainty_visitation_penalty
 from visitation_penalties import base_visitation_penalty
+from visitation_penalties import exponential_decay_visitation_penalty
 from visitation_penalties import hard_coded_visitation_penalty
 from visitation_penalties import network_visitation_penalty
 from visitation_penalties import policy_entropy_penalty
@@ -210,6 +211,15 @@ class BaseRunner(abc.ABC):
         if config.visitation_penalty_type == constants.Constants.HARD_CODED:
             penalty_computer = hard_coded_visitation_penalty.HardCodedPenalty(
                 hard_coded_penalties=config.vp_schedule
+            )
+        elif (
+            config.visitation_penalty_type
+            == constants.Constants.DETERMINISTIC_EXPONENTIAL_DECAY
+        ):
+            penalty_computer = (
+                exponential_decay_visitation_penalty.ExponentialDecayPenalty(
+                    A=config.A, b=config.b, c=config.c
+                )
             )
         elif config.visitation_penalty_type == constants.Constants.ADAPTIVE_UNCERTAINTY:
             penalty_computer = (
