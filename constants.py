@@ -283,6 +283,10 @@ class Constants:
     REWARD_POSITIONS = "reward_positions"
     KEY_POSITIONS = "key_positions"
     DOOR_POSITIONS = "door_positions"
+    A = "A"
+    b = "b"
+    c = "c"
+    DETERMINISTIC_EXPONENTIAL_DECAY = "deterministic_exponential_decay"
 
     ATARI_ENVS = ["PongNoFrameskip-v4", "GravitarNoFrameskip-v4"]
 
