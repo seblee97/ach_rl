@@ -532,7 +532,7 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
             mean_penalties,
             mean_penalty_info,
             std_penalty_info,
-            environment.train_episode_history
+            environment.train_episode_history,
         )
 
     def _get_visitation_penalty(self, episode: int, state, action: int, next_state):
