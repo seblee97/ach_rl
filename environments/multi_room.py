@@ -291,6 +291,8 @@ class MultiRoom(base_environment.BaseEnvironment):
         heatmap = self._env_skeleton()
 
         state_rgb_images = []
+        plot_key_states = []
+        plot_key_collection_times = {}
 
         if train:
             history = self._train_episode_history
@@ -300,10 +302,9 @@ class MultiRoom(base_environment.BaseEnvironment):
         # show agent in silver
         for step, state in enumerate(history):
             state_image = copy.deepcopy(heatmap)
-            for key_index, key_position in enumerate(self._key_positions):
-                if self._keys_state[key_index]:
-                    if step > self._key_collection_times[key_index]:
-                        state_image[tuple(key_position[::-1])] = np.ones(3)
+            if tuple(state) in self._key_positions:
+                key_index = self._key_positions.index(tuple(state))
+                heatmap[tuple(self._key_positions[key_index][::-1])] = np.ones(3)
             state_image[tuple(state[::-1])] = 0.5 * np.ones(3)
             state_rgb_images.append(state_image)
 
