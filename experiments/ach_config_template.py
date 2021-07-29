@@ -114,7 +114,9 @@ class AChConfigTemplate:
     _multiroom_template = config_template.Template(
         fields=[
             config_field.Field(name=constants.Constants.ASCII_MAP_PATH, types=[str]),
-            config_field.Field(name=constants.Constants.JSON_MAP_PATH, types=[type(None), str]),
+            config_field.Field(
+                name=constants.Constants.JSON_MAP_PATH, types=[type(None), str]
+            ),
             config_field.Field(
                 name=constants.Constants.EPISODE_TIMEOUT,
                 types=[type(None), int],
@@ -208,6 +210,17 @@ class AChConfigTemplate:
         level=[constants.Constants.LEARNER, constants.Constants.HARD_CODED],
         dependent_variables=[constants.Constants.VISITATION_PENALTY_TYPE],
         dependent_variables_required_values=[[constants.Constants.HARD_CODED]],
+    )
+
+    _exponential_decay_vp_template = config_template.Template(
+        fields=[
+            config_field.Field(name=constants.Constants.A, types=[float, int]),
+            config_field.Field(name=constants.Constants.b, types=[float, int]),
+            config_field.Field(name=constants.Constants.c, types=[float, int]),
+        ],
+        level=[constants.Constants.LEARNER, constants.Constants.DETERMINISTIC_EXPONENTIAL_DECAY],
+        dependent_variables=[constants.Constants.VISITATION_PENALTY_TYPE],
+        dependent_variables_required_values=[[constants.Constants.DETERMINISTIC_EXPONENTIAL_DECAY]],
     )
 
     _adaptive_uncertainty_template = config_template.Template(
@@ -402,33 +415,25 @@ class AChConfigTemplate:
     _random_uniform_template = config_template.Template(
         fields=[
             config_field.Field(
-                name=constants.Constants.LOWER_BOUND, 
-                types=[float, int]
-                ),
+                name=constants.Constants.LOWER_BOUND, types=[float, int]
+            ),
             config_field.Field(
-                name=constants.Constants.UPPER_BOUND, 
-                types=[float, int]
-                ),
+                name=constants.Constants.UPPER_BOUND, types=[float, int]
+            ),
         ],
         level=[constants.Constants.LEARNER, constants.Constants.RANDOM_UNIFORM],
         dependent_variables=[constants.Constants.INITIALISATION],
-        dependent_variables_required_values=[[constants.Constants.RANDOM_UNIFORM]]
+        dependent_variables_required_values=[[constants.Constants.RANDOM_UNIFORM]],
     )
 
     _random_normal_template = config_template.Template(
         fields=[
-            config_field.Field(
-                name=constants.Constants.MEAN, 
-                types=[float, int]
-                ),
-            config_field.Field(
-                name=constants.Constants.VARIANCE, 
-                types=[float, int]
-                ),
+            config_field.Field(name=constants.Constants.MEAN, types=[float, int]),
+            config_field.Field(name=constants.Constants.VARIANCE, types=[float, int]),
         ],
         level=[constants.Constants.LEARNER, constants.Constants.RANDOM_NORMAL],
         dependent_variables=[constants.Constants.INITIALISATION],
-        dependent_variables_required_values=[[constants.Constants.RANDOM_NORMAL]]
+        dependent_variables_required_values=[[constants.Constants.RANDOM_NORMAL]],
     )
 
     _learner_template = config_template.Template(
@@ -499,6 +504,7 @@ class AChConfigTemplate:
                     or x
                     in [
                         constants.Constants.HARD_CODED,
+                        constants.Constants.DETERMINISTIC_EXPONENTIAL_DECAY,
                         constants.Constants.ADAPTIVE_UNCERTAINTY,
                         constants.Constants.ADAPTIVE_ARRIVING_UNCERTAINTY,
                         constants.Constants.POTENTIAL_BASED_ADAPTIVE_UNCERTAINTY,
@@ -526,8 +532,10 @@ class AChConfigTemplate:
             _random_uniform_template,
             _random_normal_template,
             _hard_coded_vp_template,
+            _exponential_decay_vp_template,
             _adaptive_uncertainty_template,
             _adaptive_arriving_uncertainty_template,
+            
             _potential_based_adaptive_uncertainty_template,
             _policy_entropy_penalty_template,
             _potential_based_policy_entropy_penalty_template,
