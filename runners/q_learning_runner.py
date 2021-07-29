@@ -1,13 +1,10 @@
-from experiments import ach_config
-
-from learners.tabular_learners import q_learner
-from runners import base_runner
-
+import os
 from typing import Tuple
 
 import constants
-
-import os
+from experiments import ach_config
+from learners.tabular_learners import q_learner
+from runners import base_runner
 
 
 class QLearningRunner(base_runner.BaseRunner):
@@ -138,6 +135,19 @@ class QLearningRunner(base_runner.BaseRunner):
             )
             state = new_state
             episode_reward += reward
+
+        self._write_scalar(
+            tag=constants.Constants.MEAN_VISITATION_PENALTY,
+            episode=episode,
+            scalar=penalty,
+        )
+        for penalty_info_name, info in penalty_info.items():
+            self._write_scalar(
+                tag=constants.Constants.MEAN_PENALTY_INFO,
+                episode=episode,
+                scalar=info,
+                df_tag=penalty_info_name,
+            )
 
         return episode_reward, self._environment.episode_step_count
 
