@@ -103,6 +103,7 @@ learner:
         variance: 1
 
     # hard_coded, adaptive_uncertainty, adaptive_arriving_uncertainty, 
+    # deterministic_exponential_decay, logarithmic
     # policy_entropy_penalty or potential_based_adaptive_uncertainty
     visitation_penalty_type: hard_coded
 
@@ -112,6 +113,12 @@ learner:
     hard_coded: 
         vp_schedule:
             - [0, -0.0] # from step 0, 0 penalty
+
+    deterministic_exponential_decay:
+        # y = Ab^(cx)
+        A: -1
+        b: 2.7
+        c: -0.0001
         
     adaptive_uncertainty:
         action_function: mean # mean or max or select
