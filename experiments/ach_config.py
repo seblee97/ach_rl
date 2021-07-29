@@ -54,6 +54,8 @@ class AchConfig(base_configuration.BaseConfiguration):
                 constants.Constants.TRAIN_EPISODE_LENGTH,
                 constants.Constants.TEST_EPISODE_REWARD,
                 constants.Constants.TEST_EPISODE_LENGTH,
+                constants.Constants.MEAN_VISITATION_PENALTY,
+                constants.Constants.MEAN_PENALTY_INFO,
             ]
             permitted_visuals = [
                 constants.Constants.VALUE_FUNCTION,
