@@ -287,6 +287,8 @@ class Constants:
     b = "b"
     c = "c"
     DETERMINISTIC_EXPONENTIAL_DECAY = "deterministic_exponential_decay"
+    DETERMINISTIC_LINEAR_DECAY = "deterministic_linear_decay"
+    DETERMINISTIC_SIGMOIDAL_DECAY = "deterministic_sigmoidal_decay"
 
     ATARI_ENVS = ["PongNoFrameskip-v4", "GravitarNoFrameskip-v4"]
 
