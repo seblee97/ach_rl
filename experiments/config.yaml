@@ -103,7 +103,8 @@ learner:
         variance: 1
 
     # hard_coded, adaptive_uncertainty, adaptive_arriving_uncertainty, 
-    # deterministic_exponential_decay, logarithmic
+    # deterministic_exponential_decay, deterministic_linear_decay, 
+    # deterministic_sigmoidal_decay,
     # policy_entropy_penalty or potential_based_adaptive_uncertainty
     visitation_penalty_type: hard_coded
 
@@ -119,6 +120,17 @@ learner:
         A: -1
         b: 2.7
         c: -0.0001
+
+    deterministic_linear_decay: 
+        # y = Ax + b
+        A: -1
+        b: 0
+
+    deterministic_sigmoidal_decay:
+        # y = A / (1 + e^(-b(x-c)))
+        A: -1
+        b: 1
+        c: 0
         
     adaptive_uncertainty:
         action_function: mean # mean or max or select
