@@ -11,7 +11,6 @@ class ExponentialDecayPenalty(base_visitation_penalty.BaseVisitationPenaltyCompu
     """Hard-coded (or deterministic) exponential penalty."""
 
     def __init__(self, A: Union[int, float], b: Union[int, float], c: Union[int, float]):
-        # default 0
         self._A = A
         self._b = b
         self._c = c
