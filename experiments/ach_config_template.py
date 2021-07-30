@@ -223,6 +223,27 @@ class AChConfigTemplate:
         dependent_variables_required_values=[[constants.Constants.DETERMINISTIC_EXPONENTIAL_DECAY]],
     )
 
+    _linear_decay_vp_template = config_template.Template(
+        fields=[
+            config_field.Field(name=constants.Constants.A, types=[float, int]),
+            config_field.Field(name=constants.Constants.b, types=[float, int]),
+        ],
+        level=[constants.Constants.LEARNER, constants.Constants.DETERMINISTIC_LINEAR_DECAY],
+        dependent_variables=[constants.Constants.VISITATION_PENALTY_TYPE],
+        dependent_variables_required_values=[[constants.Constants.DETERMINISTIC_LINEAR_DECAY]],
+    )
+
+    _sigmoidal_decay_vp_template = config_template.Template(
+        fields=[
+            config_field.Field(name=constants.Constants.A, types=[float, int]),
+            config_field.Field(name=constants.Constants.b, types=[float, int]),
+            config_field.Field(name=constants.Constants.c, types=[float, int]),
+        ],
+        level=[constants.Constants.LEARNER, constants.Constants.DETERMINISTIC_SIGMOIDAL_DECAY],
+        dependent_variables=[constants.Constants.VISITATION_PENALTY_TYPE],
+        dependent_variables_required_values=[[constants.Constants.DETERMINISTIC_SIGMOIDAL_DECAY]],
+    )
+
     _adaptive_uncertainty_template = config_template.Template(
         fields=[
             config_field.Field(
@@ -505,6 +526,8 @@ class AChConfigTemplate:
                     in [
                         constants.Constants.HARD_CODED,
                         constants.Constants.DETERMINISTIC_EXPONENTIAL_DECAY,
+                        constants.Constants.DETERMINISTIC_LINEAR_DECAY,
+                        constants.Constants.DETERMINISTIC_SIGMOIDAL_DECAY,
                         constants.Constants.ADAPTIVE_UNCERTAINTY,
                         constants.Constants.ADAPTIVE_ARRIVING_UNCERTAINTY,
                         constants.Constants.POTENTIAL_BASED_ADAPTIVE_UNCERTAINTY,
@@ -533,9 +556,10 @@ class AChConfigTemplate:
             _random_normal_template,
             _hard_coded_vp_template,
             _exponential_decay_vp_template,
+            _linear_decay_vp_template,
+            _sigmoidal_decay_vp_template,
             _adaptive_uncertainty_template,
             _adaptive_arriving_uncertainty_template,
-            
             _potential_based_adaptive_uncertainty_template,
             _policy_entropy_penalty_template,
             _potential_based_policy_entropy_penalty_template,
