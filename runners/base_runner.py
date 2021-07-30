@@ -31,10 +31,12 @@ from visitation_penalties import adaptive_uncertainty_visitation_penalty
 from visitation_penalties import base_visitation_penalty
 from visitation_penalties import exponential_decay_visitation_penalty
 from visitation_penalties import hard_coded_visitation_penalty
+from visitation_penalties import linear_decay_visitation_penalty
 from visitation_penalties import network_visitation_penalty
 from visitation_penalties import policy_entropy_penalty
 from visitation_penalties import potential_adaptive_uncertainty_penalty
 from visitation_penalties import potential_policy_entropy_penalty
+from visitation_penalties import sigmoidal_decay_visitation_penalty
 from visitation_penalties import tabular_visitation_penalty
 
 
@@ -220,6 +222,20 @@ class BaseRunner(abc.ABC):
                 exponential_decay_visitation_penalty.ExponentialDecayPenalty(
                     A=config.A, b=config.b, c=config.c
                 )
+            )
+        elif (
+            config.visitation_penalty_type
+            == constants.Constants.DETERMINISTIC_LINEAR_DECAY
+        ):
+            penalty_computer = linear_decay_visitation_penalty.LinearDecayPenalty(
+                A=config.A, b=config.b
+            )
+        elif (
+            config.visitation_penalty_type
+            == constants.Constants.DETERMINISTIC_SIGMOIDAL_DECAY
+        ):
+            penalty_computer = sigmoidal_decay_visitation_penalty.SigmoidalDecayPenalty(
+                A=config.A, b=config.b, c=config.c
             )
         elif config.visitation_penalty_type == constants.Constants.ADAPTIVE_UNCERTAINTY:
             penalty_computer = (
