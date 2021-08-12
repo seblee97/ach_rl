@@ -60,7 +60,7 @@ class AchConfig(base_configuration.BaseConfiguration):
             permitted_visuals = [
                 constants.Constants.VALUE_FUNCTION,
                 constants.Constants.VISITATION_COUNT_HEATMAP,
-                constants.Constants.INDIVIDUAL_TRAIN_RUN
+                constants.Constants.INDIVIDUAL_TRAIN_RUN,
             ]
         elif learner == constants.Constants.VANILLA_DQN:
             permitted_scalars = [
@@ -72,14 +72,19 @@ class AchConfig(base_configuration.BaseConfiguration):
                 constants.Constants.LOSS,
                 constants.Constants.EPSILON,
                 constants.Constants.MEAN_VISITATION_PENALTY,
-                constants.Constants.MEAN_PENALTY_INFO
+                constants.Constants.MEAN_PENALTY_INFO,
             ]
             permitted_visuals = [
                 constants.Constants.INDIVIDUAL_TRAIN_RUN,
                 constants.Constants.INDIVIDUAL_TEST_RUN,
-                constants.Constants.VALUE_FUNCTION,
-                constants.Constants.VISITATION_COUNT_HEATMAP,
             ]
+            if environment == constants.Constants.MULTIROOM:
+                permitted_visuals.extend(
+                    [
+                        constants.Constants.VALUE_FUNCTION,
+                        constants.Constants.VISITATION_COUNT_HEATMAP,
+                    ]
+                )
         elif learner == constants.Constants.ENSEMBLE_Q_LEARNING:
             permitted_scalars = [
                 constants.Constants.TRAIN_EPISODE_REWARD,
