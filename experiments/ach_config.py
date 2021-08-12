@@ -71,6 +71,8 @@ class AchConfig(base_configuration.BaseConfiguration):
                 constants.Constants.AVERAGE_ACTION_VALUE,
                 constants.Constants.LOSS,
                 constants.Constants.EPSILON,
+                constants.Constants.MEAN_VISITATION_PENALTY,
+                constants.Constants.MEAN_PENALTY_INFO
             ]
             permitted_visuals = [
                 constants.Constants.INDIVIDUAL_TRAIN_RUN,
