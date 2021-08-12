@@ -135,6 +135,19 @@ class AChConfigTemplate:
                 types=[list],
                 requirements=[lambda x: all(isinstance(y, dict) for y in x)],
             ),
+            config_field.Field(
+                name=constants.Constants.REPRESENTATION,
+                types=[str],
+                requirements=[
+                    lambda x: x
+                    in [constants.Constants.PIXEL, constants.Constants.AGENT_POSITION]
+                ],
+            ),
+            config_field.Field(
+                name=constants.Constants.ENCODED_STATE_DIMENSIONS,
+                types=[list],
+                requirements=[lambda x: all(isinstance(y, int) and y > 0 for y in x)],
+            ),
         ],
         level=[constants.Constants.MULTIROOM],
         dependent_variables=[
@@ -218,9 +231,14 @@ class AChConfigTemplate:
             config_field.Field(name=constants.Constants.b, types=[float, int]),
             config_field.Field(name=constants.Constants.c, types=[float, int]),
         ],
-        level=[constants.Constants.LEARNER, constants.Constants.DETERMINISTIC_EXPONENTIAL_DECAY],
+        level=[
+            constants.Constants.LEARNER,
+            constants.Constants.DETERMINISTIC_EXPONENTIAL_DECAY,
+        ],
         dependent_variables=[constants.Constants.VISITATION_PENALTY_TYPE],
-        dependent_variables_required_values=[[constants.Constants.DETERMINISTIC_EXPONENTIAL_DECAY]],
+        dependent_variables_required_values=[
+            [constants.Constants.DETERMINISTIC_EXPONENTIAL_DECAY]
+        ],
     )
 
     _linear_decay_vp_template = config_template.Template(
@@ -228,9 +246,14 @@ class AChConfigTemplate:
             config_field.Field(name=constants.Constants.A, types=[float, int]),
             config_field.Field(name=constants.Constants.b, types=[float, int]),
         ],
-        level=[constants.Constants.LEARNER, constants.Constants.DETERMINISTIC_LINEAR_DECAY],
+        level=[
+            constants.Constants.LEARNER,
+            constants.Constants.DETERMINISTIC_LINEAR_DECAY,
+        ],
         dependent_variables=[constants.Constants.VISITATION_PENALTY_TYPE],
-        dependent_variables_required_values=[[constants.Constants.DETERMINISTIC_LINEAR_DECAY]],
+        dependent_variables_required_values=[
+            [constants.Constants.DETERMINISTIC_LINEAR_DECAY]
+        ],
     )
 
     _sigmoidal_decay_vp_template = config_template.Template(
@@ -239,9 +262,14 @@ class AChConfigTemplate:
             config_field.Field(name=constants.Constants.b, types=[float, int]),
             config_field.Field(name=constants.Constants.c, types=[float, int]),
         ],
-        level=[constants.Constants.LEARNER, constants.Constants.DETERMINISTIC_SIGMOIDAL_DECAY],
+        level=[
+            constants.Constants.LEARNER,
+            constants.Constants.DETERMINISTIC_SIGMOIDAL_DECAY,
+        ],
         dependent_variables=[constants.Constants.VISITATION_PENALTY_TYPE],
-        dependent_variables_required_values=[[constants.Constants.DETERMINISTIC_SIGMOIDAL_DECAY]],
+        dependent_variables_required_values=[
+            [constants.Constants.DETERMINISTIC_SIGMOIDAL_DECAY]
+        ],
     )
 
     _adaptive_uncertainty_template = config_template.Template(
