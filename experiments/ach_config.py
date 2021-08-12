@@ -77,6 +77,8 @@ class AchConfig(base_configuration.BaseConfiguration):
             permitted_visuals = [
                 constants.Constants.INDIVIDUAL_TRAIN_RUN,
                 constants.Constants.INDIVIDUAL_TEST_RUN,
+                constants.Constants.VALUE_FUNCTION,
+                constants.Constants.VISITATION_COUNT_HEATMAP,
             ]
         elif learner == constants.Constants.ENSEMBLE_Q_LEARNING:
             permitted_scalars = [
