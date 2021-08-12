@@ -51,6 +51,10 @@ multiroom:
             mean: 1
             variance: 0
 
+    representation: pixel # agent position for tabular or pixel for DL
+
+    encoded_state_dimensions: [3,7,65] # for use with DL method
+
 atari:
     atari_env_name: "PongNoFrameskip-v4"
 
