@@ -1,5 +1,7 @@
 import copy
 import itertools
+import json
+import re
 from typing import Callable
 from typing import Dict
 from typing import List
@@ -9,8 +11,6 @@ from typing import Union
 
 import constants
 import numpy as np
-import json
-import re
 from environments import base_environment
 from matplotlib import cm
 from matplotlib import pyplot as plt
@@ -39,6 +39,7 @@ class MultiRoom(base_environment.BaseEnvironment):
         self,
         ascii_map_path: str,
         reward_specifications: List,
+        representation: str,
         episode_timeout: Optional[int] = None,
         json_map_path: Optional[str] = None
     ) -> None:
@@ -52,6 +53,8 @@ class MultiRoom(base_environment.BaseEnvironment):
         # used e.g. for plotting value function.
         self._color_spectrum = "plasma"
         self._colormap = cm.get_cmap(self._color_spectrum)
+
+        self._representation = representation
 
         (
             self._map,
@@ -584,6 +587,18 @@ class MultiRoom(base_environment.BaseEnvironment):
         grid_state[tuple(self._agent_position)] = -1
         return grid_state
 
+    def _get_state_representation(self) -> Union[tuple, np.ndarray]:
+        """From current state, produce a representation of it. 
+        This can either be a tuple of the agent and key positions,
+        or a top-down pixel view of the environment (for DL)."""
+        if self._representation == constants.Constants.AGENT_POSITION:
+            return tuple(self._agent_position) + tuple(self._keys_state)
+        elif self._representation == constants.Constants.PIXEL:
+            env_skeleton = self._env_skeleton() # H x W x C
+            transposed_env_skeleton = np.transpose(env_skeleton, axes=(2, 0, 1)) # C x H x W
+            return np.expand_dims(transposed_env_skeleton, 0) # add stack dimension
+
+
     def _move_agent(self, delta: np.ndarray) -> None:
         """Move agent. If provisional new position is a wall, no-op."""
         provisional_new_position = self._agent_position + delta
@@ -634,7 +649,7 @@ class MultiRoom(base_environment.BaseEnvironment):
         reward = self._compute_reward()
         self._active = self._remain_active(reward=reward)
 
-        new_state = tuple(self._agent_position) + tuple(self._keys_state)
+        new_state = self._get_state_representation()
 
         return reward, new_state
 
@@ -688,6 +703,6 @@ class MultiRoom(base_environment.BaseEnvironment):
         else:
             self._test_episode_history = [copy.deepcopy(tuple(self._agent_position))]
 
-        initial_state = tuple(self._agent_position) + tuple(self._keys_state)
+        initial_state = self._get_state_representation()
 
         return initial_state
