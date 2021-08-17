@@ -17,4 +17,13 @@ class SigmoidalDecayPenalty(base_visitation_penalty.BaseVisitationPenaltyCompute
 
     def compute_penalty(self, episode: int, penalty_info: Dict[str, Any]) -> float:
     	# Logistic function: f(x) = A / (1 + e^(-b(x-c)))
-        return self._A  / (1 + np.exp(-self._b * (episode - self._c))) 
+        current_penalty = self._A  / (1 + np.exp(-self._b * (episode - self._c))) 
+
+        reference_measure = penalty_info[
+            constants.Constants.CURRENT_STATE_MAX_UNCERTAINTY
+        ]
+        if isinstance(reference_measure, float):
+            return current_penalty
+        elif isinstance(reference_measure, np.ndarray):
+            batch_dimension = reference_measure.shape[0]
+            return current_penalty * np.ones(batch_dimension)
