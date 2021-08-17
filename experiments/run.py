@@ -10,6 +10,7 @@ from typing import Union
 import constants
 from experiments.run_modes import cluster_array_run
 from experiments.run_modes import cluster_run
+from experiments.run_modes import distributed_cluster_run
 from experiments.run_modes import parallel_run
 from experiments.run_modes import serial_run
 from experiments.run_modes import single_run
@@ -160,7 +161,24 @@ if __name__ == "__main__":
                 gpu_type=args.gpu_type,
                 cluster_debug=args.cluster_debug,
             )
+        elif args.mode == constants.Constants.DISTRIBUTED_CLUSTER:
+            if args.num_cpus:
+                num_cpus = args.num_cpus
+            else:
+                raise ValueError(
+                    f"num_cpus must be given for distributed_cluster mode.."
+                )
+            distributed_cluster_run.distributed_cluster_run(
+                experiment_path=experiment_path,
+                config_path=config_copy_path,
+                checkpoint_paths=checkpoint_paths,
+                num_cpus=num_cpus,
+                memory_per_node=args.memory,
+                num_gpus=args.num_gpus,
+                gpu_type=args.gpu_type,
+                cluster_debug=args.cluster_debug,
+            )
         elif args.mode == constants.Constants.CLUSTER_ARRAY:
-            raise NotADirectoryError
+            raise NotImplementedError
         else:
             raise ValueError(f"Mode '{args.mode}' not recognised.")
