@@ -292,6 +292,7 @@ class Constants:
     PIXEL = "pixel"
     AGENT_POSITION = "agent_position"
     REPRESENTATION = "representation"
+    DISTRIBUTED_CLUSTER = "distributed_cluster"
 
     ATARI_ENVS = ["PongNoFrameskip-v4", "GravitarNoFrameskip-v4"]
 
