@@ -16,4 +16,13 @@ class ExponentialDecayPenalty(base_visitation_penalty.BaseVisitationPenaltyCompu
         self._c = c
 
     def compute_penalty(self, episode: int, penalty_info: Dict[str, Any]) -> float:
-        return self._A * self._b ** (self._c * episode)
+        current_penalty = self._A * self._b ** (self._c * episode)
+
+        reference_measure = penalty_info[
+            constants.Constants.CURRENT_STATE_MAX_UNCERTAINTY
+        ]
+        if isinstance(reference_measure, float):
+            return current_penalty
+        elif isinstance(reference_measure, np.ndarray):
+            batch_dimension = reference_measure.shape[0]
+            return current_penalty * np.ones(batch_dimension)
