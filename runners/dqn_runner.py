@@ -169,7 +169,33 @@ class DQNRunner(base_runner.BaseRunner):
 
     def _pre_episode_log(self, episode: int):
         """Logging pre-episode. Includes value-function, individual run."""
-        pass
+        if self._visualisation_iteration(constants.Constants.VALUE_FUNCTION, episode):
+            for visualisation_configuration in visualisation_configurations:
+                self._logger.info(
+                    "Serial value function visualisation: "
+                    f"{visualisation_configuration[0]}"
+                )
+                self._environment.plot_value_function(
+                    values=self._learner.state_action_values,
+                    save_path=os.path.join(
+                        self._visualisations_folder_path,
+                        f"{episode}_{visualisation_configuration[0]}",
+                    ),
+                    plot_max_values=visualisation_configuration[1],
+                    quiver=visualisation_configuration[2],
+                    over_actions=constants.Constants.MAX,
+                )
+        if self._visualisation_iteration(constants.Constants.VISITATION_COUNT_HEATMAP, episode):
+            self._environment.plot_value_function(
+                    values=self._learner.state_visitation_counts,
+                    save_path=os.path.join(
+                        self._visualisations_folder_path,
+                        f"{episode}_{constants.Constants.VISITATION_COUNT_HEATMAP_PDF}",
+                    ),
+                    plot_max_values=True,
+                    quiver=False,
+                    over_actions=constants.Constants.SELECT,
+                )
 
     def _train_episode(self, episode: int) -> Tuple[float, int]:
         """Perform single training loop (per learner in ensemble).
