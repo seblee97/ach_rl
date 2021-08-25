@@ -649,14 +649,24 @@ class MultiRoom(base_environment.BaseEnvironment):
         grid_state[tuple(self._agent_position)] = -1
         return grid_state
 
-    def _get_state_representation(self) -> Union[tuple, np.ndarray]:
+    def get_state_representation(
+        self, tuple_state: Optional[Tuple] = None
+    ) -> Union[tuple, np.ndarray]:
         """From current state, produce a representation of it.
         This can either be a tuple of the agent and key positions,
         or a top-down pixel view of the environment (for DL)."""
         if self._representation == constants.Constants.AGENT_POSITION:
             return tuple(self._agent_position) + tuple(self._keys_state)
         elif self._representation == constants.Constants.PIXEL:
-            env_skeleton = self._env_skeleton(show_agent=True)  # H x W x C
+            if tuple_state is None:
+                env_skeleton = self._env_skeleton(agent=True)  # H x W x C
+            else:
+                agent_position = tuple_state[:2]
+                keys = tuple_state[2 : 2 + len(self._key_positions)]
+                rewards = tuple_state[2 + len(self._key_positions) :]
+                env_skeleton = self._env_skeleton(
+                    rewards=rewards, keys=keys, agent=agent_position
+                )
             transposed_env_skeleton = np.transpose(
                 env_skeleton, axes=(2, 0, 1)
             )  # C x H x W
@@ -716,7 +726,7 @@ class MultiRoom(base_environment.BaseEnvironment):
         reward = self._compute_reward()
         self._active = self._remain_active(reward=reward)
 
-        new_state = self._get_state_representation()
+        new_state = self.get_state_representation()
 
         return reward, new_state
 
@@ -770,6 +780,6 @@ class MultiRoom(base_environment.BaseEnvironment):
         else:
             self._test_episode_history = [copy.deepcopy(tuple(self._agent_position))]
 
-        initial_state = self._get_state_representation()
+        initial_state = self.get_state_representation()
 
         return initial_state
