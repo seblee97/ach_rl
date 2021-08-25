@@ -282,15 +282,15 @@ class MultiRoom(base_environment.BaseEnvironment):
 
     def _env_skeleton(
         self,
-        show_rewards: bool = True,
-        show_doors: bool = True,
-        show_keys: bool = True,
-        show_agent: bool = False,
+        rewards: Union[bool, List[Tuple[int]]] = True,
+        doors: Union[bool, List[Tuple[int]]] = True,
+        keys: Union[bool, List[Tuple[int]]] = True,
+        agent: Union[bool, np.ndarray] = False,
     ) -> np.ndarray:
         """Get a 'skeleton' of map e.g. for visualisation purposes.
 
         Args:
-            show_rewards: whether or not to mark out rewards.
+            show_rewards: whether or not to mark out rewards (ignores magnitudes).
             show_doors: whether or not to mark out doors.
             show_keys: whether or not to mark out keys.
             show_agent: whether or not to mark out agent position
@@ -304,24 +304,48 @@ class MultiRoom(base_environment.BaseEnvironment):
         # make walls black
         skeleton[self._map == 1] = np.zeros(3)
 
-        if show_rewards:
+        if rewards:
+            if isinstance(rewards, bool):
+                reward_iterate = [
+                    r for r in self._rewards.keys() if r not in self._rewards_received
+                ]
+            else:
+                reward_iterate = [
+                    list(self._rewards.keys())[i]
+                    for i, r in enumerate(rewards)
+                    if not r
+                ]
             # show reward in red
-            for reward in self._rewards.keys():
+            for reward in reward_iterate:
                 skeleton[reward[::-1]] = [1.0, 0.0, 0.0]
 
-        if show_doors:
+        if doors:
+            if isinstance(doors, bool):
+                doors_iterate = self._door_positions
+            else:
+                doors_iterate = doors
             # show door in maroon
-            for door in self._door_positions:
+            for door in doors_iterate:
                 skeleton[tuple(door[::-1])] = [0.5, 0.0, 0.0]
 
-        if show_keys:
+        if keys:
+            if isinstance(keys, bool):
+                keys_iterate = self._key_positions
+            else:
+                keys_iterate = [
+                    self._key_positions[i] for i, k in enumerate(keys) if not k
+                ]
             # show key in yellow
-            for key_index, key_position in enumerate(self._key_positions):
+            for key_position in keys_iterate:
                 skeleton[tuple(key_position[::-1])] = [1.0, 1.0, 0.0]
 
-        if show_agent:
+        if agent:
+            if isinstance(agent, bool):
+                agent_position = self._agent_position
+            else:
+                agent_position = agent
             # show agent
-            skeleton[tuple(self._agent_position[::-1])] = 0.5 * np.ones(3)
+            skeleton[tuple(agent_position[::-1])] = 0.5 * np.ones(3)
 
         return skeleton
 
@@ -561,7 +585,7 @@ class MultiRoom(base_environment.BaseEnvironment):
     ) -> Tuple[np.ndarray, float, float]:
         """Heatmap of values over states."""
         environment_map = self._env_skeleton(
-            show_rewards=False, show_doors=False, show_keys=False
+            rewards=False, doors=False, keys=False
         )
 
         if over_actions == constants.Constants.MAX:
