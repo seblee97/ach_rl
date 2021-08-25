@@ -70,10 +70,15 @@ class MultiRoom(base_environment.BaseEnvironment):
         self._key_possession_state_space = list(
             itertools.product([0, 1], repeat=len(self._key_positions))
         )
+        self._rewards_received_state_space = list(
+            itertools.product([0, 1], repeat=len(reward_positions))
+        )
         self._state_space = [
-            i[0] + i[1]
+            i[0] + i[1] + i[2]
             for i in itertools.product(
-                self._positional_state_space, self._key_possession_state_space
+                self._positional_state_space,
+                self._key_possession_state_space,
+                self._rewards_received_state_space,
             )
         ]
 
@@ -360,8 +365,10 @@ class MultiRoom(base_environment.BaseEnvironment):
         averaged_values = {}
         for state in self._positional_state_space:
             non_positional_set = [
-                values[state + key_state]
-                for key_state in self._key_possession_state_space
+                values[state + i[0] + i[1]]
+                for i in itertools.product(
+                    self._key_possession_state_space, self._rewards_received_state_space
+                )
             ]
             non_positional_mean = np.mean(non_positional_set, axis=0)
             averaged_values[state] = non_positional_mean
