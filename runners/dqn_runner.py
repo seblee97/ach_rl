@@ -1,4 +1,5 @@
 import copy
+import os
 import random
 from typing import Tuple
 from typing import Union
@@ -169,14 +170,31 @@ class DQNRunner(base_runner.BaseRunner):
 
     def _pre_episode_log(self, episode: int):
         """Logging pre-episode. Includes value-function, individual run."""
+        visualisation_configurations = [
+            (constants.Constants.MAX_VALUES_PDF, True, False),
+            (constants.Constants.QUIVER_VALUES_PDF, False, True),
+            (constants.Constants.QUIVER_MAX_VALUES_PDF, True, True),
+        ]
         if self._visualisation_iteration(constants.Constants.VALUE_FUNCTION, episode):
+            # compute state action values for a tabular env
+            state_action_values = {}
+            for tuple_state in self._environment.state_space:
+                with torch.no_grad():
+                    pixel_state = torch.from_numpy(
+                        self._environment.get_state_representation(
+                            tuple_state=tuple_state
+                        )
+                    ).to(device=self._device, dtype=torch.float)
+                    state_action_values[tuple_state] = (
+                        self._learner.q_network(pixel_state).numpy().squeeze()
+                    )
             for visualisation_configuration in visualisation_configurations:
                 self._logger.info(
                     "Serial value function visualisation: "
                     f"{visualisation_configuration[0]}"
                 )
                 self._environment.plot_value_function(
-                    values=self._learner.state_action_values,
+                    values=state_action_values,
                     save_path=os.path.join(
                         self._visualisations_folder_path,
                         f"{episode}_{visualisation_configuration[0]}",
@@ -185,16 +203,26 @@ class DQNRunner(base_runner.BaseRunner):
                     quiver=visualisation_configuration[2],
                     over_actions=constants.Constants.MAX,
                 )
-        if self._visualisation_iteration(constants.Constants.VISITATION_COUNT_HEATMAP, episode):
+        if self._visualisation_iteration(
+            constants.Constants.VISITATION_COUNT_HEATMAP, episode
+        ):
             self._environment.plot_value_function(
-                    values=self._learner.state_visitation_counts,
-                    save_path=os.path.join(
-                        self._visualisations_folder_path,
-                        f"{episode}_{constants.Constants.VISITATION_COUNT_HEATMAP_PDF}",
-                    ),
-                    plot_max_values=True,
-                    quiver=False,
-                    over_actions=constants.Constants.SELECT,
+                values=self._learner.state_visitation_counts,
+                save_path=os.path.join(
+                    self._visualisations_folder_path,
+                    f"{episode}_{constants.Constants.VISITATION_COUNT_HEATMAP_PDF}",
+                ),
+                plot_max_values=True,
+                quiver=False,
+                over_actions=constants.Constants.SELECT,
+            )
+        if episode != 0:
+            if self._visualisation_iteration(
+                constants.Constants.INDIVIDUAL_TRAIN_RUN, episode
+            ):
+                self._data_logger.plot_array_data(
+                    name=f"{constants.Constants.INDIVIDUAL_TRAIN_RUN}_{episode}",
+                    data=self._environment.plot_episode_history(),
                 )
 
     def _train_episode(self, episode: int) -> Tuple[float, int]:
