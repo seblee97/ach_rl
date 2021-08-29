@@ -16,6 +16,7 @@ from matplotlib import cm
 from matplotlib import pyplot as plt
 from matplotlib.animation import FuncAnimation
 from mpl_toolkits.axes_grid1 import make_axes_locatable
+from utils import custom_functions
 
 
 class MultiRoom(base_environment.BaseEnvironment):
@@ -40,6 +41,7 @@ class MultiRoom(base_environment.BaseEnvironment):
         ascii_map_path: str,
         reward_specifications: List,
         representation: str,
+        frame_stack: Optional[int] = 1,
         episode_timeout: Optional[int] = None,
         json_map_path: Optional[str] = None,
     ) -> None:
@@ -55,6 +57,7 @@ class MultiRoom(base_environment.BaseEnvironment):
         self._colormap = cm.get_cmap(self._color_spectrum)
 
         self._representation = representation
+        self._frame_stack = frame_stack
 
         (
             self._map,
@@ -239,6 +242,10 @@ class MultiRoom(base_environment.BaseEnvironment):
                 rewards[reward_position] = _sample_gaussian
 
         return rewards
+
+    @property
+    def frame_stack(self):
+        return self._frame_stack
 
     @property
     def starting_xy(self) -> Tuple[int, int]:
@@ -494,13 +501,13 @@ class MultiRoom(base_environment.BaseEnvironment):
             if fig is None and axes is None:
                 fig, axes = plt.subplots(nrows=1, ncols=1)
             averaged_values_axis = axes
-        elif len(self._key_positions) <= 2:
-            value_combinations = self._get_value_combinations(values=values)
-            if fig is None and axes is None:
-                fig, axes = plt.subplots(
-                    nrows=1 + 2 * len(self._key_positions), ncols=1
-                )
-            averaged_values_axis = axes[0]
+        # elif len(self._key_positions) <= 2:
+        #     value_combinations = self._get_value_combinations(values=values)
+        #     if fig is None and axes is None:
+        #         fig, axes = plt.subplots(
+        #             nrows=1 + 2 * len(self._key_positions), ncols=1
+        #         )
+        #     averaged_values_axis = axes[0]
         else:
             value_combinations = {}
             if fig is None and axes is None:
@@ -650,7 +657,7 @@ class MultiRoom(base_environment.BaseEnvironment):
         return grid_state
 
     def get_state_representation(
-        self, tuple_state: Optional[Tuple] = None
+        self, tuple_state: Optional[Tuple] = None,
     ) -> Union[tuple, np.ndarray]:
         """From current state, produce a representation of it.
         This can either be a tuple of the agent and key positions,
@@ -667,10 +674,12 @@ class MultiRoom(base_environment.BaseEnvironment):
                 env_skeleton = self._env_skeleton(
                     rewards=rewards, keys=keys, agent=agent_position
                 )
+            grayscale_env_skeleton = custom_functions.rgb_to_grayscale(env_skeleton)
             transposed_env_skeleton = np.transpose(
-                env_skeleton, axes=(2, 0, 1)
+                grayscale_env_skeleton, axes=(2, 0, 1)
             )  # C x H x W
-            return np.expand_dims(transposed_env_skeleton, 0)  # add stack dimension
+            
+            return transposed_env_skeleton
 
     def _move_agent(self, delta: np.ndarray) -> None:
         """Move agent. If provisional new position is a wall, no-op."""
@@ -707,26 +716,32 @@ class MultiRoom(base_environment.BaseEnvironment):
             action in self.ACTION_SPACE
         ), f"Action given as {action}; must be 0: left, 1: up, 2: right or 3: down."
 
-        self._move_agent(delta=self.DELTAS[action])
+        state_buffer = []
+
+        for _ in range(self._frame_stack):
+            self._move_agent(delta=self.DELTAS[action])
+
+            if self._training:
+                self._visitation_counts[self._agent_position[1]][
+                    self._agent_position[0]
+                ] += 1
+                self._train_episode_history.append(
+                    copy.deepcopy(tuple(self._agent_position))
+                )
+            else:
+                self._test_episode_history.append(
+                    copy.deepcopy(tuple(self._agent_position))
+                )
+
+            reward = self._compute_reward()
+            self._active = self._remain_active(reward=reward)
+
+            new_frame = self.get_state_representation()
+            state_buffer.append(new_frame)
+
+        new_state = np.expand_dims(np.vstack(state_buffer), 0) # add stack dimension
 
         self._episode_step_count += 1
-
-        if self._training:
-            self._visitation_counts[self._agent_position[1]][
-                self._agent_position[0]
-            ] += 1
-            self._train_episode_history.append(
-                copy.deepcopy(tuple(self._agent_position))
-            )
-        else:
-            self._test_episode_history.append(
-                copy.deepcopy(tuple(self._agent_position))
-            )
-
-        reward = self._compute_reward()
-        self._active = self._remain_active(reward=reward)
-
-        new_state = self.get_state_representation()
 
         return reward, new_state
 
@@ -780,6 +795,10 @@ class MultiRoom(base_environment.BaseEnvironment):
         else:
             self._test_episode_history = [copy.deepcopy(tuple(self._agent_position))]
 
-        initial_state = self.get_state_representation()
+        initial_state_buffer = []
+        for _ in range(self._frame_stack):
+            initial_state_buffer.append(self.get_state_representation())
+
+        initial_state = np.expand_dims(np.vstack(initial_state_buffer), 0) # add stack dimension
 
         return initial_state
