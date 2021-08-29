@@ -173,6 +173,7 @@ class BaseRunner(abc.ABC):
                 ),
                 constants.Constants.JSON_MAP_PATH: json_map_path,
                 constants.Constants.REPRESENTATION: config.representation,
+                constants.Constants.FRAME_STACK: config.frame_stack,
                 constants.Constants.EPISODE_TIMEOUT: config.episode_timeout,
                 constants.Constants.REWARD_SPECIFICATIONS: config.reward_specifications,
             }
