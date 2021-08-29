@@ -180,10 +180,12 @@ class DQNRunner(base_runner.BaseRunner):
             state_action_values = {}
             for tuple_state in self._environment.state_space:
                 with torch.no_grad():
-                    pixel_state = torch.from_numpy(
-                        self._environment.get_state_representation(
+                    np_state_representation = self._environment.get_state_representation(
                             tuple_state=tuple_state
                         )
+                    stacked_representation = np.repeat(np_state_representation, self._environment.frame_stack, 0)
+                    pixel_state = torch.from_numpy(
+                        np.expand_dims(stacked_representation, 0)
                     ).to(device=self._device, dtype=torch.float)
                     state_action_values[tuple_state] = (
                         self._learner.q_network(pixel_state).numpy().squeeze()
