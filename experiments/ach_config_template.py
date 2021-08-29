@@ -148,6 +148,11 @@ class AChConfigTemplate:
                 types=[list],
                 requirements=[lambda x: all(isinstance(y, int) and y > 0 for y in x)],
             ),
+            config_field.Field(
+                name=constants.Constants.FRAME_STACK,
+                types=[int],
+                requirements=[lambda x: x > 0],
+            ),
         ],
         level=[constants.Constants.MULTIROOM],
         dependent_variables=[
