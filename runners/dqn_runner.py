@@ -188,7 +188,7 @@ class DQNRunner(base_runner.BaseRunner):
                         np.expand_dims(stacked_representation, 0)
                     ).to(device=self._device, dtype=torch.float)
                     state_action_values[tuple_state] = (
-                        self._learner.q_network(pixel_state).numpy().squeeze()
+                        self._learner.q_network(pixel_state).cpu().numpy().squeeze()
                     )
             for visualisation_configuration in visualisation_configurations:
                 self._logger.info(
