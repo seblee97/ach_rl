@@ -717,6 +717,7 @@ class MultiRoom(base_environment.BaseEnvironment):
         ), f"Action given as {action}; must be 0: left, 1: up, 2: right or 3: down."
 
         state_buffer = []
+        reward = 0
 
         for _ in range(self._frame_stack):
             self._move_agent(delta=self.DELTAS[action])
@@ -733,7 +734,9 @@ class MultiRoom(base_environment.BaseEnvironment):
                     copy.deepcopy(tuple(self._agent_position))
                 )
 
-            reward = self._compute_reward()
+            step_reward = self._compute_reward()
+            reward += step_reward
+            
             self._active = self._remain_active(reward=reward)
 
             new_frame = self.get_state_representation()
