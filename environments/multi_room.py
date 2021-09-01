@@ -102,9 +102,8 @@ class MultiRoom(base_environment.BaseEnvironment):
         self._train_episode_history: List[List[int]]
         self._test_episode_history: List[List[int]]
         self._agent_position: np.ndarray
-        self._rewards_received: List[float]
+        self._rewards_state: np.ndarray
         self._keys_state: np.ndarray
-        self._key_collection_times: Dict[int, int]
 
     def _parse_map(
         self, map_file_path: str, json_map_path: Optional[str] = None
@@ -313,12 +312,11 @@ class MultiRoom(base_environment.BaseEnvironment):
 
         if rewards:
             if isinstance(rewards, bool):
-                reward_iterate = [
-                    r for r in self._rewards.keys() if r not in self._rewards_received
-                ]
+                reward_iterate = list(self._rewards.keys())
             else:
+                reward_positions = list(self._rewards.keys())
                 reward_iterate = [
-                    list(self._rewards.keys())[i]
+                    reward_positions[i]
                     for i, r in enumerate(rewards)
                     if not r
                 ]
@@ -361,8 +359,6 @@ class MultiRoom(base_environment.BaseEnvironment):
         heatmap = self._env_skeleton()
 
         state_rgb_images = []
-        plot_key_states = []
-        plot_key_collection_times = {}
 
         if train:
             history = self._train_episode_history
@@ -375,6 +371,8 @@ class MultiRoom(base_environment.BaseEnvironment):
             if tuple(state) in self._key_positions:
                 key_index = self._key_positions.index(tuple(state))
                 heatmap[tuple(self._key_positions[key_index][::-1])] = np.ones(3)
+            if tuple(state) in self._rewards.keys():
+                heatmap[tuple(state[::-1])] = np.ones(3)
             state_image[tuple(state[::-1])] = 0.5 * np.ones(3)
             state_rgb_images.append(state_image)
 
@@ -591,9 +589,7 @@ class MultiRoom(base_environment.BaseEnvironment):
         self, values: Dict, over_actions: str
     ) -> Tuple[np.ndarray, float, float]:
         """Heatmap of values over states."""
-        environment_map = self._env_skeleton(
-            rewards=False, doors=False, keys=False
-        )
+        environment_map = self._env_skeleton(rewards=False, doors=False, keys=False)
 
         if over_actions == constants.Constants.MAX:
             values = {k: max(v) for k, v in values.items()}
@@ -657,16 +653,25 @@ class MultiRoom(base_environment.BaseEnvironment):
         return grid_state
 
     def get_state_representation(
-        self, tuple_state: Optional[Tuple] = None,
+        self,
+        tuple_state: Optional[Tuple] = None,
     ) -> Union[tuple, np.ndarray]:
         """From current state, produce a representation of it.
         This can either be a tuple of the agent and key positions,
         or a top-down pixel view of the environment (for DL)."""
         if self._representation == constants.Constants.AGENT_POSITION:
-            return tuple(self._agent_position) + tuple(self._keys_state)
+            return (
+                tuple(self._agent_position)
+                + tuple(self._keys_state)
+                + tuple(self._rewards_state)
+            )
         elif self._representation == constants.Constants.PIXEL:
             if tuple_state is None:
-                env_skeleton = self._env_skeleton(agent=True)  # H x W x C
+                env_skeleton = self._env_skeleton(
+                    rewards=tuple(self._rewards_state),
+                    keys=tuple(self._keys_state),
+                    agent=True,
+                )  # H x W x C
             else:
                 agent_position = tuple_state[:2]
                 keys = tuple_state[2 : 2 + len(self._key_positions)]
@@ -678,10 +683,9 @@ class MultiRoom(base_environment.BaseEnvironment):
             transposed_env_skeleton = np.transpose(
                 grayscale_env_skeleton, axes=(2, 0, 1)
             )  # C x H x W
-            
             return transposed_env_skeleton
 
-    def _move_agent(self, delta: np.ndarray) -> None:
+    def _move_agent(self, delta: np.ndarray) -> float:
         """Move agent. If provisional new position is a wall, no-op."""
         provisional_new_position = self._agent_position + delta
 
@@ -700,7 +704,9 @@ class MultiRoom(base_environment.BaseEnvironment):
             key_index = self._key_positions.index(tuple(self._agent_position))
             if not self._keys_state[key_index]:
                 self._keys_state[key_index] = 1
-                self._key_collection_times[key_index] = self._episode_step_count
+
+        return self._compute_reward()
+
 
     def step(self, action: int) -> Tuple[float, Tuple[int, int]]:
         """Take step in environment according to action of agent.
@@ -720,7 +726,8 @@ class MultiRoom(base_environment.BaseEnvironment):
         reward = 0
 
         for _ in range(self._frame_stack):
-            self._move_agent(delta=self.DELTAS[action])
+            step_reward = self._move_agent(delta=self.DELTAS[action])
+            reward += step_reward
 
             if self._training:
                 self._visitation_counts[self._agent_position[1]][
@@ -734,15 +741,12 @@ class MultiRoom(base_environment.BaseEnvironment):
                     copy.deepcopy(tuple(self._agent_position))
                 )
 
-            step_reward = self._compute_reward()
-            reward += step_reward
-            
             self._active = self._remain_active(reward=reward)
 
             new_frame = self.get_state_representation()
             state_buffer.append(new_frame)
 
-        new_state = np.expand_dims(np.vstack(state_buffer), 0) # add stack dimension
+        new_state = np.expand_dims(np.vstack(state_buffer), 0)  # add batch dimension
 
         self._episode_step_count += 1
 
@@ -757,6 +761,8 @@ class MultiRoom(base_environment.BaseEnvironment):
             and tuple(self._agent_position) not in self._rewards_received
         ):
             reward = self._rewards.get(tuple(self._agent_position))()
+            reward_index = list(self._rewards.keys()).index(tuple(self._agent_position))
+            self._rewards_state[reward_index] = 1
             self._rewards_received.append(tuple(self._agent_position))
         else:
             reward = 0.0
@@ -791,7 +797,7 @@ class MultiRoom(base_environment.BaseEnvironment):
         self._agent_position = np.array(self._starting_xy)
         self._rewards_received = []
         self._keys_state = np.zeros(len(self._key_positions), dtype=int)
-        self._key_collection_times = {}
+        self._rewards_state = np.zeros(len(self._rewards), dtype=int)
 
         if train:
             self._train_episode_history = [copy.deepcopy(tuple(self._agent_position))]
@@ -802,6 +808,8 @@ class MultiRoom(base_environment.BaseEnvironment):
         for _ in range(self._frame_stack):
             initial_state_buffer.append(self.get_state_representation())
 
-        initial_state = np.expand_dims(np.vstack(initial_state_buffer), 0) # add stack dimension
+        initial_state = np.expand_dims(
+            np.vstack(initial_state_buffer), 0
+        )  # add stack dimension
 
         return initial_state
