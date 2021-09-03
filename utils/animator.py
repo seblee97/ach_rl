@@ -1,11 +1,10 @@
 from typing import List
 
+import constants
 import imageio
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.animation import FuncAnimation
-
-import constants
 
 
 def animate(
@@ -35,7 +34,7 @@ def animate(
         anim = FuncAnimation(fig, update, frames=images, interval=200)
         anim.save(
             file_name,
-            dpi=80,
+            dpi=50,
             writer="imagemagick",
         )
         plt.close()
