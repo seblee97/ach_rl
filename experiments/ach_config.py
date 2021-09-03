@@ -225,7 +225,7 @@ class AchConfig(base_configuration.BaseConfiguration):
                 )
 
         # check testing procedures are compatible with alg/env etc.
-        if learner == constants.Constants.DQN:
+        if learner == constants.Constants.VANILLA_DQN:
             permitted_tests = [constants.Constants.GREEDY]
         elif learner == constants.Constants.ENSEMBLE_Q_LEARNING:
             permitted_tests = [constants.Constants.GREEDY, constants.Constants.NO_REP]
