@@ -226,6 +226,13 @@ class DQNRunner(base_runner.BaseRunner):
                     name=f"{constants.Constants.INDIVIDUAL_TRAIN_RUN}_{episode}",
                     data=self._environment.plot_episode_history(),
                 )
+            if self._visualisation_iteration(
+                constants.Constants.INDIVIDUAL_TEST_RUN, episode
+            ):
+                self._data_logger.plot_array_data(
+                    name=f"{constants.Constants.INDIVIDUAL_TEST_RUN}_{episode}",
+                    data=self._environment.plot_episode_history(train=False),
+                )
 
     def _train_episode(self, episode: int) -> Tuple[float, int]:
         """Perform single training loop (per learner in ensemble).
