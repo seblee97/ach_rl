@@ -722,31 +722,24 @@ class MultiRoom(base_environment.BaseEnvironment):
             action in self.ACTION_SPACE
         ), f"Action given as {action}; must be 0: left, 1: up, 2: right or 3: down."
 
-        state_buffer = []
-        reward = 0
+        reward = self._move_agent(delta=self.DELTAS[action])
 
-        for _ in range(self._frame_stack):
-            step_reward = self._move_agent(delta=self.DELTAS[action])
-            reward += step_reward
+        if self._training:
+            self._visitation_counts[self._agent_position[1]][
+                self._agent_position[0]
+            ] += 1
+            self._train_episode_history.append(
+                copy.deepcopy(tuple(self._agent_position))
+            )
+        else:
+            self._test_episode_history.append(
+                copy.deepcopy(tuple(self._agent_position))
+            )
 
-            if self._training:
-                self._visitation_counts[self._agent_position[1]][
-                    self._agent_position[0]
-                ] += 1
-                self._train_episode_history.append(
-                    copy.deepcopy(tuple(self._agent_position))
-                )
-            else:
-                self._test_episode_history.append(
-                    copy.deepcopy(tuple(self._agent_position))
-                )
+        self._active = self._remain_active(reward=reward)
 
-            self._active = self._remain_active(reward=reward)
-
-            new_frame = self.get_state_representation()
-            state_buffer.append(new_frame)
-
-        new_state = np.expand_dims(np.vstack(state_buffer), 0)  # add batch dimension
+        new_state_ = self.get_state_representation()
+        new_state = np.expand_dims(new_state_, 0)  # add batch dimension
 
         self._episode_step_count += 1
 
@@ -766,6 +759,7 @@ class MultiRoom(base_environment.BaseEnvironment):
             self._rewards_received.append(tuple(self._agent_position))
         else:
             reward = 0.0
+
         return reward
 
     def _remain_active(self, reward: float) -> bool:
