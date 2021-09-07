@@ -1,6 +1,5 @@
-from typing import Union
-
 import abc
+from typing import Union
 
 
 class EpsilonSchedule(abc.ABC):
