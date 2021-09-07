@@ -70,7 +70,7 @@ atari:
 learner: 
     type: vanilla_dqn
 
-    learning_rate: 0.01
+    learning_rate: 0.0001
     gradient_momentum: 0.95 # unused
     squared_gradient_momentum: 0.95 # unused
     min_squared_gradient: 0.01 # unused
@@ -252,7 +252,7 @@ logging:
         # - [no_repeat_test_episode_length, 1]
         # - [cycle_count, 1]
     visualisations:
-        - [value_function, 50]
+        - [value_function, 10]
         # - [value_function_std, 50]
         # - [individual_value_functions, 50]
         # - visitation_count_heatmap
