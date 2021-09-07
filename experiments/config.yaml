@@ -68,12 +68,12 @@ atari:
 
 
 learner: 
-    type: ensemble_q_learning
+    type: vanilla_dqn
 
     learning_rate: 0.01
-    gradient_momentum: 0.95
-    squared_gradient_momentum: 0.95
-    min_squared_gradient: 0.01
+    gradient_momentum: 0.95 # unused
+    squared_gradient_momentum: 0.95 # unused
+    min_squared_gradient: 0.01 # unused
     discount_factor: 0.99 
     epsilon:
         schedule: constant
@@ -198,25 +198,9 @@ dqn:
 
     layer_specifications:
         - conv:
-            in_channels: 4
-            num_filters: 32 
-            kernel_size: 8
-            stride: 4
-            nonlinearity:  relu
-            bias_initialisation: 
-            weight_initialisation: 
-        - conv:
-            in_channels: 32
-            num_filters: 64 
-            kernel_size: 4
-            stride: 2
-            nonlinearity:  relu
-            bias_initialisation: 
-            weight_initialisation:
-        - conv:
-            in_channels: 64
-            num_filters: 64 
-            kernel_size: 3
+            in_channels: 1
+            num_filters: 8 
+            kernel_size: 2
             stride: 1
             nonlinearity:  relu
             bias_initialisation: 
@@ -224,7 +208,7 @@ dqn:
         - flatten:
             nonlinearity: identity
         - fc:
-            in_features: 3136
+            in_features: 1536
             out_features: 512
             nonlinearity: relu
             bias_initialisation: 
@@ -250,18 +234,18 @@ logging:
     arrays:
         - [value_function, 10]
         # - [individual_value_functions, 50]
-        - [value_function_std, 10]
-        - [policy_entropy, 10]
+        # - [value_function_std, 10]
+        # - [policy_entropy, 10]
     scalars:
         - [train_episode_reward, 1]
         - [train_episode_length, 1]
         # - [average_action_value, 50]
         # - [loss, 1]
         # - [epsilon, 1]
-        - [[train_episode_reward_ensemble_runner, 4], 1]
-        - [[train_episode_length_ensemble_runner, 4], 1]
-        - [ensemble_episode_reward_std, 1]
-        - [ensemble_episode_length_std, 1]
+        # - [[train_episode_reward_ensemble_runner, 4], 1]
+        # - [[train_episode_length_ensemble_runner, 4], 1]
+        # - [ensemble_episode_reward_std, 1]
+        # - [ensemble_episode_length_std, 1]
         - [mean_visitation_penalty, 1]
         - [mean_penalty_info, 1]
         # - [no_repeat_test_episode_reward, 1]
@@ -276,8 +260,8 @@ logging:
         - [individual_train_run, 100]
     post_visualisations:
         - value_function
-        - value_function_std
-        - policy_entropy
+        # - value_function_std
+        # - policy_entropy
 
 post_processing:
     smoothing: 40
