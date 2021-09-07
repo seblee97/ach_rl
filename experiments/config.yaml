@@ -29,8 +29,8 @@ multiroom_curriculum:
         - ["change_gaussian_reward_distributions", (1, 0), (0, 0.1)]
 
 multiroom:
-    ascii_map_path: five_room.txt
-    json_map_path: five_room.json
+    ascii_map_path: three_room.txt
+    json_map_path: three_room.json
     episode_timeout: 400 # infinity if not given
     plot_origin: lower
     
