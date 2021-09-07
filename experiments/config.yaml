@@ -41,15 +41,6 @@ multiroom:
         - gaussian:
             mean: 1
             variance: 0
-        - gaussian:
-            mean: 1
-            variance: 0
-        - gaussian:
-            mean: 1
-            variance: 0
-        - gaussian:
-            mean: 1
-            variance: 0
 
     representation: pixel # agent position for tabular or pixel for DL
 
