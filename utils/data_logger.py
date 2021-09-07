@@ -50,9 +50,11 @@ class DataLogger:
             list(self._logger_data.keys()) == self._df_columns
         ), "Incorrect dataframe columns for merging"
 
+        series_data = {k: pd.Series(v) for k, v in self._logger_data.items()}
+
         # only append header on first checkpoint/save.
         header = not os.path.exists(self._logfile_path)
-        pd.DataFrame(self._logger_data).to_csv(
+        pd.DataFrame(series_data).to_csv(
             self._logfile_path, mode="a", header=header, index=False
         )
 
