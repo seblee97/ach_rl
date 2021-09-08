@@ -683,7 +683,8 @@ class MultiRoom(base_environment.BaseEnvironment):
             transposed_env_skeleton = np.transpose(
                 grayscale_env_skeleton, axes=(2, 0, 1)
             )  # C x H x W
-            return transposed_env_skeleton
+            state = np.expand_dims(transposed_env_skeleton, 0)  # add batch dimension
+            return state
 
     def _move_agent(self, delta: np.ndarray) -> float:
         """Move agent. If provisional new position is a wall, no-op."""
@@ -738,8 +739,7 @@ class MultiRoom(base_environment.BaseEnvironment):
 
         self._active = self._remain_active(reward=reward)
 
-        new_state_ = self.get_state_representation()
-        new_state = np.expand_dims(new_state_, 0)  # add batch dimension
+        new_state = self.get_state_representation()
 
         self._episode_step_count += 1
 
@@ -798,12 +798,6 @@ class MultiRoom(base_environment.BaseEnvironment):
         else:
             self._test_episode_history = [copy.deepcopy(tuple(self._agent_position))]
 
-        initial_state_buffer = []
-        for _ in range(self._frame_stack):
-            initial_state_buffer.append(self.get_state_representation())
-
-        initial_state = np.expand_dims(
-            np.vstack(initial_state_buffer), 0
-        )  # add stack dimension
+        initial_state = self.get_state_representation()
 
         return initial_state
