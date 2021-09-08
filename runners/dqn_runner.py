@@ -175,21 +175,29 @@ class DQNRunner(base_runner.BaseRunner):
             (constants.Constants.QUIVER_VALUES_PDF, False, True),
             (constants.Constants.QUIVER_MAX_VALUES_PDF, True, True),
         ]
-        if self._visualisation_iteration(constants.Constants.VALUE_FUNCTION, episode):
+        if self._visualisation_iteration(
+            constants.Constants.VALUE_FUNCTION, episode
+        ) or self._array_log_iteration(constants.Constants.VALUE_FUNCTION, episode):
             # compute state action values for a tabular env
             state_action_values = {}
             for tuple_state in self._environment.state_space:
                 with torch.no_grad():
-                    np_state_representation = self._environment.get_state_representation(
+                    np_state_representation = (
+                        self._environment.get_state_representation(
                             tuple_state=tuple_state
                         )
-                    stacked_representation = np.repeat(np_state_representation, self._environment.frame_stack, 0)
+                    )
+                    # stacked_representation = np.repeat(
+                    #     np_state_representation, self._environment.frame_stack, 0
+                    # )
                     pixel_state = torch.from_numpy(
-                        np.expand_dims(stacked_representation, 0)
+                        np_state_representation
                     ).to(device=self._device, dtype=torch.float)
                     state_action_values[tuple_state] = (
                         self._learner.q_network(pixel_state).cpu().numpy().squeeze()
                     )
+
+        if self._visualisation_iteration(constants.Constants.VALUE_FUNCTION, episode):
             for visualisation_configuration in visualisation_configurations:
                 self._logger.info(
                     "Serial value function visualisation: "
@@ -233,6 +241,12 @@ class DQNRunner(base_runner.BaseRunner):
                     name=f"{constants.Constants.INDIVIDUAL_TEST_RUN}_{episode}",
                     data=self._environment.plot_episode_history(train=False),
                 )
+        if self._array_log_iteration(constants.Constants.VALUE_FUNCTION, episode):
+            self._write_array(
+                tag=constants.Constants.VALUE_FUNCTION,
+                episode=episode,
+                array=state_action_values,
+            )
 
     def _train_episode(self, episode: int) -> Tuple[float, int]:
         """Perform single training loop (per learner in ensemble).
