@@ -1,4 +1,5 @@
 import abc
+import copy
 import random
 from typing import Dict
 from typing import List
@@ -7,7 +8,6 @@ from typing import Tuple
 
 import constants
 import numpy as np
-import copy
 from learners import base_learner
 from utils import epsilon_schedules
 
