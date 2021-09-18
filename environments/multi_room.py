@@ -87,10 +87,12 @@ class MultiRoom(base_environment.BaseEnvironment):
 
         self._walls = list(zip(wall_indices[1], wall_indices[0]))
 
+        self._reward_specifications = reward_specifications
+
         # TODO: make more flexible
         self._rewards = self._get_reward_specification(
             reward_positions=reward_positions,
-            reward_specifications=reward_specifications,
+            reward_specifications=self._reward_specifications,
         )
         self._total_rewards = len(self._rewards)
 
