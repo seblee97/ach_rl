@@ -14,6 +14,7 @@ import numpy as np
 import torch
 from curricula import base_curriculum
 from curricula import minigrid_curriculum
+from curricula import multiroom_curriculum
 from environments import atari
 from environments import base_environment
 from environments import minigrid
@@ -186,13 +187,21 @@ class BaseRunner(abc.ABC):
                 constants.Constants.TRANSITION_EPISODES: config.transition_episodes,
                 constants.Constants.ENVIRONMENT_CHANGES: config.environment_changes,
             }
+        elif config.environment == constants.Constants.MULTIROOM:
+            curriculum_args = {
+                constants.Constants.TRANSITION_EPISODES: config.transition_episodes,
+                constants.Constants.ENVIRONMENT_CHANGES: config.environment_changes,  
+            }
         return curriculum_args
 
     @staticmethod
     def get_curriculum_wrapper(environment: str) -> base_curriculum.BaseCurriculum:
         """Get relevant wrapper for environment to add curriculum features."""
         if environment == constants.Constants.MINIGRID:
-            return minigrid_curriculum.MinigridCurriculum
+            wrapper = minigrid_curriculum.MinigridCurriculum
+        elif environment == constants.Constants.MULTIROOM:
+            wrapper = multiroom_curriculum.MultiroomCurriculum
+        return wrapper
 
     def _setup_data_logger(
         self, config: ach_config.AchConfig
