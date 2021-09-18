@@ -293,6 +293,7 @@ class Constants:
     AGENT_POSITION = "agent_position"
     REPRESENTATION = "representation"
     DISTRIBUTED_CLUSTER = "distributed_cluster"
+    CHANGE_REWARD_POSITIONS = "change_reward_positions"
 
     ATARI_ENVS = ["PongNoFrameskip-v4", "GravitarNoFrameskip-v4"]
 
