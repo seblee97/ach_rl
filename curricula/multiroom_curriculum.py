@@ -48,7 +48,7 @@ class MultiroomCurriculum(multi_room.MultiRoom, base_curriculum.BaseCurriculum):
         )
         base_curriculum.BaseCurriculum.__init__(
             self, transition_episodes=transition_episodes
-        )
+        )   
 
         self._environment_changes = iter(environment_changes)
         self._next_change = next(self._environment_changes)
@@ -75,6 +75,12 @@ class MultiroomCurriculum(multi_room.MultiRoom, base_curriculum.BaseCurriculum):
         self._starting_xy = tuple(new_starting_xy)
 
     def _change_reward_positions(self, new_positions: List[List[int]]):
+        # ensure new reward positions are accessible (i.e. not in wall or outside grid)
+        import pdb; pdb.set_trace()
+        for new_position in new_positions:
+            assert new_position not in self._walls, "new position can not be in wall."
+            assert new_position in self._positional_state_space, "new position must be in positional state space."
+
         self._rewards = self._get_reward_specification(
             reward_positions=new_positions,
             reward_specifications=self._reward_specifications,
