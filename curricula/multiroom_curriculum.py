@@ -76,7 +76,6 @@ class MultiroomCurriculum(multi_room.MultiRoom, base_curriculum.BaseCurriculum):
 
     def _change_reward_positions(self, new_positions: List[List[int]]):
         # ensure new reward positions are accessible (i.e. not in wall or outside grid)
-        import pdb; pdb.set_trace()
         for new_position in new_positions:
             assert new_position not in self._walls, "new position can not be in wall."
             assert new_position in self._positional_state_space, "new position must be in positional state space."
