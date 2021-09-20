@@ -294,6 +294,11 @@ class Constants:
     REPRESENTATION = "representation"
     DISTRIBUTED_CLUSTER = "distributed_cluster"
     CHANGE_REWARD_POSITIONS = "change_reward_positions"
+    REDUCING_VARIANCE_WINDOW = "reducing_variance_window"
+    STATE = "state"
+    MOVING_AVERAGE_WINDOW = "moving_average_window"
+    EXPECTED_MULTIPLICATIVE_FACTOR = "expected_multiplicative_factor"
+    UNEXPECTED_MULTIPLICATIVE_FACTOR = "unexpected_multiplicative_factor"
 
     ATARI_ENVS = ["PongNoFrameskip-v4", "GravitarNoFrameskip-v4"]
 
