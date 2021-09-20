@@ -37,6 +37,7 @@ from visitation_penalties import network_visitation_penalty
 from visitation_penalties import policy_entropy_penalty
 from visitation_penalties import potential_adaptive_uncertainty_penalty
 from visitation_penalties import potential_policy_entropy_penalty
+from visitation_penalties import reducing_variance_window_penalty
 from visitation_penalties import sigmoidal_decay_visitation_penalty
 from visitation_penalties import tabular_visitation_penalty
 
@@ -190,7 +191,7 @@ class BaseRunner(abc.ABC):
         elif config.environment == constants.Constants.MULTIROOM:
             curriculum_args = {
                 constants.Constants.TRANSITION_EPISODES: config.transition_episodes,
-                constants.Constants.ENVIRONMENT_CHANGES: config.environment_changes,  
+                constants.Constants.ENVIRONMENT_CHANGES: config.environment_changes,
             }
         return curriculum_args
 
@@ -287,6 +288,18 @@ class BaseRunner(abc.ABC):
                 potential_policy_entropy_penalty.PotentialPolicyEntropyPenalty(
                     gamma=config.discount_factor,
                     multiplicative_factor=config.multiplicative_factor,
+                )
+            )
+        elif (
+            config.visitation_penalty_type
+            == constants.Constants.REDUCING_VARIANCE_WINDOW
+        ):
+            penalty_computer = (
+                reducing_variance_window_penalty.ReducingVarianceWindowPenalty(
+                    expected_multiplicative_factor=config.expected_multiplicative_factor,
+                    unexpected_multiplicative_factor=config.unexpected_multiplicative_factor,
+                    action_function=config.action_function,
+                    moving_average_window=config.moving_average_window
                 )
             )
         else:
