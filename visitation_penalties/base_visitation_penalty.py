@@ -92,6 +92,7 @@ class BaseVisitationPenalty(abc.ABC):
         current_state_select_uncertainty = np.std(current_state_select, axis=0)
 
         return {
+            constants.Constants.STATE: state,
             constants.Constants.CURRENT_STATE_MAX_UNCERTAINTY: current_state_max_uncertainty,
             constants.Constants.CURRENT_STATE_MEAN_UNCERTAINTY: current_state_mean_uncertainty,
             constants.Constants.CURRENT_STATE_SELECT_UNCERTAINTY: current_state_select_uncertainty,
