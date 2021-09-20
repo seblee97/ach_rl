@@ -26,7 +26,7 @@ minigrid_curriculum:
 multiroom_curriculum:
     transition_episodes: [100]
     environment_changes:
-        - ["change_gaussian_reward_distributions", (1, 0), (0, 0.1)]
+        - ["change_reward_positions", [[16, 5], [31, 4]]]
 
 multiroom:
     ascii_map_path: three_room.txt
@@ -42,9 +42,9 @@ multiroom:
             mean: 1
             variance: 0
 
-    representation: pixel # agent position for tabular or pixel for DL
+    representation: agent_position # agent_position for tabular or pixel for DL
 
-    encoded_state_dimensions: [1,7,33] # for use with DL method
+    encoded_state_dimensions: [1,21,21] # for use with DL method
     frame_stack: 1 # for use with DL method
 
 atari:
@@ -68,9 +68,9 @@ atari:
 
 
 learner: 
-    type: vanilla_dqn
+    type: ensemble_q_learning
 
-    learning_rate: 0.0001
+    learning_rate: 0.01
     gradient_momentum: 0.95 # unused
     squared_gradient_momentum: 0.95 # unused
     min_squared_gradient: 0.01 # unused
@@ -101,8 +101,9 @@ learner:
     # hard_coded, adaptive_uncertainty, adaptive_arriving_uncertainty, 
     # deterministic_exponential_decay, deterministic_linear_decay, 
     # deterministic_sigmoidal_decay,
-    # policy_entropy_penalty or potential_based_adaptive_uncertainty
-    visitation_penalty_type: hard_coded
+    # policy_entropy_penalty, potential_based_adaptive_uncertainty
+    # or reducing_variance_window
+    visitation_penalty_type: reducing_variance_window
 
     # train_q_network, train_target_network, act; only relevant for DQN-based
     shaping_implementation: train_q_network
@@ -145,7 +146,13 @@ learner:
         multiplicative_factor: 0.5
 
     potential_based_policy_entropy_penalty:
-        multiplicative_factor: 0.5        
+        multiplicative_factor: 0.5   
+
+    reducing_variance_window:
+        expected_multiplicative_factor: 0.1
+        unexpected_multiplicative_factor: 0.1
+        action_function: mean
+        moving_average_window: 10
 
 sarsa_lambda:
     trace_lambda: 0.05
@@ -157,7 +164,7 @@ q_learning:
     target: greedy
 
 ensemble_q_learning:
-    num_learners: 4
+    num_learners: 8
     copy_learner_initialisation: False
     behaviour: epsilon_greedy
     targets: 
