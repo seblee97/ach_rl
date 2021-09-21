@@ -299,6 +299,10 @@ class Constants:
     MOVING_AVERAGE_WINDOW = "moving_average_window"
     EXPECTED_MULTIPLICATIVE_FACTOR = "expected_multiplicative_factor"
     UNEXPECTED_MULTIPLICATIVE_FACTOR = "unexpected_multiplicative_factor"
+    PENALTY_ON_ACTION_SELECTION_ONLY = "penalty_on_action_selection_only"
+    PRETRAINED_MODEL_PATH = "pretrained_model_path"
+    MODEL_CHECKPOINT_FREQUENCY = "model_checkpoint_frequency"
+    MODEL_CHECKPOINT = "model_checkpoint"
 
     ATARI_ENVS = ["PongNoFrameskip-v4", "GravitarNoFrameskip-v4"]
 
