@@ -303,6 +303,7 @@ class Constants:
     PRETRAINED_MODEL_PATH = "pretrained_model_path"
     MODEL_CHECKPOINT_FREQUENCY = "model_checkpoint_frequency"
     MODEL_CHECKPOINT = "model_checkpoint"
+    CHANGE_KEY_POSITIONS = "change_key_positions"
 
     ATARI_ENVS = ["PongNoFrameskip-v4", "GravitarNoFrameskip-v4"]
 
