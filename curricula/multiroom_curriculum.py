@@ -61,6 +61,9 @@ class MultiroomCurriculum(multi_room.MultiRoom, base_curriculum.BaseCurriculum):
         elif self._next_change[0] == constants.Constants.CHANGE_REWARD_POSITIONS:
             new_positions = [tuple(p) for p in self._next_change[1]]
             self._change_reward_positions(new_positions=new_positions)
+        elif self._next_change[0] == constants.Constants.CHANGE_KEY_POSITIONS:
+            new_positions = [tuple(p) for p in self._next_change[1]]
+            self._change_key_positions(new_positions=new_positions)
         else:
             raise ValueError(
                 f"Environment change key {self._next_change[0]} not recognised."
@@ -73,6 +76,13 @@ class MultiroomCurriculum(multi_room.MultiRoom, base_curriculum.BaseCurriculum):
     def _change_starting_position(self, new_starting_xy: List[int]):
         """Change the start position of the agent in each episode."""
         self._starting_xy = tuple(new_starting_xy)
+
+    def _change_key_positions(new_positions: List[List[int]]):
+        for new_position in new_positions:
+            assert new_position not in self._walls, "new position can not be in wall."
+            assert new_position in self._positional_state_space, "new position must be in positional state space."
+
+        self._key_positions = new_positions
 
     def _change_reward_positions(self, new_positions: List[List[int]]):
         # ensure new reward positions are accessible (i.e. not in wall or outside grid)
