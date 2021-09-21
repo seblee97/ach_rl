@@ -70,6 +70,8 @@ atari:
 learner: 
     type: ensemble_q_learning
 
+    pretrained_model_path: 
+
     learning_rate: 0.01
     gradient_momentum: 0.95 # unused
     squared_gradient_momentum: 0.95 # unused
@@ -236,6 +238,7 @@ training:
 logging:
     print_frequency: 1
     checkpoint_frequency: 500
+    model_checkpoint_frequency: 5
     animation_library: matplotlib_animation
     animation_file_format: gif
     arrays:
