@@ -13,8 +13,7 @@ class TabularEnsembleLearner(base_learner.BaseLearner):
 
     def __init__(
         self,
-        learner_ensemble_path: Optional[str] = None,
-        learner_ensemble: Optional[List[base_learner.BaseLearner]] = None,
+        learner_ensemble: List[base_learner.BaseLearner],
     ):
         """Class constructor.
 
@@ -22,19 +21,11 @@ class TabularEnsembleLearner(base_learner.BaseLearner):
             learner_ensemble_path: path to saved pretrained model
             learner_ensemble: list of learners forming ensemble.
         """
-        assert (
-            sum([learner_ensemble_path is not None, learner_ensemble is not None]) == 1
-        ), "either a learner ensemble or a path to a saved learner ensemble must be provided."
+        self._learner_ensemble = learner_ensemble
 
-        if learner_ensemble_path is not None:
-            self._learner_ensemble = self._load_model(model_path=learner_ensemble_path)
-        else:
-            self._learner_ensemble = learner_ensemble
-
-    def _load_model(self, model_path: str):
+    def load_model(self, model_path: str):
         with open(model_path, "rb") as file:
-            learner_ensemble = pickle.load(file)
-        return learner_ensemble
+            self._learner_ensemble = pickle.load(file)
 
     def checkpoint(self, checkpoint_path: str):
         with open(checkpoint_path, "wb") as file:
