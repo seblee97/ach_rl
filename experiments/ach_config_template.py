@@ -545,6 +545,10 @@ class AChConfigTemplate:
                 ],
             ),
             config_field.Field(
+                name=constants.Constants.PRETRAINED_MODEL_PATH,
+                types=[str, type(None)],
+            ),
+            config_field.Field(
                 name=constants.Constants.LEARNING_RATE,
                 types=[float],
                 requirements=[lambda x: x > 0],
@@ -947,6 +951,11 @@ class AChConfigTemplate:
                 name=constants.Constants.CHECKPOINT_FREQUENCY,
                 types=[int],
                 requirements=[lambda x: x > 0],
+            ),
+            config_field.Field(
+                name=constants.Constants.MODEL_CHECKPOINT_FREQUENCY,
+                types=[type(None), int],
+                requirements=[lambda x: x is None or x > 0],
             ),
             config_field.Field(
                 name=constants.Constants.ANIMATION_LIBRARY,
