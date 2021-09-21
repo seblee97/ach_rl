@@ -55,19 +55,20 @@ class MultiroomCurriculum(multi_room.MultiRoom, base_curriculum.BaseCurriculum):
 
     def _transition(self):
         """Transition environment to next phase."""
-        if self._next_change[0] == constants.Constants.CHANGE_STARTING_POSITION:
-            new_starting_xy = self._next_change[1]
-            self._change_starting_position(new_starting_xy=new_starting_xy)
-        elif self._next_change[0] == constants.Constants.CHANGE_REWARD_POSITIONS:
-            new_positions = [tuple(p) for p in self._next_change[1]]
-            self._change_reward_positions(new_positions=new_positions)
-        elif self._next_change[0] == constants.Constants.CHANGE_KEY_POSITIONS:
-            new_positions = [tuple(p) for p in self._next_change[1]]
-            self._change_key_positions(new_positions=new_positions)
-        else:
-            raise ValueError(
-                f"Environment change key {self._next_change[0]} not recognised."
-            )
+        for sub_change in self._next_change:
+            if sub_change[0] == constants.Constants.CHANGE_STARTING_POSITION:
+                new_starting_xy = sub_change[1]
+                self._change_starting_position(new_starting_xy=new_starting_xy)
+            elif sub_change[0] == constants.Constants.CHANGE_REWARD_POSITIONS:
+                new_positions = [tuple(p) for p in sub_change[1]]
+                self._change_reward_positions(new_positions=new_positions)
+            elif sub_change[0] == constants.Constants.CHANGE_KEY_POSITIONS:
+                new_positions = [tuple(p) for p in sub_change[1]]
+                self._change_key_positions(new_positions=new_positions)
+            else:
+                raise ValueError(
+                    f"Environment change key {self._next_change[0]} not recognised."
+                )
         try:
             self._next_change = next(self._environment_changes)
         except StopIteration:
@@ -77,7 +78,7 @@ class MultiroomCurriculum(multi_room.MultiRoom, base_curriculum.BaseCurriculum):
         """Change the start position of the agent in each episode."""
         self._starting_xy = tuple(new_starting_xy)
 
-    def _change_key_positions(new_positions: List[List[int]]):
+    def _change_key_positions(self, new_positions: List[List[int]]):
         for new_position in new_positions:
             assert new_position not in self._walls, "new position can not be in wall."
             assert new_position in self._positional_state_space, "new position must be in positional state space."
