@@ -1,5 +1,7 @@
+import pickle
 from typing import Any
 from typing import List
+from typing import Optional
 
 import numpy as np
 from learners import base_learner
@@ -8,13 +10,35 @@ from utils import custom_functions
 
 class TabularEnsembleLearner(base_learner.BaseLearner):
     """Learner consisting of ensemble."""
-    def __init__(self, learner_ensemble: List[base_learner.BaseLearner]):
+
+    def __init__(
+        self,
+        learner_ensemble_path: Optional[str] = None,
+        learner_ensemble: Optional[List[base_learner.BaseLearner]] = None,
+    ):
         """Class constructor.
 
         Args:
+            learner_ensemble_path: path to saved pretrained model
             learner_ensemble: list of learners forming ensemble.
         """
-        self._learner_ensemble = learner_ensemble
+        assert (
+            sum([learner_ensemble_path is not None, learner_ensemble is not None]) == 1
+        ), "either a learner ensemble or a path to a saved learner ensemble must be provided."
+
+        if learner_ensemble_path is not None:
+            self._learner_ensemble = self._load_model(model_path=learner_ensemble_path)
+        else:
+            self._learner_ensemble = learner_ensemble
+
+    def _load_model(self, model_path: str):
+        with open(model_path, "rb") as file:
+            learner_ensemble = pickle.load(file)
+        return learner_ensemble
+
+    def checkpoint(self, checkpoint_path: str):
+        with open(checkpoint_path, "wb") as file:
+            pickle.dump(self._learner_ensemble, file)
 
     @property
     def state_visitation_counts(self):
