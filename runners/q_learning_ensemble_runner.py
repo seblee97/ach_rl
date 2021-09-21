@@ -48,31 +48,28 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
 
     def _setup_learner(self, config: ach_config.AchConfig):  # TODO: similar to envs
         """Initialise learner specified in configuration."""
+        initialisation_strategy = self._get_initialisation_strategy(config)
+        if config.copy_learner_initialisation:
+            single_learner = self._get_individual_q_learner(
+                config=config, initialisation_strategy=initialisation_strategy
+            )
+            learners = [
+                copy.deepcopy(single_learner) for _ in range(self._num_learners)
+            ]
+        else:
+            learners = [
+                self._get_individual_q_learner(
+                    config=config,
+                    initialisation_strategy=initialisation_strategy
+                )
+                for _ in range(self._num_learners)
+            ]
+        learner = tabular_ensemble_learner.TabularEnsembleLearner(
+            learner_ensemble=learners
+        )
 
         if config.pretrained_model_path is not None:
-            learner = tabular_ensemble_learner.TabularEnsembleLearner(
-            learner_ensemble_path=config.pretrained_model_path
-        )
-        else:
-            initialisation_strategy = self._get_initialisation_strategy(config)
-            if config.copy_learner_initialisation:
-                single_learner = self._get_individual_q_learner(
-                    config=config, initialisation_strategy=initialisation_strategy
-                )
-                learners = [
-                    copy.deepcopy(single_learner) for _ in range(self._num_learners)
-                ]
-            else:
-                learners = [
-                    self._get_individual_q_learner(
-                        config=config,
-                        initialisation_strategy=initialisation_strategy
-                    )
-                    for _ in range(self._num_learners)
-                ]
-            learner = tabular_ensemble_learner.TabularEnsembleLearner(
-                learner_ensemble=learners
-            )
+            learner.load_model(config.pretrained_model_path)
 
         return learner
 
