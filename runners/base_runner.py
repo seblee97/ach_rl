@@ -62,6 +62,7 @@ class BaseRunner(abc.ABC):
         self._apply_curriculum = config.apply_curriculum
         self._print_frequency = config.print_frequency or np.inf
         self._checkpoint_frequency = config.checkpoint_frequency
+        self._model_checkpoint_frequency = config.model_checkpoint_frequency
         self._test_frequency = config.test_frequency
         self._test_types = config.testing
         self._num_episodes = config.num_episodes
@@ -294,13 +295,11 @@ class BaseRunner(abc.ABC):
             config.visitation_penalty_type
             == constants.Constants.REDUCING_VARIANCE_WINDOW
         ):
-            penalty_computer = (
-                reducing_variance_window_penalty.ReducingVarianceWindowPenalty(
-                    expected_multiplicative_factor=config.expected_multiplicative_factor,
-                    unexpected_multiplicative_factor=config.unexpected_multiplicative_factor,
-                    action_function=config.action_function,
-                    moving_average_window=config.moving_average_window
-                )
+            penalty_computer = reducing_variance_window_penalty.ReducingVarianceWindowPenalty(
+                expected_multiplicative_factor=config.expected_multiplicative_factor,
+                unexpected_multiplicative_factor=config.unexpected_multiplicative_factor,
+                action_function=config.action_function,
+                moving_average_window=config.moving_average_window,
             )
         else:
             raise ValueError(
@@ -425,6 +424,14 @@ class BaseRunner(abc.ABC):
 
             if i % self._checkpoint_frequency == 0 and i != 0:
                 self._data_logger.checkpoint()
+            if self._model_checkpoint_frequency is not None:
+                if i % self._model_checkpoint_frequency == 0 and i != 0:
+                    self._learner.checkpoint(
+                        checkpoint_path=os.path.join(
+                            self._checkpoint_path,
+                            f"{constants.Constants.MODEL_CHECKPOINT}_{i}",
+                        )
+                    )
 
             self._pre_episode_log(i)
             self._test_episode(episode=i)
