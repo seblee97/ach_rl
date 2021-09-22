@@ -442,6 +442,32 @@ class AChConfigTemplate:
         ],
     )
 
+    _reducing_entropy_window_penalty_template = config_template.Template(
+        fields=[
+            config_field.Field(
+                name=constants.Constants.EXPECTED_MULTIPLICATIVE_FACTOR,
+                types=[float, int],
+            ),
+            config_field.Field(
+                name=constants.Constants.UNEXPECTED_MULTIPLICATIVE_FACTOR,
+                types=[float, int],
+            ),
+            config_field.Field(
+                name=constants.Constants.MOVING_AVERAGE_WINDOW,
+                types=[int],
+                requirements=[lambda x: x > 0],
+            ),
+        ],
+        level=[
+            constants.Constants.LEARNER,
+            constants.Constants.REDUCING_ENTROPY_WINDOW,
+        ],
+        dependent_variables=[constants.Constants.VISITATION_PENALTY_TYPE],
+        dependent_variables_required_values=[
+            [constants.Constants.REDUCING_ENTROPY_WINDOW]
+        ],
+    )
+
     _constant_epsilon_template = config_template.Template(
         fields=[
             config_field.Field(
@@ -608,6 +634,7 @@ class AChConfigTemplate:
                         constants.Constants.POLICY_ENTROPY_PENALTY,
                         constants.Constants.POTENTIAL_BASED_POLICY_ENTROPY_PENALTY,
                         constants.Constants.REDUCING_VARIANCE_WINDOW,
+                        constants.Constants.REDUCING_ENTROPY_WINDOW
                     ]
                 ],
             ),
@@ -639,6 +666,7 @@ class AChConfigTemplate:
             _policy_entropy_penalty_template,
             _potential_based_policy_entropy_penalty_template,
             _reducing_variance_window_penalty_template,
+            _reducing_entropy_window_penalty_template
         ],
     )
 
