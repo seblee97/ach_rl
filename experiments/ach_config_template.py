@@ -468,6 +468,43 @@ class AChConfigTemplate:
         ],
     )
 
+    _signed_uncertainty_window_penalty_template = config_template.Template(
+        fields=[
+            config_field.Field(
+                name=constants.Constants.POSITIVE_MULITPLICATIVE_FACTOR,
+                types=[float, int],
+            ),
+            config_field.Field(
+                name=constants.Constants.NEGATIVE_MULITPLICATIVE_FACTOR,
+                types=[float, int],
+            ),
+            config_field.Field(
+                name=constants.Constants.ACTION_FUNCTION,
+                types=[str],
+                requirements=[
+                    lambda x: x
+                    in [
+                        constants.Constants.MEAN,
+                        constants.Constants.MAX,
+                    ]
+                ],
+            ),
+            config_field.Field(
+                name=constants.Constants.MOVING_AVERAGE_WINDOW,
+                types=[int],
+                requirements=[lambda x: x > 0],
+            ),
+        ],
+        level=[
+            constants.Constants.LEARNER,
+            constants.Constants.SIGNED_UNCERTAINTY_WINDOW,
+        ],
+        dependent_variables=[constants.Constants.VISITATION_PENALTY_TYPE],
+        dependent_variables_required_values=[
+            [constants.Constants.SIGNED_UNCERTAINTY_WINDOW_PENALTY]
+        ],
+    )
+
     _constant_epsilon_template = config_template.Template(
         fields=[
             config_field.Field(
@@ -634,9 +671,15 @@ class AChConfigTemplate:
                         constants.Constants.POLICY_ENTROPY_PENALTY,
                         constants.Constants.POTENTIAL_BASED_POLICY_ENTROPY_PENALTY,
                         constants.Constants.REDUCING_VARIANCE_WINDOW,
-                        constants.Constants.REDUCING_ENTROPY_WINDOW
+                        constants.Constants.REDUCING_ENTROPY_WINDOW,
+                        constants.Constants.SIGNED_UNCERTAINTY_WINDOW_PENALTY
                     ]
                 ],
+            ),
+            config_field.Field(
+                name=constants.Constants.PENALTY_UPDATE_PERIOD,
+                types=[int],
+                requirements=[lambda x: x > 0]
             ),
             config_field.Field(
                 name=constants.Constants.SHAPING_IMPLEMENTATION,
@@ -666,7 +709,8 @@ class AChConfigTemplate:
             _policy_entropy_penalty_template,
             _potential_based_policy_entropy_penalty_template,
             _reducing_variance_window_penalty_template,
-            _reducing_entropy_window_penalty_template
+            _reducing_entropy_window_penalty_template,
+            _signed_uncertainty_window_penalty_template
         ],
     )
 
