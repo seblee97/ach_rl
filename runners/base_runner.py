@@ -40,6 +40,7 @@ from visitation_penalties import potential_policy_entropy_penalty
 from visitation_penalties import reducing_entropy_window_penalty
 from visitation_penalties import reducing_variance_window_penalty
 from visitation_penalties import sigmoidal_decay_visitation_penalty
+from visitation_penalties import signed_uncertainty_window_penalty
 from visitation_penalties import tabular_visitation_penalty
 
 
@@ -309,6 +310,13 @@ class BaseRunner(abc.ABC):
             penalty_computer = reducing_entropy_window_penalty.ReducingEntropyWindowPenalty(
                 expected_multiplicative_factor=config.expected_multiplicative_factor,
                 unexpected_multiplicative_factor=config.unexpected_multiplicative_factor,
+                moving_average_window=config.moving_average_window,
+            )
+        elif config.visitation_penalty_type == constants.Constants.SIGNED_UNCERTAINTY_WINDOW_PENALTY:
+            penalty_computer = signed_uncertainty_window_penalty.SignedUncertaintyWindowPenalty(
+                positive_multiplicative_factor=config.positive_multiplicative_factor,
+                negative_multiplicative_factor=config.negative_multiplicative_factor,
+                action_function=config.action_function,
                 moving_average_window=config.moving_average_window,
             )
         else:
