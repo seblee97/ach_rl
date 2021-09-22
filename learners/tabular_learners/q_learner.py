@@ -1,11 +1,12 @@
-from typing import List
-from typing import Tuple
+import copy
 from typing import Dict
+from typing import List
+from typing import Optional
+from typing import Tuple
+from typing import Union
 
 from learners.tabular_learners import tabular_learner
 from utils import epsilon_schedules
-
-import copy
 
 
 class TabularQLearner(tabular_learner.TabularLearner):
@@ -22,6 +23,7 @@ class TabularQLearner(tabular_learner.TabularLearner):
         target: str,
         epsilon: epsilon_schedules.EpsilonSchedule,
         split_value_function: bool,
+        penalty_on_action_selection_only: bool,
     ):
         """Class constructor.
 
@@ -44,7 +46,8 @@ class TabularQLearner(tabular_learner.TabularLearner):
             initialisation_strategy=initialisation_strategy,
             behaviour=behaviour,
             target=target,
-            split_value_function=split_value_function
+            split_value_function=split_value_function,
+            penalty_on_action_selection_only=penalty_on_action_selection_only,
         )
         self._epsilon = epsilon
 
@@ -108,22 +111,7 @@ class TabularQLearner(tabular_learner.TabularLearner):
     def _step(self, state_id, action, reward, visitation_penalty, discount, new_state):   
         initial_state_action_value = self._state_action_values[state_id][action]
 
-        updated_state_action_value = (
-            initial_state_action_value
-            + self._learning_rate
-            * (
-                reward
-                + visitation_penalty
-                + discount * self._max_state_action_value(state=new_state)
-                - initial_state_action_value
-            )
-        )
-        self._state_action_values[state_id][action] = updated_state_action_value
-
-    def _split_step(self, state_id, action, reward, visitation_penalty, discount, new_state):
-        initial_state_action_value = copy.deepcopy(self._state_action_values[state_id][action])
-
-        updated_state_action_value = (
+        unshaped_updated_state_action_value = (
             initial_state_action_value
             + self._learning_rate
             * (
@@ -133,18 +121,63 @@ class TabularQLearner(tabular_learner.TabularLearner):
             )
         )
 
+        shaped_updated_state_action_value = (
+            unshaped_updated_state_action_value
+            + self._learning_rate * visitation_penalty
+        )
+
+        if self._penalty_on_action_selection_only:
+            self._state_action_values[state_id][
+                action
+            ] = unshaped_updated_state_action_value
+            self._action_selection_state_action_values = copy.deepcopy(
+                self._state_action_values
+            )
+            self._action_selection_state_action_values[state_id][
+                action
+            ] = shaped_updated_state_action_value
+        else:
+            self._state_action_values[state_id][
+                action
+            ] = shaped_updated_state_action_value
+
+    def _split_step(
+        self, state_id, action, reward, visitation_penalty, learning_rate_scaling, discount, new_state
+    ):
+        initial_state_action_value = copy.deepcopy(
+            self._state_action_values[state_id][action]
+        )
+
+        updated_state_action_value = (
+            initial_state_action_value
+            + self._learning_rate
+            * (
+                reward
+                + discount * self._max_state_action_value(state=new_state)
+                - initial_state_action_value
+            )
+        )
+
         self._state_action_values[state_id][action] = updated_state_action_value
 
-        initial_ancillary_state_action_value = copy.deepcopy(self._ancillary_state_action_values[state_id][action])
+        initial_ancillary_state_action_value = copy.deepcopy(
+            self._ancillary_state_action_values[state_id][action]
+        )
 
         updated_ancillary_state_action_value = (
             initial_ancillary_state_action_value
             + self._learning_rate
             * (
                 visitation_penalty
-                + discount * self._max_state_action_value(state=new_state, other_state_action_values=self._ancillary_state_action_values)
+                + discount
+                * self._max_state_action_value(
+                    state=new_state,
+                    other_state_action_values=self._ancillary_state_action_values,
+                )
                 - initial_ancillary_state_action_value
             )
         )
 
-        self._ancillary_state_action_values[state_id][action] = updated_ancillary_state_action_value
+        self._ancillary_state_action_values[state_id][
+            action
+        ] = updated_ancillary_state_action_value
