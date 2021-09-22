@@ -105,7 +105,8 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
             epsilon=self._epsilon_function,
             learning_rate=config.learning_rate,
             gamma=config.discount_factor,
-            split_value_function=config.split_value_function
+            split_value_function=config.split_value_function,
+            penalty_on_action_selection_only=config.penalty_on_action_selection_only
         )
 
     def _pre_episode_log(self, episode: int):
