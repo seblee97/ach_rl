@@ -655,6 +655,10 @@ class AChConfigTemplate:
                 types=[bool],
             ),
             config_field.Field(
+                name=constants.Constants.PENALTY_ON_ACTION_SELECTION_ONLY,
+                types=[bool],
+            ),
+            config_field.Field(
                 name=constants.Constants.VISITATION_PENALTY_TYPE,
                 types=[str, type(None)],
                 requirements=[
