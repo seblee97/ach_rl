@@ -304,6 +304,7 @@ class Constants:
     MODEL_CHECKPOINT_FREQUENCY = "model_checkpoint_frequency"
     MODEL_CHECKPOINT = "model_checkpoint"
     CHANGE_KEY_POSITIONS = "change_key_positions"
+    REDUCING_ENTROPY_WINDOW = "reducing_entropy_window"
 
     ATARI_ENVS = ["PongNoFrameskip-v4", "GravitarNoFrameskip-v4"]
 
