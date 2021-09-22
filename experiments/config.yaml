@@ -70,7 +70,7 @@ atari:
 learner: 
     type: ensemble_q_learning
 
-    pretrained_model_path: 
+    pretrained_model_path:
 
     learning_rate: 0.01
     gradient_momentum: 0.95 # unused
@@ -104,8 +104,8 @@ learner:
     # deterministic_exponential_decay, deterministic_linear_decay, 
     # deterministic_sigmoidal_decay,
     # policy_entropy_penalty, potential_based_adaptive_uncertainty
-    # or reducing_variance_window
-    visitation_penalty_type: reducing_variance_window
+    # reducing_variance_window, or reducing_entropy_window
+    visitation_penalty_type: reducing_entropy_window
 
     # train_q_network, train_target_network, act; only relevant for DQN-based
     shaping_implementation: train_q_network
@@ -151,9 +151,14 @@ learner:
         multiplicative_factor: 0.5   
 
     reducing_variance_window:
-        expected_multiplicative_factor: 0.1
+        expected_multiplicative_factor: -0.1
         unexpected_multiplicative_factor: 0.1
         action_function: mean
+        moving_average_window: 10
+
+    reducing_entropy_window:
+        expected_multiplicative_factor: -0.1
+        unexpected_multiplicative_factor: 0.1
         moving_average_window: 10
 
 sarsa_lambda:
