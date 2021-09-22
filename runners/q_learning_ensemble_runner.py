@@ -46,6 +46,8 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
             num_cores = multiprocessing.cpu_count()
             self._pool = multiprocessing.Pool(processes=num_cores)
 
+        self._penalty_update_period = config.penalty_update_period
+
     def _setup_learner(self, config: ach_config.AchConfig):  # TODO: similar to envs
         """Initialise learner specified in configuration."""
         initialisation_strategy = self._get_initialisation_strategy(config)
@@ -266,9 +268,11 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
             episode_reward: mean scalar reward accumulated over ensemble episodes.
             num_steps: mean number of steps taken for ensemble episodes.
         """
-        self._visitation_penalty.state_action_values = (
-            self._learner.individual_learner_state_action_values
-        )
+        if episode % self._penalty_update_period == 0:
+            self._logger.info("Updating global penalty information...")
+            self._visitation_penalty.state_action_values = (
+                self._learner.individual_learner_state_action_values
+            )
 
         if self._parallelise_ensemble:
             train_fn = self._parallelised_train_episode
