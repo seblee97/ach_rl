@@ -305,6 +305,11 @@ class Constants:
     MODEL_CHECKPOINT = "model_checkpoint"
     CHANGE_KEY_POSITIONS = "change_key_positions"
     REDUCING_ENTROPY_WINDOW = "reducing_entropy_window"
+    POSITIVE_MULITPLICATIVE_FACTOR = "positive_multiplicative_factor"
+    NEGATIVE_MULITPLICATIVE_FACTOR = "negative_multiplicative_factor"
+    SIGNED_UNCERTAINTY_WINDOW_PENALTY = "signed_uncertainty_window_penalty"
+    SIGNED_UNCERTAINTY_WINDOW = "signed_uncertainty_window"
+    PENALTY_UPDATE_PERIOD = "penalty_update_period"
 
     ATARI_ENVS = ["PongNoFrameskip-v4", "GravitarNoFrameskip-v4"]
 
