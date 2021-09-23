@@ -77,6 +77,14 @@ learner:
     squared_gradient_momentum: 0.95 # unused
     min_squared_gradient: 0.01 # unused
     discount_factor: 0.99 
+
+    lr_scaler:
+        type: expected_uncertainty
+
+        expected_uncertainty:
+            lr_scaler_update_period: 1
+            action_function: max
+
     epsilon:
         schedule: constant
 
