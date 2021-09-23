@@ -20,6 +20,8 @@ from environments import base_environment
 from environments import minigrid
 from environments import multi_room
 from environments import wrapper_atari
+from epsilon_computers import expected_uncertainty_epsilon_computer
+from epsilon_computers import unexpected_uncertainty_epsilon_computer
 from experiments import ach_config
 from utils import data_logger
 from utils import decorators
@@ -49,10 +51,8 @@ class BaseRunner(abc.ABC):
 
     def __init__(self, config: ach_config.AchConfig) -> None:
         self._environment = self._setup_environment(config=config)
-        if config.visitation_penalty_type is None:
-            self._visitation_penalty = None
-        else:
-            self._visitation_penalty = self._setup_visitation_penalty(config=config)
+        self._visitation_penalty = self._setup_visitation_penalty(config=config)
+        self._epsilon_computer = self._setup_epsilon_computer(config=config)
         self._epsilon_function = self._setup_epsilon_function(config=config)
         self._learner = self._setup_learner(config=config)
         self._logger = experiment_logger.get_logger(
@@ -225,6 +225,10 @@ class BaseRunner(abc.ABC):
         self, config: ach_config.AchConfig
     ) -> base_visitation_penalty.BaseVisitationPenalty:
         """Initialise object to act as visitation penalty."""
+
+        if config.visitation_penalty_type is None:
+            return None
+
         if config.visitation_penalty_type == constants.Constants.HARD_CODED:
             penalty_computer = hard_coded_visitation_penalty.HardCodedPenalty(
                 hard_coded_penalties=config.vp_schedule
@@ -312,7 +316,10 @@ class BaseRunner(abc.ABC):
                 unexpected_multiplicative_factor=config.unexpected_multiplicative_factor,
                 moving_average_window=config.moving_average_window,
             )
-        elif config.visitation_penalty_type == constants.Constants.SIGNED_UNCERTAINTY_WINDOW_PENALTY:
+        elif (
+            config.visitation_penalty_type
+            == constants.Constants.SIGNED_UNCERTAINTY_WINDOW_PENALTY
+        ):
             penalty_computer = signed_uncertainty_window_penalty.SignedUncertaintyWindowPenalty(
                 positive_multiplicative_factor=config.positive_multiplicative_factor,
                 negative_multiplicative_factor=config.negative_multiplicative_factor,
@@ -356,6 +363,25 @@ class BaseRunner(abc.ABC):
 
         return visitation_penalty
 
+    def _setup_epsilon_computer(self, config: ach_config.AchConfig):
+        """Setup epsilon computer, for anything adaptive e.g. Doya"""
+        if config.schedule == constants.Constants.EXPECTED_UNCERTAINTY:
+            epsilon_computer = (
+                uncertainty_epsilon_computer.ExpectedUncertaintyEpsilonComputer(
+                    action_function=config.epsilon_action_function,
+                    minimum_value=config.minimum_value
+                )
+            )
+        elif config.schedule == constants.Constants.UNEXPECTED_UNCERTAINTY:
+            epsilon_computer = unexpected_uncertainty_epsilon_computer.UnexpectedUncertaintyEpsilonComputer(
+                action_function=config.epsilon_action_function,
+                moving_average_window=config.epsilon_moving_average_window,
+                minimum_value=config.minimum_value
+            )
+        else:
+            epsilon_computer = None
+        return epsilon_computer
+
     def _setup_epsilon_function(self, config: ach_config.AchConfig):
         """Setup epsilon function."""
         if config.schedule == constants.Constants.CONSTANT:
@@ -366,6 +392,10 @@ class BaseRunner(abc.ABC):
                 final_value=config.final_value,
                 anneal_duration=config.anneal_duration,
             )
+        else:
+            # placeholder epsilon function, computer will be used.
+            # NaN string used to ensure error is thrown if it is used.
+            epsilon_function = epsilon_schedules.ConstantEpsilon(value="NaN")
         return epsilon_function
 
     @abc.abstractmethod
