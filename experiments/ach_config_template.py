@@ -551,6 +551,76 @@ class AChConfigTemplate:
         ],
     )
 
+    _expected_uncertainty_epsilon_template = config_template.Template(
+        fields=[
+            config_field.Field(
+                name=constants.Constants.EPSILON_UPDATE_PERIOD,
+                types=[int],
+                requirements=[lambda x: x > 0],
+            ),
+            config_field.Field(
+                name=constants.Constants.ACTION_FUNCTION,
+                types=[str],
+                requirements=[
+                    lambda x: x in [constants.Constants.MAX, constants.CONSTANTS.MEAN]
+                ],
+                key=constants.Constants.EPSILON_ACTION_FUNCTION,
+            ),
+            config_field.Field(
+                name=constants.Constants.MINIMUM_VALUE,
+                types=[int, float],
+                requirements=[lambda x: x >= 0 and x <= 1]
+            ),
+        ],
+        level=[
+            constants.Constants.LEARNER,
+            constants.Constants.EPSILON,
+            constants.Constants.EXPECTED_UNCERTAINTY,
+        ],
+        dependent_variables=[constants.Constants.SCHEDULE],
+        dependent_variables_required_values=[
+            [constants.Constants.EXPECTED_UNCERTAINTY],
+        ],
+    )
+
+    _unexpected_uncertainty_epsilon_template = config_template.Template(
+        fields=[
+            config_field.Field(
+                name=constants.Constants.EPSILON_UPDATE_PERIOD,
+                types=[int],
+                requirements=[lambda x: x > 0],
+            ),
+            config_field.Field(
+                name=constants.Constants.ACTION_FUNCTION,
+                types=[str],
+                requirements=[
+                    lambda x: x in [constants.Constants.MAX, constants.Constants.MEAN]
+                ],
+                key=constants.Constants.EPSILON_ACTION_FUNCTION,
+            ),
+            config_field.Field(
+                name=constants.Constants.MOVING_AVERAGE_WINDOW,
+                types=[int],
+                requirements=[lambda x: x > 0],
+                key=constants.Constants.EPSILON_MOVING_AVERAGE_WINDOW
+            ),
+            config_field.Field(
+                name=constants.Constants.MINIMUM_VALUE,
+                types=[int, float],
+                requirements=[lambda x: x >= 0 and x <= 1]
+            ),
+        ],
+        level=[
+            constants.Constants.LEARNER,
+            constants.Constants.EPSILON,
+            constants.Constants.UNEXPECTED_UNCERTAINTY,
+        ],
+        dependent_variables=[constants.Constants.SCHEDULE],
+        dependent_variables_required_values=[
+            [constants.Constants.UNEXPECTED_UNCERTAINTY],
+        ],
+    )
+
     _epsilon_template = config_template.Template(
         fields=[
             config_field.Field(
@@ -558,12 +628,21 @@ class AChConfigTemplate:
                 types=[str],
                 requirements=[
                     lambda x: x
-                    in [constants.Constants.CONSTANT, constants.Constants.LINEAR_DECAY]
+                    in [
+                        constants.Constants.CONSTANT,
+                        constants.Constants.LINEAR_DECAY,
+                        constants.Constants.UNEXPECTED_UNCERTAINTY,
+                    ]
                 ],
             ),
         ],
         level=[constants.Constants.LEARNER, constants.Constants.EPSILON],
-        nested_templates=[_constant_epsilon_template, _linear_decay_epsilon_template],
+        nested_templates=[
+            _constant_epsilon_template,
+            _linear_decay_epsilon_template,
+            _expected_uncertainty_epsilon_template,
+            _unexpected_uncertainty_epsilon_template,
+        ],
     )
 
     _random_uniform_template = config_template.Template(
@@ -672,14 +751,14 @@ class AChConfigTemplate:
                         constants.Constants.POTENTIAL_BASED_POLICY_ENTROPY_PENALTY,
                         constants.Constants.REDUCING_VARIANCE_WINDOW,
                         constants.Constants.REDUCING_ENTROPY_WINDOW,
-                        constants.Constants.SIGNED_UNCERTAINTY_WINDOW_PENALTY
+                        constants.Constants.SIGNED_UNCERTAINTY_WINDOW_PENALTY,
                     ]
                 ],
             ),
             config_field.Field(
                 name=constants.Constants.PENALTY_UPDATE_PERIOD,
                 types=[int],
-                requirements=[lambda x: x > 0]
+                requirements=[lambda x: x > 0],
             ),
             config_field.Field(
                 name=constants.Constants.SHAPING_IMPLEMENTATION,
@@ -710,7 +789,7 @@ class AChConfigTemplate:
             _potential_based_policy_entropy_penalty_template,
             _reducing_variance_window_penalty_template,
             _reducing_entropy_window_penalty_template,
-            _signed_uncertainty_window_penalty_template
+            _signed_uncertainty_window_penalty_template,
         ],
     )
 
