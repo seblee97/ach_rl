@@ -505,6 +505,53 @@ class AChConfigTemplate:
         ],
     )
 
+    _expected_uncertainty_lr_scaler_template = config_template.Template(
+        fields=[
+            config_field.Field(
+                name=constants.Constants.LR_SCALER_UPDATE_PERIOD,
+                types=[int],
+                requirements=[lambda x: x > 0],
+            ),
+            config_field.Field(
+                name=constants.Constants.ACTION_FUNCTION,
+                types=[str],
+                requirements=[
+                    lambda x: x in [constants.Constants.MAX, constants.Constants.MEAN]
+                ],
+                key=constants.Constants.LR_SCALER_ACTION_FUNCTION,
+            ),
+        ],
+        level=[
+            constants.Constants.LEARNER,
+            constants.Constants.LR_SCALER,
+            constants.Constants.EXPECTED_UNCERTAINTY,
+        ],
+        dependent_variables=[constants.Constants.LR_SCALER_TYPE],
+        dependent_variables_required_values=[
+            [constants.Constants.EXPECTED_UNCERTAINTY],
+        ],
+    )
+
+    _lr_scaler_template = config_template.Template(
+        fields=[
+            config_field.Field(
+                name=constants.Constants.TYPE,
+                types=[str, type(None)],
+                requirements=[
+                    lambda x: x is None or x
+                    in [
+                        constants.Constants.EXPECTED_UNCERTAINTY,
+                    ]
+                ],
+                key=constants.Constants.LR_SCALER_TYPE
+            ),
+        ],
+        level=[constants.Constants.LEARNER, constants.Constants.LR_SCALER],
+        nested_templates=[
+            _expected_uncertainty_lr_scaler_template,
+        ],
+    )
+
     _constant_epsilon_template = config_template.Template(
         fields=[
             config_field.Field(
@@ -776,6 +823,7 @@ class AChConfigTemplate:
         level=[constants.Constants.LEARNER],
         nested_templates=[
             _epsilon_template,
+            _lr_scaler_template,
             _random_uniform_template,
             _random_normal_template,
             _hard_coded_vp_template,
