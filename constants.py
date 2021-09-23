@@ -310,6 +310,14 @@ class Constants:
     SIGNED_UNCERTAINTY_WINDOW_PENALTY = "signed_uncertainty_window_penalty"
     SIGNED_UNCERTAINTY_WINDOW = "signed_uncertainty_window"
     PENALTY_UPDATE_PERIOD = "penalty_update_period"
+    EPSILON_UPDATE_PERIOD = "epsilon_update_period"
+    UNEXPECTED_UNCERTAINTY = "unexpected_uncertainty"
+    EXPECTED_UNCERTAINTY = "expected_uncertainty"
+    EPSILON_ACTION_FUNCTION = "epsilon_action_function"
+    EPSILON_MOVING_AVERAGE_WINDOW = "epsilon_moving_average_window"
+    NORMALISED_POLICY_ENTROPY = "normalised_policy_entropy"
+    MINIMUM_VALUE = "minimum_value"
+    MEAN_EPSILON = "mean_epsilon"
 
     ATARI_ENVS = ["PongNoFrameskip-v4", "GravitarNoFrameskip-v4"]
 
