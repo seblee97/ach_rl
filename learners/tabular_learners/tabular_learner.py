@@ -25,7 +25,7 @@ class TabularLearner(base_learner.BaseLearner):
         initialisation_strategy: Dict,
         behaviour: str,
         target: str,
-        split_value_function: bool
+        split_value_function: bool,
     ):
         """Class constructor.
 
@@ -52,9 +52,8 @@ class TabularLearner(base_learner.BaseLearner):
 
         if self._split_value_function:
             self._ancillary_state_action_values = self._initialise_values(
-            initialisation_strategy=initialisation_strategy
-        )
-            # copy.deepcopy(self._state_action_values)
+                initialisation_strategy=initialisation_strategy
+            )
 
         self._state_visitation_counts = {s: 0 for s in self._state_space}
 
@@ -94,7 +93,8 @@ class TabularLearner(base_learner.BaseLearner):
         }
         if self._split_value_function:
             values = {
-                self._id_state_mapping[i]: action_values + values[self._id_state_mapping[i]]
+                self._id_state_mapping[i]: action_values
+                + values[self._id_state_mapping[i]]
                 for i, action_values in enumerate(self._ancillary_state_action_values)
             }
         return values
@@ -116,13 +116,17 @@ class TabularLearner(base_learner.BaseLearner):
         elif initialisation_strategy_name == constants.Constants.RANDOM_UNIFORM:
             return np.random.rand(len(self._state_space), len(self._action_space))
         elif initialisation_strategy_name == constants.Constants.RANDOM_NORMAL:
-            return np.random.normal(loc=0, scale=0.1, size=(len(self._state_space), len(self._action_space)))
+            return np.random.normal(
+                loc=0, scale=0.1, size=(len(self._state_space), len(self._action_space))
+            )
         elif initialisation_strategy_name == constants.Constants.ZEROS:
             return np.zeros((len(self._state_space), len(self._action_space)))
         elif initialisation_strategy_name == constants.Constants.ONES:
             return np.ones((len(self._state_space), len(self._action_space)))
 
-    def _max_state_action_value(self, state: Tuple[int, int], other_state_action_values: Optional[Dict] = None) -> float:
+    def _max_state_action_value(
+        self, state: Tuple[int, int], other_state_action_values: Optional[Dict] = None
+    ) -> float:
         """Find highest value in given state.
 
         Args:
@@ -153,7 +157,9 @@ class TabularLearner(base_learner.BaseLearner):
         state_action_values = copy.deepcopy(self._state_action_values[state_id])
 
         if self._split_value_function:
-            state_action_values += copy.deepcopy(self._ancillary_state_action_values[state_id])
+            state_action_values += copy.deepcopy(
+                self._ancillary_state_action_values[state_id]
+            )
 
         return np.argmax(state_action_values)
 
@@ -211,7 +217,7 @@ class TabularLearner(base_learner.BaseLearner):
             )
         return action
 
-    def select_behaviour_action(self, state: Tuple[int, int]) -> Tuple[int, float]:
+    def select_behaviour_action(self, state: Tuple[int, int], epsilon: Optional[float] = None) -> Tuple[int, float]:
         """Select action with behaviour policy, i.e. policy collecting trajectory data
         and generating behaviour. Sarsa lambda is on-policy so this is the same as the
         target policy, namely the greedy action.
@@ -225,8 +231,10 @@ class TabularLearner(base_learner.BaseLearner):
         if self._behaviour == constants.Constants.GREEDY:
             action = self._greedy_action(state=state)
         elif self._behaviour == constants.Constants.EPSILON_GREEDY:
+            if epsilon is None:
+                epsilon = self._epsilon.value
             action = self._epsilon_greedy_action(
-                state=state, epsilon=self._epsilon.value
+                state=state, epsilon=epsilon
             )
         return action
 
