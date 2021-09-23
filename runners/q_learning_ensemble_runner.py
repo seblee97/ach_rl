@@ -47,8 +47,11 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
             self._pool = multiprocessing.Pool(processes=num_cores)
 
         self._penalty_update_period = config.penalty_update_period
-        self._epsilon_update_period = config.epsilon_update_period
-        self._lr_scaler_update_period = config.lr_scaler_update_period
+
+        if self._epsilon_computer is not None:
+            self._epsilon_update_period = config.epsilon_update_period
+        if self._lr_scaler is not None:
+            self._lr_scaler_update_period = config.lr_scaler_update_period
 
     def _setup_learner(self, config: ach_config.AchConfig):  # TODO: similar to envs
         """Initialise learner specified in configuration."""
