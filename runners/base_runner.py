@@ -23,6 +23,7 @@ from environments import wrapper_atari
 from epsilon_computers import expected_uncertainty_epsilon_computer
 from epsilon_computers import unexpected_uncertainty_epsilon_computer
 from experiments import ach_config
+from learning_rate_scalers import expected_uncertainty_learning_rate_scaler
 from utils import data_logger
 from utils import decorators
 from utils import epsilon_schedules
@@ -54,6 +55,7 @@ class BaseRunner(abc.ABC):
         self._visitation_penalty = self._setup_visitation_penalty(config=config)
         self._epsilon_computer = self._setup_epsilon_computer(config=config)
         self._epsilon_function = self._setup_epsilon_function(config=config)
+        self._lr_scaler = self._setup_lr_scaler(config=config)
         self._learner = self._setup_learner(config=config)
         self._logger = experiment_logger.get_logger(
             experiment_path=config.checkpoint_path, name=__name__
@@ -367,7 +369,7 @@ class BaseRunner(abc.ABC):
         """Setup epsilon computer, for anything adaptive e.g. Doya"""
         if config.schedule == constants.Constants.EXPECTED_UNCERTAINTY:
             epsilon_computer = (
-                uncertainty_epsilon_computer.ExpectedUncertaintyEpsilonComputer(
+                expected_uncertainty_epsilon_computer.ExpectedUncertaintyEpsilonComputer(
                     action_function=config.epsilon_action_function,
                     minimum_value=config.minimum_value
                 )
@@ -397,6 +399,18 @@ class BaseRunner(abc.ABC):
             # NaN string used to ensure error is thrown if it is used.
             epsilon_function = epsilon_schedules.ConstantEpsilon(value="NaN")
         return epsilon_function
+
+    def _setup_lr_scaler(self, config: ach_config.AchConfig):
+        """Setup LR scaler"""
+        if config.lr_scaler_type == constants.Constants.EXPECTED_UNCERTAINTY:
+            lr_scaler = (
+                expected_uncertainty_learning_rate_scaler.ExpectedUncertaintyLearningRateScaler(
+                    action_function=config.lr_scaler_action_function,
+                )
+            )
+        else:
+            lr_scaler = None
+        return lr_scaler
 
     @abc.abstractmethod
     def _setup_learner(self, config: ach_config.AchConfig):
