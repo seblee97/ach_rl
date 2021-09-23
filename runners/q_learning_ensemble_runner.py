@@ -47,6 +47,7 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
             self._pool = multiprocessing.Pool(processes=num_cores)
 
         self._penalty_update_period = config.penalty_update_period
+        self._epsilon_update_period = config.epsilon_update_period
 
     def _setup_learner(self, config: ach_config.AchConfig):  # TODO: similar to envs
         """Initialise learner specified in configuration."""
@@ -274,6 +275,12 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
                 self._learner.individual_learner_state_action_values
             )
 
+        if self._epsilon_computer is not None and episode % self._epsilon_update_period == 0:
+            self._logger.info("Updating global epsilon computer information...")
+            self._epsilon_computer.state_action_values = (
+                self._learner.individual_learner_state_action_values
+            )            
+
         if self._parallelise_ensemble:
             train_fn = self._parallelised_train_episode
             self._logger.info("Training ensemble of learners in parallel...")
@@ -291,7 +298,8 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
             ensemble_mean_penalties,
             ensemble_mean_penalty_infos,
             ensemble_std_penalty_infos,
-            train_episode_histories
+            train_episode_histories,
+            ensemble_mean_epsilons
         ) = train_fn(episode=episode, rng_state=rng_state)
 
         # add episode history to environment (for now arbitrarily choose last of ensemble)
@@ -343,6 +351,11 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
             episode=episode,
             scalar=np.mean(ensemble_mean_penalties),
         )
+        self._write_scalar(
+            tag=constants.Constants.MEAN_EPSILON,
+            episode=episode,
+            scalar=np.mean(ensemble_mean_epsilons)
+        )
         for penalty_info, ensemble_penalty_info in ensemble_mean_penalty_infos.items():
             self._write_scalar(
                 tag=constants.Constants.MEAN_PENALTY_INFO,
@@ -376,6 +389,7 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
         mean_penalty_infos = {}
         std_penalty_infos = {}
         train_episode_histories = []
+        mean_epsilons = []
 
         for i, learner in enumerate(self._learner.ensemble):
             self._logger.info(f"Training learner {i}/{len(self._learner.ensemble)}...")
@@ -386,11 +400,13 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
                 mean_penalty,
                 mean_penalty_info,
                 std_penalty_info,
-                train_episode_history
+                train_episode_history,
+                mean_epsilon
             ) = self._single_train_episode(
                 environment=copy.deepcopy(self._environment),
                 learner=learner,
                 visitation_penalty=self._visitation_penalty,
+                epsilon_computer=self._epsilon_computer,
                 episode=episode,
                 learner_seed=i * rng_state,
             )
@@ -398,6 +414,7 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
             ensemble_episode_rewards.append(episode_reward)
             ensemble_episode_step_counts.append(episode_count)
             mean_penalties.append(mean_penalty)
+            mean_epsilons.append(mean_penalty)
             for info_key, mean_info in mean_penalty_info.items():
                 if info_key not in mean_penalty_infos:
                     mean_penalty_infos[info_key] = []
@@ -414,7 +431,8 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
             mean_penalties,
             mean_penalty_infos,
             std_penalty_infos,
-            train_episode_histories
+            train_episode_histories,
+            mean_epsilons
         )
 
     def _parallelised_train_episode(
@@ -432,6 +450,7 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
                 copy.deepcopy(self._environment),
                 learner,
                 self._visitation_penalty,
+                self._epsilon_computer,
                 episode,
                 i * rng_state,
             )
@@ -447,6 +466,7 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
             mean_penalties,
             mean_penalty_info,
             std_penalty_info,
+            mean_epsilons
         ) = zip(*processes_results)
 
         self._learner.ensemble = list(learners)
@@ -470,6 +490,7 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
             mean_penalties,
             mean_penalty_infos,
             std_penalty_infos,
+            mean_epsilons
         )
 
     @staticmethod
@@ -477,6 +498,7 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
         environment: base_environment.BaseEnvironment,
         learner: base_learner.BaseLearner,
         visitation_penalty,
+        epsilon_computer,
         episode: int,
         learner_seed: int,
     ) -> Union[None, Tuple[float, int]]:
@@ -502,10 +524,25 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
         penalties = []
         penalty_infos = {}
 
+        epsilons = []
+        epsilon_infos = {}
+
         state = environment.reset_environment(train=True)
 
         while environment.active:
-            action = learner.select_behaviour_action(state)
+
+            if epsilon_computer is not None:
+                epsilon, epsilon_info = epsilon_computer(episode=episode, state=state)
+
+                epsilons.append(epsilon)
+                for info_key, info in epsilon_info.items():
+                    if info_key not in epsilon_infos.keys():
+                        epsilon_infos[info_key] = []
+                    epsilon_infos[info_key].append(info)
+            else:
+                epsilon = None
+
+            action = learner.select_behaviour_action(state, epsilon=epsilon)
             reward, next_state = environment.step(action)
 
             penalty, penalty_info = visitation_penalty(
@@ -533,6 +570,8 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
         mean_penalty_info = {k: np.mean(v) for k, v in penalty_infos.items()}
         std_penalty_info = {k: np.std(v) for k, v in penalty_infos.items()}
 
+        mean_epsilons = np.mean(epsilons)
+
         return (
             learner,
             episode_reward,
@@ -541,6 +580,7 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
             mean_penalty_info,
             std_penalty_info,
             environment.train_episode_history,
+            mean_epsilons
         )
 
     def _get_visitation_penalty(self, episode: int, state, action: int, next_state):
