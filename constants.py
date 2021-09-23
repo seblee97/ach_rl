@@ -318,6 +318,11 @@ class Constants:
     NORMALISED_POLICY_ENTROPY = "normalised_policy_entropy"
     MINIMUM_VALUE = "minimum_value"
     MEAN_EPSILON = "mean_epsilon"
+    LR_SCALER_UPDATE_PERIOD = "lr_scaler_update_period"
+    LR_SCALER_ACTION_FUNCTION = "lr_scaler_action_function"
+    LR_SCALER = "lr_scaler"
+    LR_SCALER_TYPE = "lr_scaler_type"
+    MEAN_LR_SCALING = "mean_lr_scaling"
 
     ATARI_ENVS = ["PongNoFrameskip-v4", "GravitarNoFrameskip-v4"]
 
