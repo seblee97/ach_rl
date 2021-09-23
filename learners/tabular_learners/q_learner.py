@@ -1,11 +1,12 @@
-from typing import List
-from typing import Tuple
+import copy
 from typing import Dict
+from typing import List
+from typing import Optional
+from typing import Tuple
+from typing import Union
 
 from learners.tabular_learners import tabular_learner
 from utils import epsilon_schedules
-
-import copy
 
 
 class TabularQLearner(tabular_learner.TabularLearner):
@@ -56,6 +57,7 @@ class TabularQLearner(tabular_learner.TabularLearner):
         new_state: Tuple[int, int],
         active: bool,
         visitation_penalty: float,
+        learning_rate_scaling: Optional[Union[float, int]] = 1,
     ) -> None:
         """Update state-action values.
 
@@ -73,6 +75,7 @@ class TabularQLearner(tabular_learner.TabularLearner):
             new_state: next state.
             active: whether episode is still ongoing.
             visitation_penalty: penalty to apply to state-action pair for visit.
+            learning_rate_scaling: multiplier for learning rate.
         """
         state_id = self._state_id_mapping[state]
 
@@ -85,32 +88,34 @@ class TabularQLearner(tabular_learner.TabularLearner):
 
         if self._split_value_function:
             self._split_step(
-                state_id=state_id, 
-                action=action, 
-                reward=reward, 
-                visitation_penalty=visitation_penalty, 
-                discount=discount, 
-                new_state=new_state
+                state_id=state_id,
+                action=action,
+                reward=reward,
+                visitation_penalty=visitation_penalty,
+                learning_rate_scaling=learning_rate_scaling,
+                discount=discount,
+                new_state=new_state,
             )
         else:
             self._step(
-                state_id=state_id, 
-                action=action, 
-                reward=reward, 
-                visitation_penalty=visitation_penalty, 
-                discount=discount, 
-                new_state=new_state
+                state_id=state_id,
+                action=action,
+                reward=reward,
+                visitation_penalty=visitation_penalty,
+                learning_rate_scaling=learning_rate_scaling,
+                discount=discount,
+                new_state=new_state,
             )
-
+            
         # step epsilon
         next(self._epsilon)
 
-    def _step(self, state_id, action, reward, visitation_penalty, discount, new_state):   
+    def _step(self, state_id, action, reward, visitation_penalty, learning_rate_scaling, discount, new_state):
         initial_state_action_value = self._state_action_values[state_id][action]
 
         updated_state_action_value = (
             initial_state_action_value
-            + self._learning_rate
+            + learning_rate_scaling * self._learning_rate
             * (
                 reward
                 + visitation_penalty
@@ -125,7 +130,7 @@ class TabularQLearner(tabular_learner.TabularLearner):
 
         updated_state_action_value = (
             initial_state_action_value
-            + self._learning_rate
+            + learning_rate_scaling * self._learning_rate
             * (
                 reward
                 + discount * self._max_state_action_value(state=new_state)
