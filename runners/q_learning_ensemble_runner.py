@@ -433,7 +433,7 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
             ensemble_episode_rewards.append(episode_reward)
             ensemble_episode_step_counts.append(episode_count)
             mean_penalties.append(mean_penalty)
-            mean_epsilons.append(mean_penalty)
+            mean_epsilons.append(mean_epsilon)
             mean_lr_scalings.append(mean_lr_scaling)
             for info_key, mean_info in mean_penalty_info.items():
                 if info_key not in mean_penalty_infos:
