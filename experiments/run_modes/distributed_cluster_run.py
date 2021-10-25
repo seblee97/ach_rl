@@ -37,14 +37,10 @@ def distributed_cluster_run(
         )
         changes = experiment_utils.json_to_config_changes(changes_path)
         job_path = os.path.join(experiment_path, checkpoint_path)
-        job_script_path = os.path.join(
-            job_path, constants.Constants.JOB_SCRIPT
-        )
+        job_script_path = os.path.join(job_path, constants.Constants.JOB_SCRIPT)
         env = constants.Constants.ACH
         error_path = os.path.join(job_path, constants.Constants.ERROR_FILE_NAME)
-        output_path = os.path.join(
-            job_path, constants.Constants.OUTPUT_FILE_NAME
-        )
+        output_path = os.path.join(job_path, constants.Constants.OUTPUT_FILE_NAME)
 
         run_command = (
             f"python run_modes/single_run.py --config_path {config_path} "
