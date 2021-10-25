@@ -10,7 +10,9 @@ from visitation_penalties import base_visitation_penalty
 class ExponentialDecayPenalty(base_visitation_penalty.BaseVisitationPenaltyComputer):
     """Hard-coded (or deterministic) exponential penalty."""
 
-    def __init__(self, A: Union[int, float], b: Union[int, float], c: Union[int, float]):
+    def __init__(
+        self, A: Union[int, float], b: Union[int, float], c: Union[int, float]
+    ):
         self._A = A
         self._b = b
         self._c = c
@@ -18,9 +20,7 @@ class ExponentialDecayPenalty(base_visitation_penalty.BaseVisitationPenaltyCompu
     def compute_penalty(self, episode: int, penalty_info: Dict[str, Any]) -> float:
         current_penalty = self._A * self._b ** (self._c * episode)
 
-        reference_measure = penalty_info[
-            constants.Constants.CURRENT_STATE_MAX_UNCERTAINTY
-        ]
+        reference_measure = penalty_info[constants.CURRENT_STATE_MAX_UNCERTAINTY]
         if isinstance(reference_measure, float):
             return current_penalty
         elif isinstance(reference_measure, np.ndarray):

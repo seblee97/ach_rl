@@ -79,32 +79,30 @@ class QNetwork(nn.Module):
     ) -> Tuple[nn.Module, nn.Module]:
         layer_type = list(layer_specification.keys())[0]
         layer_info = list(layer_specification.values())[0]
-        layer_nonlinearity = layer_info.get(constants.Constants.NONLINEARITY)
+        layer_nonlinearity = layer_info.get(constants.NONLINEARITY)
 
-        if layer_type == constants.Constants.CONV:
+        if layer_type == constants.CONV:
             layer = nn.Conv2d(
-                in_channels=layer_info[constants.Constants.IN_CHANNELS],
-                out_channels=layer_info[constants.Constants.NUM_FILTERS],
-                kernel_size=layer_info[constants.Constants.KERNEL_SIZE],
-                stride=layer_info.get(constants.Constants.STRIDE, 1),
-                padding=layer_info.get(constants.Constants.PADDING, 0),
+                in_channels=layer_info[constants.IN_CHANNELS],
+                out_channels=layer_info[constants.NUM_FILTERS],
+                kernel_size=layer_info[constants.KERNEL_SIZE],
+                stride=layer_info.get(constants.STRIDE, 1),
+                padding=layer_info.get(constants.PADDING, 0),
             )
-        elif layer_type == constants.Constants.FC:
+        elif layer_type == constants.FC:
             layer = nn.Linear(
-                in_features=layer_info.get(constants.Constants.IN_FEATURES),
-                out_features=layer_info.get(
-                    constants.Constants.OUT_FEATURES, self._num_actions
-                ),
+                in_features=layer_info.get(constants.IN_FEATURES),
+                out_features=layer_info.get(constants.OUT_FEATURES, self._num_actions),
             )
 
-        elif layer_type == constants.Constants.FLATTEN:
+        elif layer_type == constants.FLATTEN:
             layer = custom_torch_layers.Flatten()
         else:
             raise ValueError(f"Layer type {layer_type} not recognised")
 
-        if layer_nonlinearity == constants.Constants.RELU:
+        if layer_nonlinearity == constants.RELU:
             nonlinearity = nn.ReLU()
-        elif layer_nonlinearity == constants.Constants.IDENTITY:
+        elif layer_nonlinearity == constants.IDENTITY:
             nonlinearity = nn.Identity()
         else:
             raise ValueError(f"Non-linearity {layer_nonlinearity} not recognised")
@@ -113,13 +111,11 @@ class QNetwork(nn.Module):
         if [p for p in layer.parameters()]:
             self._initialise_weights(
                 layer.weight,
-                initialisation=layer_info.get(
-                    constants.Constants.WEIGHT_INITIALISATION
-                ),
+                initialisation=layer_info.get(constants.WEIGHT_INITIALISATION),
             )
             self._initialise_weights(
                 layer.bias,
-                initialisation=layer_info.get(constants.Constants.BIAS_INITIALISATION),
+                initialisation=layer_info.get(constants.BIAS_INITIALISATION),
             )
 
         return layer, nonlinearity
@@ -136,13 +132,13 @@ class QNetwork(nn.Module):
         """
         if initialisation is None:
             pass
-        elif initialisation == constants.Constants.ZEROS:
+        elif initialisation == constants.ZEROS:
             nn.init.zeros_(layer_weights)
-        elif initialisation == constants.Constants.NORMAL:
+        elif initialisation == constants.NORMAL:
             nn.init.normal_(layer_weights)
-        elif initialisation == constants.Constants.XAVIER_NORMAL:
+        elif initialisation == constants.XAVIER_NORMAL:
             nn.init.xavier_normal_(layer_weights)
-        elif initialisation == constants.Constants.XAVIER_UNIFORM:
+        elif initialisation == constants.XAVIER_UNIFORM:
             nn.init.xavier_uniform_(layer_weights)
 
     def forward_all_heads(self, x: torch.Tensor):

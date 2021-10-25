@@ -30,11 +30,11 @@ class AchConfig(base_configuration.BaseConfiguration):
         Raises:
             AssertionError: if any rules are broken by config.
         """
-        environment = getattr(self, constants.Constants.ENVIRONMENT)
-        if environment == constants.Constants.MINIGRID:
-            reward_positions = getattr(self, constants.Constants.REWARD_POSITIONS)
-            num_rewards = getattr(self, constants.Constants.NUM_REWARDS)
-            reward_magnitudes = getattr(self, constants.Constants.REWARD_MAGNITUDES)
+        environment = getattr(self, constants.ENVIRONMENT)
+        if environment == constants.MINIGRID:
+            reward_positions = getattr(self, constants.REWARD_POSITIONS)
+            num_rewards = getattr(self, constants.NUM_REWARDS)
+            reward_magnitudes = getattr(self, constants.REWARD_MAGNITUDES)
             assert reward_positions is None or len(reward_positions) == num_rewards, (
                 "Number of reward positions must match number of rewards,"
                 "or reward positions must be set to None for random placement."
@@ -44,86 +44,86 @@ class AchConfig(base_configuration.BaseConfiguration):
             ), "Number of reward magnitudes must match number of rewards,"
 
         # check scalars specified in logging are compatible with alg/env etc.
-        scalars = getattr(self, constants.Constants.SCALARS)
-        visuals = getattr(self, constants.Constants.VISUALISATIONS)
-        learner = getattr(self, constants.Constants.TYPE)
+        scalars = getattr(self, constants.SCALARS)
+        visuals = getattr(self, constants.VISUALISATIONS)
+        learner = getattr(self, constants.TYPE)
 
-        if learner == constants.Constants.Q_LEARNING:
+        if learner == constants.Q_LEARNING:
             permitted_scalars = [
-                constants.Constants.TRAIN_EPISODE_REWARD,
-                constants.Constants.TRAIN_EPISODE_LENGTH,
-                constants.Constants.TEST_EPISODE_REWARD,
-                constants.Constants.TEST_EPISODE_LENGTH,
-                constants.Constants.MEAN_VISITATION_PENALTY,
-                constants.Constants.MEAN_PENALTY_INFO,
+                constants.TRAIN_EPISODE_REWARD,
+                constants.TRAIN_EPISODE_LENGTH,
+                constants.TEST_EPISODE_REWARD,
+                constants.TEST_EPISODE_LENGTH,
+                constants.MEAN_VISITATION_PENALTY,
+                constants.MEAN_PENALTY_INFO,
             ]
             permitted_visuals = [
-                constants.Constants.VALUE_FUNCTION,
-                constants.Constants.VISITATION_COUNT_HEATMAP,
-                constants.Constants.INDIVIDUAL_TRAIN_RUN,
+                constants.VALUE_FUNCTION,
+                constants.VISITATION_COUNT_HEATMAP,
+                constants.INDIVIDUAL_TRAIN_RUN,
             ]
-        elif learner == constants.Constants.VANILLA_DQN:
+        elif learner == constants.VANILLA_DQN:
             permitted_scalars = [
-                constants.Constants.TRAIN_EPISODE_REWARD,
-                constants.Constants.TRAIN_EPISODE_LENGTH,
-                constants.Constants.TEST_EPISODE_REWARD,
-                constants.Constants.TEST_EPISODE_LENGTH,
-                constants.Constants.AVERAGE_ACTION_VALUE,
-                constants.Constants.LOSS,
-                constants.Constants.EPSILON,
-                constants.Constants.MEAN_VISITATION_PENALTY,
-                constants.Constants.MEAN_PENALTY_INFO,
+                constants.TRAIN_EPISODE_REWARD,
+                constants.TRAIN_EPISODE_LENGTH,
+                constants.TEST_EPISODE_REWARD,
+                constants.TEST_EPISODE_LENGTH,
+                constants.AVERAGE_ACTION_VALUE,
+                constants.LOSS,
+                constants.EPSILON,
+                constants.MEAN_VISITATION_PENALTY,
+                constants.MEAN_PENALTY_INFO,
             ]
             permitted_visuals = [
-                constants.Constants.INDIVIDUAL_TRAIN_RUN,
-                constants.Constants.INDIVIDUAL_TEST_RUN,
+                constants.INDIVIDUAL_TRAIN_RUN,
+                constants.INDIVIDUAL_TEST_RUN,
             ]
-            if environment == constants.Constants.MULTIROOM:
+            if environment == constants.MULTIROOM:
                 permitted_visuals.extend(
                     [
-                        constants.Constants.VALUE_FUNCTION,
-                        constants.Constants.VISITATION_COUNT_HEATMAP,
+                        constants.VALUE_FUNCTION,
+                        constants.VISITATION_COUNT_HEATMAP,
                     ]
                 )
-        elif learner == constants.Constants.ENSEMBLE_Q_LEARNING:
+        elif learner == constants.ENSEMBLE_Q_LEARNING:
             permitted_scalars = [
-                constants.Constants.TRAIN_EPISODE_REWARD,
-                constants.Constants.TRAIN_EPISODE_LENGTH,
-                constants.Constants.TEST_EPISODE_REWARD,
-                constants.Constants.TEST_EPISODE_LENGTH,
+                constants.TRAIN_EPISODE_REWARD,
+                constants.TRAIN_EPISODE_LENGTH,
+                constants.TEST_EPISODE_REWARD,
+                constants.TEST_EPISODE_LENGTH,
                 "_".join(
                     [
-                        constants.Constants.TRAIN_EPISODE_REWARD,
-                        constants.Constants.ENSEMBLE_RUNNER,
+                        constants.TRAIN_EPISODE_REWARD,
+                        constants.ENSEMBLE_RUNNER,
                     ]
                 ),
                 "_".join(
                     [
-                        constants.Constants.TRAIN_EPISODE_LENGTH,
-                        constants.Constants.ENSEMBLE_RUNNER,
+                        constants.TRAIN_EPISODE_LENGTH,
+                        constants.ENSEMBLE_RUNNER,
                     ]
                 ),
-                constants.Constants.ENSEMBLE_EPISODE_REWARD_STD,
-                constants.Constants.ENSEMBLE_EPISODE_LENGTH_STD,
-                constants.Constants.MEAN_VISITATION_PENALTY,
-                constants.Constants.MEAN_PENALTY_INFO,
-                constants.Constants.STD_PENALTY_INFO,
-                constants.Constants.NO_REPEAT_TEST_EPISODE_REWARD,
-                constants.Constants.NO_REPEAT_TEST_EPISODE_LENGTH,
-                constants.Constants.CYCLE_COUNT,
+                constants.ENSEMBLE_EPISODE_REWARD_STD,
+                constants.ENSEMBLE_EPISODE_LENGTH_STD,
+                constants.MEAN_VISITATION_PENALTY,
+                constants.MEAN_PENALTY_INFO,
+                constants.STD_PENALTY_INFO,
+                constants.NO_REPEAT_TEST_EPISODE_REWARD,
+                constants.NO_REPEAT_TEST_EPISODE_LENGTH,
+                constants.CYCLE_COUNT,
             ]
             test_constants = [
-                constants.Constants.TEST_EPISODE_REWARD,
-                constants.Constants.TEST_EPISODE_LENGTH,
+                constants.TEST_EPISODE_REWARD,
+                constants.TEST_EPISODE_LENGTH,
             ]
             targets = [
-                constants.Constants.GREEDY_SAMPLE,
-                constants.Constants.GREEDY_VOTE,
-                constants.Constants.GREEDY_MEAN,
+                constants.GREEDY_SAMPLE,
+                constants.GREEDY_VOTE,
+                constants.GREEDY_MEAN,
             ]
             permitted_scalars.extend(
                 [
-                    "_".join([test_constant, constants.Constants.NO_REP, target])
+                    "_".join([test_constant, constants.NO_REP, target])
                     for test_constant, target in itertools.product(
                         test_constants, targets
                     )
@@ -139,64 +139,64 @@ class AchConfig(base_configuration.BaseConfiguration):
             )
 
             permitted_visuals = [
-                constants.Constants.INDIVIDUAL_TRAIN_RUN,
-                constants.Constants.INDIVIDUAL_TEST_RUN,
-                constants.Constants.VALUE_FUNCTION,
-                constants.Constants.INDIVIDUAL_VALUE_FUNCTIONS,
-                constants.Constants.VALUE_FUNCTION_STD,
+                constants.INDIVIDUAL_TRAIN_RUN,
+                constants.INDIVIDUAL_TEST_RUN,
+                constants.VALUE_FUNCTION,
+                constants.INDIVIDUAL_VALUE_FUNCTIONS,
+                constants.VALUE_FUNCTION_STD,
             ]
-        elif learner == constants.Constants.BOOTSTRAPPED_ENSEMBLE_DQN:
+        elif learner == constants.BOOTSTRAPPED_ENSEMBLE_DQN:
             permitted_scalars = [
-                constants.Constants.TRAIN_EPISODE_REWARD,
-                constants.Constants.TRAIN_EPISODE_LENGTH,
-                constants.Constants.TEST_EPISODE_REWARD,
-                constants.Constants.TEST_EPISODE_LENGTH,
-                constants.Constants.LOSS,
-                constants.Constants.EPSILON,
-                constants.Constants.BRANCH_LOSS,
-                constants.Constants.BRANCH_REWARD,
+                constants.TRAIN_EPISODE_REWARD,
+                constants.TRAIN_EPISODE_LENGTH,
+                constants.TEST_EPISODE_REWARD,
+                constants.TEST_EPISODE_LENGTH,
+                constants.LOSS,
+                constants.EPSILON,
+                constants.BRANCH_LOSS,
+                constants.BRANCH_REWARD,
                 "_".join(
                     [
-                        constants.Constants.TEST,
-                        constants.Constants.ENSEMBLE_EPISODE_REWARD_STD,
+                        constants.TEST,
+                        constants.ENSEMBLE_EPISODE_REWARD_STD,
                     ]
                 ),
                 "_".join(
                     [
-                        constants.Constants.TEST,
-                        constants.Constants.ENSEMBLE_EPISODE_LENGTH_STD,
+                        constants.TEST,
+                        constants.ENSEMBLE_EPISODE_LENGTH_STD,
                     ]
                 ),
                 "_".join(
                     [
-                        constants.Constants.TEST,
-                        constants.Constants.ENSEMBLE_EPISODE_REWARD_MEAN,
+                        constants.TEST,
+                        constants.ENSEMBLE_EPISODE_REWARD_MEAN,
                     ]
                 ),
                 "_".join(
                     [
-                        constants.Constants.TEST,
-                        constants.Constants.ENSEMBLE_EPISODE_LENGTH_MEAN,
+                        constants.TEST,
+                        constants.ENSEMBLE_EPISODE_LENGTH_MEAN,
                     ]
                 ),
-                constants.Constants.MEAN_VISITATION_PENALTY,
-                constants.Constants.MEAN_PENALTY_INFO,
-                constants.Constants.STD_PENALTY_INFO,
+                constants.MEAN_VISITATION_PENALTY,
+                constants.MEAN_PENALTY_INFO,
+                constants.STD_PENALTY_INFO,
             ]
             test_constants = [
-                constants.Constants.TEST_EPISODE_REWARD,
-                constants.Constants.TEST_EPISODE_LENGTH,
+                constants.TEST_EPISODE_REWARD,
+                constants.TEST_EPISODE_LENGTH,
             ]
             targets = [
-                constants.Constants.GREEDY_SAMPLE,
-                constants.Constants.GREEDY_VOTE,
-                constants.Constants.GREEDY_MEAN,
-                constants.Constants.GREEDY_INDIVIDUAL,
+                constants.GREEDY_SAMPLE,
+                constants.GREEDY_VOTE,
+                constants.GREEDY_MEAN,
+                constants.GREEDY_INDIVIDUAL,
             ]
 
             permitted_visuals = [
-                constants.Constants.INDIVIDUAL_TRAIN_RUN,
-                constants.Constants.INDIVIDUAL_TEST_RUN,
+                constants.INDIVIDUAL_TRAIN_RUN,
+                constants.INDIVIDUAL_TEST_RUN,
             ]
         else:
             raise ValueError(
@@ -225,12 +225,12 @@ class AchConfig(base_configuration.BaseConfiguration):
                 )
 
         # check testing procedures are compatible with alg/env etc.
-        if learner == constants.Constants.VANILLA_DQN:
-            permitted_tests = [constants.Constants.GREEDY]
-        elif learner == constants.Constants.ENSEMBLE_Q_LEARNING:
-            permitted_tests = [constants.Constants.GREEDY, constants.Constants.NO_REP]
+        if learner == constants.VANILLA_DQN:
+            permitted_tests = [constants.GREEDY]
+        elif learner == constants.ENSEMBLE_Q_LEARNING:
+            permitted_tests = [constants.GREEDY, constants.NO_REP]
 
-        test_types = getattr(self, constants.Constants.TESTING)
+        test_types = getattr(self, constants.TESTING)
         if test_types is not None:
             for test_type in test_types:
                 assert (

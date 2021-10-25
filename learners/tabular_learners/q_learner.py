@@ -1,11 +1,10 @@
+import copy
+from typing import Dict
 from typing import List
 from typing import Tuple
-from typing import Dict
 
 from learners.tabular_learners import tabular_learner
 from utils import epsilon_schedules
-
-import copy
 
 
 class TabularQLearner(tabular_learner.TabularLearner):
@@ -44,7 +43,7 @@ class TabularQLearner(tabular_learner.TabularLearner):
             initialisation_strategy=initialisation_strategy,
             behaviour=behaviour,
             target=target,
-            split_value_function=split_value_function
+            split_value_function=split_value_function,
         )
         self._epsilon = epsilon
 
@@ -85,27 +84,27 @@ class TabularQLearner(tabular_learner.TabularLearner):
 
         if self._split_value_function:
             self._split_step(
-                state_id=state_id, 
-                action=action, 
-                reward=reward, 
-                visitation_penalty=visitation_penalty, 
-                discount=discount, 
-                new_state=new_state
+                state_id=state_id,
+                action=action,
+                reward=reward,
+                visitation_penalty=visitation_penalty,
+                discount=discount,
+                new_state=new_state,
             )
         else:
             self._step(
-                state_id=state_id, 
-                action=action, 
-                reward=reward, 
-                visitation_penalty=visitation_penalty, 
-                discount=discount, 
-                new_state=new_state
+                state_id=state_id,
+                action=action,
+                reward=reward,
+                visitation_penalty=visitation_penalty,
+                discount=discount,
+                new_state=new_state,
             )
 
         # step epsilon
         next(self._epsilon)
 
-    def _step(self, state_id, action, reward, visitation_penalty, discount, new_state):   
+    def _step(self, state_id, action, reward, visitation_penalty, discount, new_state):
         initial_state_action_value = self._state_action_values[state_id][action]
 
         updated_state_action_value = (
@@ -120,8 +119,12 @@ class TabularQLearner(tabular_learner.TabularLearner):
         )
         self._state_action_values[state_id][action] = updated_state_action_value
 
-    def _split_step(self, state_id, action, reward, visitation_penalty, discount, new_state):
-        initial_state_action_value = copy.deepcopy(self._state_action_values[state_id][action])
+    def _split_step(
+        self, state_id, action, reward, visitation_penalty, discount, new_state
+    ):
+        initial_state_action_value = copy.deepcopy(
+            self._state_action_values[state_id][action]
+        )
 
         updated_state_action_value = (
             initial_state_action_value
@@ -135,16 +138,24 @@ class TabularQLearner(tabular_learner.TabularLearner):
 
         self._state_action_values[state_id][action] = updated_state_action_value
 
-        initial_ancillary_state_action_value = copy.deepcopy(self._ancillary_state_action_values[state_id][action])
+        initial_ancillary_state_action_value = copy.deepcopy(
+            self._ancillary_state_action_values[state_id][action]
+        )
 
         updated_ancillary_state_action_value = (
             initial_ancillary_state_action_value
             + self._learning_rate
             * (
                 visitation_penalty
-                + discount * self._max_state_action_value(state=new_state, other_state_action_values=self._ancillary_state_action_values)
+                + discount
+                * self._max_state_action_value(
+                    state=new_state,
+                    other_state_action_values=self._ancillary_state_action_values,
+                )
                 - initial_ancillary_state_action_value
             )
         )
 
-        self._ancillary_state_action_values[state_id][action] = updated_ancillary_state_action_value
+        self._ancillary_state_action_values[state_id][
+            action
+        ] = updated_ancillary_state_action_value

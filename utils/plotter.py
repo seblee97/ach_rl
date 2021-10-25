@@ -69,7 +69,7 @@ class Plotter:
             math.ceil(np.sqrt(num_graphs)),
             math.ceil(np.sqrt(num_graphs)),
         )
-        graph_layout = constants.Constants.GRAPH_LAYOUTS.get(num_graphs, default_layout)
+        graph_layout = constants.GRAPH_LAYOUTS.get(num_graphs, default_layout)
 
         num_rows = graph_layout[0]
         num_columns = graph_layout[1]
@@ -94,11 +94,9 @@ class Plotter:
                     )
 
         if smoothing is not None:
-            save_path = os.path.join(self._save_folder, constants.Constants.PLOT_PDF)
+            save_path = os.path.join(self._save_folder, constants.PLOT_PDF)
         else:
-            save_path = os.path.join(
-                self._save_folder, constants.Constants.RAW_PLOT_PDF
-            )
+            save_path = os.path.join(self._save_folder, constants.RAW_PLOT_PDF)
         plt.tight_layout()
         self.fig.savefig(save_path, dpi=100)
         plt.close()
@@ -107,7 +105,7 @@ class Plotter:
         fig_sub = self.fig.add_subplot(self.spec[row, col])
 
         # labelling
-        fig_sub.set_xlabel(constants.Constants.EPISODE)
+        fig_sub.set_xlabel(constants.EPISODE)
         fig_sub.set_ylabel(data_tag)
 
         # grids

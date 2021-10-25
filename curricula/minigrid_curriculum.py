@@ -57,7 +57,7 @@ class MinigridCurriculum(minigrid.MiniGrid, base_curriculum.BaseCurriculum):
 
     def _transition(self):
         """Transition environment to next phase."""
-        if self._next_change[0] == constants.Constants.CHANGE_STARTING_POSITION:
+        if self._next_change[0] == constants.CHANGE_STARTING_POSITION:
             new_starting_xy = self._next_change[1]
             self._change_starting_position(new_starting_xy=new_starting_xy)
         else:

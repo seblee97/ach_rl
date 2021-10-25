@@ -3,10 +3,9 @@ from typing import List
 from typing import Optional
 from typing import Tuple
 
+import constants
 import gym
 import numpy as np
-
-import constants
 from environments import base_environment
 from utils import pre_processing_functions
 
@@ -36,16 +35,16 @@ class PreProcessor:
             pre_processing_type = list(pre_processing_step.keys())[0]
             pre_processing_info = list(pre_processing_step.values())[0]
 
-            if pre_processing_type == constants.Constants.DOWN_SAMPLE:
-                width = pre_processing_info.get(constants.Constants.WIDTH)
-                height = pre_processing_info.get(constants.Constants.HEIGHT)
+            if pre_processing_type == constants.DOWN_SAMPLE:
+                width = pre_processing_info.get(constants.WIDTH)
+                height = pre_processing_info.get(constants.HEIGHT)
                 transformation = pre_processing_functions.DownSample(
                     width=width, height=height
                 )
-            elif pre_processing_type == constants.Constants.GRAY_SCALE:
+            elif pre_processing_type == constants.GRAY_SCALE:
                 transformation = pre_processing_functions.GrayScale()
-            elif pre_processing_type == constants.Constants.MAX_OVER:
-                number_frames = pre_processing_info.get(constants.Constants.NUM_FRAMES)
+            elif pre_processing_type == constants.MAX_OVER:
+                number_frames = pre_processing_info.get(constants.NUM_FRAMES)
                 transformation = pre_processing_functions.MaxOver(
                     number_frames=number_frames
                 )

@@ -61,8 +61,7 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
         else:
             learners = [
                 self._get_individual_q_learner(
-                    config=config,
-                    initialisation_strategy=initialisation_strategy
+                    config=config, initialisation_strategy=initialisation_strategy
                 )
                 for _ in range(self._num_learners)
             ]
@@ -76,25 +75,27 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
         return learner
 
     def _get_initialisation_strategy(self, config: ach_config.AchConfig):
-        if config.initialisation == constants.Constants.RANDOM_UNIFORM:
+        if config.initialisation == constants.RANDOM_UNIFORM:
             initialisation_strategy = {
-                constants.Constants.RANDOM_UNIFORM: {
-                    constants.Constants.LOWER_BOUND: config.lower_bound,
-                    constants.Constants.UPPER_BOUND: config.upper_bound
+                constants.RANDOM_UNIFORM: {
+                    constants.LOWER_BOUND: config.lower_bound,
+                    constants.UPPER_BOUND: config.upper_bound,
                 }
             }
-        elif config.initialisation == constants.Constants.RANDOM_NORMAL:
+        elif config.initialisation == constants.RANDOM_NORMAL:
             initialisation_strategy = {
-                constants.Constants.RANDOM_NORMAL: {
-                    constants.Constants.MEAN: config.mean,
-                    constants.Constants.VARIANCE: config.variance
+                constants.RANDOM_NORMAL: {
+                    constants.MEAN: config.mean,
+                    constants.VARIANCE: config.variance,
                 }
             }
         else:
             initialisation_strategy == {config.initialisation}
         return initialisation_strategy
 
-    def _get_individual_q_learner(self, config: ach_config.AchConfig, initialisation_strategy: Dict):
+    def _get_individual_q_learner(
+        self, config: ach_config.AchConfig, initialisation_strategy: Dict
+    ):
         """Setup a single q-learner."""
         return q_learner.TabularQLearner(
             action_space=self._environment.action_space,
@@ -105,7 +106,7 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
             epsilon=self._epsilon_function,
             learning_rate=config.learning_rate,
             gamma=config.discount_factor,
-            split_value_function=config.split_value_function
+            split_value_function=config.split_value_function,
         )
 
     def _pre_episode_log(self, episode: int):
@@ -117,11 +118,11 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
     @decorators.timer
     def _pre_episode_visualisations(self, episode: int):
         visualisation_configurations = [
-            (constants.Constants.MAX_VALUES_PDF, True, False),
-            (constants.Constants.QUIVER_VALUES_PDF, False, True),
-            (constants.Constants.QUIVER_MAX_VALUES_PDF, True, True),
+            (constants.MAX_VALUES_PDF, True, False),
+            (constants.QUIVER_VALUES_PDF, False, True),
+            (constants.QUIVER_MAX_VALUES_PDF, True, True),
         ]
-        if self._visualisation_iteration(constants.Constants.VALUE_FUNCTION, episode):
+        if self._visualisation_iteration(constants.VALUE_FUNCTION, episode):
             averaged_state_action_values = self._learner.state_action_values
             # tuple of save_path_tag, plot_max_values (bool), quiver (bool)
             if self._parallelise_ensemble:
@@ -132,7 +133,7 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
                         averaged_state_action_values,
                         visualisation_configuration[1],
                         visualisation_configuration[2],
-                        constants.Constants.MAX,
+                        constants.MAX,
                         os.path.join(
                             self._visualisations_folder_path,
                             f"{episode}_{visualisation_configuration[0]}",
@@ -157,12 +158,10 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
                         ),
                         plot_max_values=visualisation_configuration[1],
                         quiver=visualisation_configuration[2],
-                        over_actions=constants.Constants.MAX,
+                        over_actions=constants.MAX,
                     )
 
-        if self._visualisation_iteration(
-            constants.Constants.INDIVIDUAL_VALUE_FUNCTIONS, episode
-        ):
+        if self._visualisation_iteration(constants.INDIVIDUAL_VALUE_FUNCTIONS, episode):
             all_state_action_values = (
                 self._learner.individual_learner_state_action_values
             )
@@ -179,7 +178,7 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
                         all_state_action_values[combo[0]],
                         combo[1][1],
                         combo[1][2],
-                        constants.Constants.MAX,
+                        constants.MAX,
                         os.path.join(
                             self._visualisations_folder_path,
                             f"{episode}_{combo[0]}_{combo[1][0]}",
@@ -207,53 +206,49 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
                             ),
                             plot_max_values=visualisation_configuration[1],
                             quiver=visualisation_configuration[2],
-                            over_actions=constants.Constants.MAX,
+                            over_actions=constants.MAX,
                         )
 
-        if self._visualisation_iteration(
-            constants.Constants.VALUE_FUNCTION_STD, episode
-        ):
+        if self._visualisation_iteration(constants.VALUE_FUNCTION_STD, episode):
             self._logger.info("Standard deviation value function visualisation...")
             state_action_values_std = self._learner.state_action_values_std
             self._environment.plot_value_function(
                 values=state_action_values_std,
                 save_path=os.path.join(
                     self._visualisations_folder_path,
-                    f"{episode}_{constants.Constants.VALUE_FUNCTION_STD_PDF}",
+                    f"{episode}_{constants.VALUE_FUNCTION_STD_PDF}",
                 ),
                 plot_max_values=True,
                 quiver=False,
-                over_actions=constants.Constants.MEAN,
+                over_actions=constants.MEAN,
             )
 
         if episode != 0:
-            if self._visualisation_iteration(
-                constants.Constants.INDIVIDUAL_TRAIN_RUN, episode
-            ):
+            if self._visualisation_iteration(constants.INDIVIDUAL_TRAIN_RUN, episode):
                 self._data_logger.plot_array_data(
-                    name=f"{constants.Constants.INDIVIDUAL_TRAIN_RUN}_{episode}",
+                    name=f"{constants.INDIVIDUAL_TRAIN_RUN}_{episode}",
                     data=self._environment.plot_episode_history(),
                 )
 
     @decorators.timer
     def _pre_episode_array_logging(self, episode: int):
         self._write_array(
-            tag=constants.Constants.VALUE_FUNCTION,
+            tag=constants.VALUE_FUNCTION,
             episode=episode,
             array=self._learner.state_action_values,
         )
         self._write_array(
-            tag=constants.Constants.VALUE_FUNCTION_STD,
+            tag=constants.VALUE_FUNCTION_STD,
             episode=episode,
             array=self._learner.state_action_values_std,
         )
         self._write_array(
-            tag=constants.Constants.POLICY_ENTROPY,
+            tag=constants.POLICY_ENTROPY,
             episode=episode,
             array=self._learner.policy_entropy,
         )
         self._write_array(
-            tag=constants.Constants.VISITATION_COUNTS,
+            tag=constants.VISITATION_COUNTS,
             episode=episode,
             array=self._learner.state_visitation_counts,
         )
@@ -291,7 +286,7 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
             ensemble_mean_penalties,
             ensemble_mean_penalty_infos,
             ensemble_std_penalty_infos,
-            train_episode_histories
+            train_episode_histories,
         ) = train_fn(episode=episode, rng_state=rng_state)
 
         # add episode history to environment (for now arbitrarily choose last of ensemble)
@@ -315,44 +310,44 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
         # log data from individual runners in ensemble
         for i in range(len(self._learner.ensemble)):
             self._write_scalar(
-                tag=f"{constants.Constants.TRAIN_EPISODE_REWARD}_{constants.Constants.ENSEMBLE_RUNNER}",
+                tag=f"{constants.TRAIN_EPISODE_REWARD}_{constants.ENSEMBLE_RUNNER}",
                 episode=episode,
                 scalar=ensemble_rewards[i],
-                df_tag=f"{constants.Constants.TRAIN_EPISODE_REWARD}_{constants.Constants.ENSEMBLE_RUNNER}_{i}",
+                df_tag=f"{constants.TRAIN_EPISODE_REWARD}_{constants.ENSEMBLE_RUNNER}_{i}",
             )
             self._write_scalar(
-                tag=f"{constants.Constants.TRAIN_EPISODE_LENGTH}_{constants.Constants.ENSEMBLE_RUNNER}",
+                tag=f"{constants.TRAIN_EPISODE_LENGTH}_{constants.ENSEMBLE_RUNNER}",
                 episode=episode,
                 scalar=ensemble_step_counts[i],
-                df_tag=f"{constants.Constants.TRAIN_EPISODE_LENGTH}_{constants.Constants.ENSEMBLE_RUNNER}_{i}",
+                df_tag=f"{constants.TRAIN_EPISODE_LENGTH}_{constants.ENSEMBLE_RUNNER}_{i}",
             )
 
         # averages over ensemble
         self._write_scalar(
-            tag=constants.Constants.ENSEMBLE_EPISODE_REWARD_STD,
+            tag=constants.ENSEMBLE_EPISODE_REWARD_STD,
             episode=episode,
             scalar=std_reward,
         )
         self._write_scalar(
-            tag=constants.Constants.ENSEMBLE_EPISODE_LENGTH_STD,
+            tag=constants.ENSEMBLE_EPISODE_LENGTH_STD,
             episode=episode,
             scalar=std_step_count,
         )
         self._write_scalar(
-            tag=constants.Constants.MEAN_VISITATION_PENALTY,
+            tag=constants.MEAN_VISITATION_PENALTY,
             episode=episode,
             scalar=np.mean(ensemble_mean_penalties),
         )
         for penalty_info, ensemble_penalty_info in ensemble_mean_penalty_infos.items():
             self._write_scalar(
-                tag=constants.Constants.MEAN_PENALTY_INFO,
+                tag=constants.MEAN_PENALTY_INFO,
                 episode=episode,
                 scalar=np.mean(ensemble_penalty_info),
                 df_tag=f"{penalty_info}_mean",
             )
         for penalty_info, ensemble_penalty_info in ensemble_std_penalty_infos.items():
             self._write_scalar(
-                tag=constants.Constants.STD_PENALTY_INFO,
+                tag=constants.STD_PENALTY_INFO,
                 episode=episode,
                 scalar=np.mean(ensemble_penalty_info),
                 df_tag=f"{penalty_info}_std",
@@ -386,7 +381,7 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
                 mean_penalty,
                 mean_penalty_info,
                 std_penalty_info,
-                train_episode_history
+                train_episode_history,
             ) = self._single_train_episode(
                 environment=copy.deepcopy(self._environment),
                 learner=learner,
@@ -414,7 +409,7 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
             mean_penalties,
             mean_penalty_infos,
             std_penalty_infos,
-            train_episode_histories
+            train_episode_histories,
         )
 
     def _parallelised_train_episode(
@@ -561,26 +556,20 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
 
         Here, there are various methods for performing inference.
         """
-        greedy_sample = constants.Constants.GREEDY_SAMPLE
-        greedy_mean = constants.Constants.GREEDY_MEAN
-        greedy_vote = constants.Constants.GREEDY_VOTE
+        greedy_sample = constants.GREEDY_SAMPLE
+        greedy_mean = constants.GREEDY_MEAN
+        greedy_vote = constants.GREEDY_VOTE
 
-        no_rep_greedy_sample = "_".join(
-            [constants.Constants.NO_REP, constants.Constants.GREEDY_SAMPLE]
-        )
-        no_rep_greedy_mean = "_".join(
-            [constants.Constants.NO_REP, constants.Constants.GREEDY_MEAN]
-        )
-        no_rep_greedy_vote = "_".join(
-            [constants.Constants.NO_REP, constants.Constants.GREEDY_VOTE]
-        )
+        no_rep_greedy_sample = "_".join([constants.NO_REP, constants.GREEDY_SAMPLE])
+        no_rep_greedy_mean = "_".join([constants.NO_REP, constants.GREEDY_MEAN])
+        no_rep_greedy_vote = "_".join([constants.NO_REP, constants.GREEDY_VOTE])
 
         if greedy_sample in self._targets:
             self._greedy_test_episode(
                 episode=episode,
                 action_selection_method=SampleGreedyEnsemble.select_target_action,
                 action_selection_method_args={
-                    constants.Constants.LEARNERS: self._learner.ensemble
+                    constants.LEARNERS: self._learner.ensemble
                 },
                 tag_=f"_{greedy_sample}",
             )
@@ -589,7 +578,7 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
                 episode=episode,
                 action_selection_method=MeanGreedyEnsemble.select_target_action,
                 action_selection_method_args={
-                    constants.Constants.LEARNERS: self._learner.ensemble
+                    constants.LEARNERS: self._learner.ensemble
                 },
                 tag_=f"_{greedy_mean}",
             )
@@ -598,7 +587,7 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
                 episode=episode,
                 action_selection_method=MajorityVoteEnsemble.select_target_action,
                 action_selection_method_args={
-                    constants.Constants.LEARNERS: self._learner.ensemble
+                    constants.LEARNERS: self._learner.ensemble
                 },
                 tag_=f"_{greedy_vote}",
             )
@@ -607,7 +596,7 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
                 episode=episode,
                 action_selection_method=SampleGreedyEnsemble.select_target_action,
                 action_selection_method_args={
-                    constants.Constants.LEARNERS: self._learner.ensemble
+                    constants.LEARNERS: self._learner.ensemble
                 },
                 tag_=f"_{no_rep_greedy_sample}",
             )
@@ -616,7 +605,7 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
                 episode=episode,
                 action_selection_method=MeanGreedyEnsemble.select_target_action,
                 action_selection_method_args={
-                    constants.Constants.LEARNERS: self._learner.ensemble
+                    constants.LEARNERS: self._learner.ensemble
                 },
                 tag_=f"_{no_rep_greedy_mean}",
             )
@@ -625,21 +614,21 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
                 episode=episode,
                 action_selection_method=MajorityVoteEnsemble.select_target_action,
                 action_selection_method_args={
-                    constants.Constants.LEARNERS: self._learner.ensemble
+                    constants.LEARNERS: self._learner.ensemble
                 },
                 tag_=f"_{no_rep_greedy_vote}",
             )
 
     def _post_visualisation(self):
         post_visualisations_path = os.path.join(
-            self._checkpoint_path, constants.Constants.POST_VISUALISATIONS
+            self._checkpoint_path, constants.POST_VISUALISATIONS
         )
 
         value_function_visualisations = {
-            constants.Constants.VALUE_FUNCTION: constants.Constants.MAX,
-            constants.Constants.VALUE_FUNCTION_STD: constants.Constants.MEAN,
-            constants.Constants.POLICY_ENTROPY: constants.Constants.MEAN,
-            constants.Constants.VISITATION_COUNTS: constants.Constants.MEAN,
+            constants.VALUE_FUNCTION: constants.MAX,
+            constants.VALUE_FUNCTION_STD: constants.MEAN,
+            constants.POLICY_ENTROPY: constants.MEAN,
+            constants.VISITATION_COUNTS: constants.MEAN,
         }
 
         for tag, over_actions in value_function_visualisations.items():

@@ -118,7 +118,7 @@ def plot_all_multi_seed_multi_run(
         #     pdb.set_trace()
         print(tag)
         if "branch" not in tag:
-            fig = plt.figure(figsize=(constants.Constants.SUMMARY_FIGSIZE))
+            fig = plt.figure(figsize=(constants.SUMMARY_FIGSIZE))
             for exp in relevant_experiments:
                 attribute_data = []
                 seed_folders = [
@@ -165,7 +165,7 @@ def plot_all_multi_seed_multi_run(
                 ncol=1,
                 borderaxespad=0.0,
             )
-            plt.xlabel(constants.Constants.EPISODE)
+            plt.xlabel(constants.EPISODE)
             plt.ylabel(tag)
 
             fig.tight_layout()

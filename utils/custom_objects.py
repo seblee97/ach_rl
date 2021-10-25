@@ -3,49 +3,49 @@ from collections import namedtuple
 import constants
 
 Transition = namedtuple(
-    typename=constants.Constants.TRANSITION,
+    typename=constants.TRANSITION,
     field_names=[
-        constants.Constants.STATE_ENCODING,
-        constants.Constants.ACTION,
-        constants.Constants.REWARD,
-        constants.Constants.NEXT_STATE_ENCODING,
-        constants.Constants.ACTIVE,
+        constants.STATE_ENCODING,
+        constants.ACTION,
+        constants.REWARD,
+        constants.NEXT_STATE_ENCODING,
+        constants.ACTIVE,
     ],
 )
 
 MaskedTransition = namedtuple(
-    typename=constants.Constants.TRANSITION,
+    typename=constants.TRANSITION,
     field_names=[
-        constants.Constants.STATE_ENCODING,
-        constants.Constants.ACTION,
-        constants.Constants.REWARD,
-        constants.Constants.NEXT_STATE_ENCODING,
-        constants.Constants.ACTIVE,
-        constants.Constants.MASK,
+        constants.STATE_ENCODING,
+        constants.ACTION,
+        constants.REWARD,
+        constants.NEXT_STATE_ENCODING,
+        constants.ACTIVE,
+        constants.MASK,
     ],
 )
 
 MaskedPenaltyTransition = namedtuple(
-    typename=constants.Constants.TRANSITION,
+    typename=constants.TRANSITION,
     field_names=[
-        constants.Constants.STATE_ENCODING,
-        constants.Constants.ACTION,
-        constants.Constants.REWARD,
-        constants.Constants.NEXT_STATE_ENCODING,
-        constants.Constants.ACTIVE,
-        constants.Constants.MASK,
-        constants.Constants.PENALTY,
+        constants.STATE_ENCODING,
+        constants.ACTION,
+        constants.REWARD,
+        constants.NEXT_STATE_ENCODING,
+        constants.ACTIVE,
+        constants.MASK,
+        constants.PENALTY,
     ],
 )
 
 PenaltyTransition = namedtuple(
-    typename=constants.Constants.TRANSITION,
+    typename=constants.TRANSITION,
     field_names=[
-        constants.Constants.STATE_ENCODING,
-        constants.Constants.ACTION,
-        constants.Constants.REWARD,
-        constants.Constants.NEXT_STATE_ENCODING,
-        constants.Constants.ACTIVE,
-        constants.Constants.PENALTY,
+        constants.STATE_ENCODING,
+        constants.ACTION,
+        constants.REWARD,
+        constants.NEXT_STATE_ENCODING,
+        constants.ACTIVE,
+        constants.PENALTY,
     ],
 )

@@ -45,7 +45,7 @@ class TabularSARSALambda(tabular_learner.TabularLearner):
             target=target,
         )
         self._state_action_eligibility_traces = self._initialise_values(
-            initialisation_strategy=constants.Constants.ZEROS
+            initialisation_strategy=constants.ZEROS
         )
         self._trace_lambda = trace_lambda
 

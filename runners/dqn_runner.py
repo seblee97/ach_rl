@@ -58,8 +58,8 @@ class DQNRunner(base_runner.BaseRunner):
         state_dim = tuple(config.encoded_state_dimensions)
         replay_size = config.replay_buffer_size
         penalties = config.shaping_implementation in [
-            constants.Constants.TRAIN_Q_NETWORK,
-            constants.Constants.TRAIN_TARGET_NETWORK,
+            constants.TRAIN_Q_NETWORK,
+            constants.TRAIN_TARGET_NETWORK,
         ]
         return replay_buffer.ReplayBuffer(
             replay_size=replay_size,
@@ -90,7 +90,7 @@ class DQNRunner(base_runner.BaseRunner):
 
             if (
                 self._visitation_penalty is None
-                or self._shaping_implementation == constants.Constants.ACT
+                or self._shaping_implementation == constants.ACT
             ):
                 penalty = None
             else:
@@ -126,7 +126,7 @@ class DQNRunner(base_runner.BaseRunner):
 
     def _setup_learner(self, config: ach_config.AchConfig):  # TODO: similar to envs
         """Initialise learner specified in configuration."""
-        if config.type == constants.Constants.BOOTSTRAPPED_ENSEMBLE_DQN:
+        if config.type == constants.BOOTSTRAPPED_ENSEMBLE_DQN:
             self._num_learners = config.num_learners
             self._mask_probability = config.mask_probability
             self._ensemble = True
@@ -146,7 +146,7 @@ class DQNRunner(base_runner.BaseRunner):
                 device=config.experiment_device,
                 gradient_clipping=config.gradient_clipping,
             )
-        elif config.type == constants.Constants.VANILLA_DQN:
+        elif config.type == constants.VANILLA_DQN:
             self._num_learners = None
             self._mask_probability = None
             self._ensemble = False
@@ -171,13 +171,13 @@ class DQNRunner(base_runner.BaseRunner):
     def _pre_episode_log(self, episode: int):
         """Logging pre-episode. Includes value-function, individual run."""
         visualisation_configurations = [
-            (constants.Constants.MAX_VALUES_PDF, True, False),
-            (constants.Constants.QUIVER_VALUES_PDF, False, True),
-            (constants.Constants.QUIVER_MAX_VALUES_PDF, True, True),
+            (constants.MAX_VALUES_PDF, True, False),
+            (constants.QUIVER_VALUES_PDF, False, True),
+            (constants.QUIVER_MAX_VALUES_PDF, True, True),
         ]
         if self._visualisation_iteration(
-            constants.Constants.VALUE_FUNCTION, episode
-        ) or self._array_log_iteration(constants.Constants.VALUE_FUNCTION, episode):
+            constants.VALUE_FUNCTION, episode
+        ) or self._array_log_iteration(constants.VALUE_FUNCTION, episode):
             # compute state action values for a tabular env
             state_action_values = {}
             for tuple_state in self._environment.state_space:
@@ -190,14 +190,14 @@ class DQNRunner(base_runner.BaseRunner):
                     # stacked_representation = np.repeat(
                     #     np_state_representation, self._environment.frame_stack, 0
                     # )
-                    pixel_state = torch.from_numpy(
-                        np_state_representation
-                    ).to(device=self._device, dtype=torch.float)
+                    pixel_state = torch.from_numpy(np_state_representation).to(
+                        device=self._device, dtype=torch.float
+                    )
                     state_action_values[tuple_state] = (
                         self._learner.q_network(pixel_state).cpu().numpy().squeeze()
                     )
 
-        if self._visualisation_iteration(constants.Constants.VALUE_FUNCTION, episode):
+        if self._visualisation_iteration(constants.VALUE_FUNCTION, episode):
             for visualisation_configuration in visualisation_configurations:
                 self._logger.info(
                     "Serial value function visualisation: "
@@ -211,39 +211,33 @@ class DQNRunner(base_runner.BaseRunner):
                     ),
                     plot_max_values=visualisation_configuration[1],
                     quiver=visualisation_configuration[2],
-                    over_actions=constants.Constants.MAX,
+                    over_actions=constants.MAX,
                 )
-        if self._visualisation_iteration(
-            constants.Constants.VISITATION_COUNT_HEATMAP, episode
-        ):
+        if self._visualisation_iteration(constants.VISITATION_COUNT_HEATMAP, episode):
             self._environment.plot_value_function(
                 values=self._learner.state_visitation_counts,
                 save_path=os.path.join(
                     self._visualisations_folder_path,
-                    f"{episode}_{constants.Constants.VISITATION_COUNT_HEATMAP_PDF}",
+                    f"{episode}_{constants.VISITATION_COUNT_HEATMAP_PDF}",
                 ),
                 plot_max_values=True,
                 quiver=False,
-                over_actions=constants.Constants.SELECT,
+                over_actions=constants.SELECT,
             )
         if episode != 0:
-            if self._visualisation_iteration(
-                constants.Constants.INDIVIDUAL_TRAIN_RUN, episode
-            ):
+            if self._visualisation_iteration(constants.INDIVIDUAL_TRAIN_RUN, episode):
                 self._data_logger.plot_array_data(
-                    name=f"{constants.Constants.INDIVIDUAL_TRAIN_RUN}_{episode}",
+                    name=f"{constants.INDIVIDUAL_TRAIN_RUN}_{episode}",
                     data=self._environment.plot_episode_history(),
                 )
-            if self._visualisation_iteration(
-                constants.Constants.INDIVIDUAL_TEST_RUN, episode
-            ):
+            if self._visualisation_iteration(constants.INDIVIDUAL_TEST_RUN, episode):
                 self._data_logger.plot_array_data(
-                    name=f"{constants.Constants.INDIVIDUAL_TEST_RUN}_{episode}",
+                    name=f"{constants.INDIVIDUAL_TEST_RUN}_{episode}",
                     data=self._environment.plot_episode_history(train=False),
                 )
-        if self._array_log_iteration(constants.Constants.VALUE_FUNCTION, episode):
+        if self._array_log_iteration(constants.VALUE_FUNCTION, episode):
             self._write_array(
-                tag=constants.Constants.VALUE_FUNCTION,
+                tag=constants.VALUE_FUNCTION,
                 episode=episode,
                 array=state_action_values,
             )
@@ -309,7 +303,7 @@ class DQNRunner(base_runner.BaseRunner):
             if self._visitation_penalty is None:
                 buffer_penalty = None
             else:
-                if self._shaping_implementation == constants.Constants.ACT:
+                if self._shaping_implementation == constants.ACT:
                     buffer_penalty = None
                 else:
                     buffer_penalty = acting_penalty
@@ -366,13 +360,13 @@ class DQNRunner(base_runner.BaseRunner):
                     sample_penalties_infos[info_key].append(np.mean(info))
 
                 if self._shaping_implementation in [
-                    constants.Constants.TRAIN_Q_NETWORK,
-                    constants.Constants.TRAIN_TARGET_NETWORK,
+                    constants.TRAIN_Q_NETWORK,
+                    constants.TRAIN_TARGET_NETWORK,
                 ]:
                     penalty = torch.Tensor(sample_penalty).to(
                         device=self._device, dtype=torch.float
                     )
-                elif self._shaping_implementation in [constants.Constants.ACT]:
+                elif self._shaping_implementation in [constants.ACT]:
                     penalty = torch.from_numpy(experience_sample[6]).to(
                         device=self._device, dtype=torch.float
                     )
@@ -419,7 +413,7 @@ class DQNRunner(base_runner.BaseRunner):
         episode_steps = self._environment.episode_step_count
 
         self._write_scalar(
-            tag=constants.Constants.LOSS,
+            tag=constants.LOSS,
             episode=episode,
             scalar=episode_loss / episode_steps,
         )
@@ -432,56 +426,54 @@ class DQNRunner(base_runner.BaseRunner):
                     loss_scalar = np.nan
                     reward_scalar = np.nan
                 self._write_scalar(
-                    tag=constants.Constants.BRANCH_LOSS,
+                    tag=constants.BRANCH_LOSS,
                     episode=episode,
                     scalar=loss_scalar,
                     df_tag=f"branch_{i}_loss",
                 )
                 self._write_scalar(
-                    tag=constants.Constants.BRANCH_REWARD,
+                    tag=constants.BRANCH_REWARD,
                     episode=episode,
                     scalar=reward_scalar,
                     df_tag=f"branch_{i}_reward",
                 )
+        self._write_scalar(tag=constants.EPSILON, episode=episode, scalar=epsilon)
         self._write_scalar(
-            tag=constants.Constants.EPSILON, episode=episode, scalar=epsilon
-        )
-        self._write_scalar(
-            tag=constants.Constants.MEAN_VISITATION_PENALTY,
+            tag=constants.MEAN_VISITATION_PENALTY,
             episode=episode,
             scalar=mean_sample_penalty,
-            df_tag=f"sample_{constants.Constants.MEAN_VISITATION_PENALTY}",
+            df_tag=f"sample_{constants.MEAN_VISITATION_PENALTY}",
         )
         self._write_scalar(
-            tag=constants.Constants.MEAN_VISITATION_PENALTY,
+            tag=constants.MEAN_VISITATION_PENALTY,
             episode=episode,
             scalar=mean_acting_penalty,
-            df_tag=f"acting_{constants.Constants.MEAN_VISITATION_PENALTY}",
+            df_tag=f"acting_{constants.MEAN_VISITATION_PENALTY}",
         )
         for penalty_info, ensemble_penalty_info in mean_sample_penalty_info.items():
             self._write_scalar(
-                tag=constants.Constants.MEAN_PENALTY_INFO,
+                tag=constants.MEAN_PENALTY_INFO,
                 episode=episode,
                 scalar=ensemble_penalty_info,
                 df_tag=f"sample_{penalty_info}",
             )
         for penalty_info, ensemble_penalty_info in std_sample_penalty_info.items():
             self._write_scalar(
-                tag=constants.Constants.STD_PENALTY_INFO,
+                tag=constants.STD_PENALTY_INFO,
                 episode=episode,
                 scalar=ensemble_penalty_info,
                 df_tag=f"sample_{penalty_info}_std",
             )
         for penalty_info, ensemble_penalty_info in mean_acting_penalty_info.items():
             self._write_scalar(
-                tag=constants.Constants.MEAN_PENALTY_INFO,
+                tag=constants.MEAN_PENALTY_INFO,
                 episode=episode,
                 scalar=ensemble_penalty_info,
                 df_tag=f"acting_{penalty_info}",
             )
         for penalty_info, ensemble_penalty_info in std_acting_penalty_info.items():
             self._write_scalar(
-                tag=constants.Constants.STD_PENALTY_INFO,
+                tag=constants.STD_PENALTY_INFO,
                 episode=episode,
                 scalar=ensemble_penalty_info,
                 df_tag=f"acting_{penalty_info}_std",
@@ -507,10 +499,10 @@ class DQNRunner(base_runner.BaseRunner):
 
         Here, there are various methods for performing inference.
         """
-        greedy_sample = constants.Constants.GREEDY_SAMPLE
-        greedy_mean = constants.Constants.GREEDY_MEAN
-        greedy_vote = constants.Constants.GREEDY_VOTE
-        greedy_individual = constants.Constants.GREEDY_INDIVIDUAL
+        greedy_sample = constants.GREEDY_SAMPLE
+        greedy_mean = constants.GREEDY_MEAN
+        greedy_vote = constants.GREEDY_VOTE
+        greedy_individual = constants.GREEDY_INDIVIDUAL
 
         if self._targets is None:
             pass
@@ -523,29 +515,29 @@ class DQNRunner(base_runner.BaseRunner):
                     reward, length = self._greedy_test_episode(
                         episode=episode,
                         action_selection_method=self._learner.select_target_action,
-                        action_selection_method_args={constants.Constants.BRANCH: i},
+                        action_selection_method_args={constants.BRANCH: i},
                         tag_=f"_{greedy_individual}_{i}",
                         output=True,
                     )
                     test_episode_rewards.append(reward)
                     test_episode_lengths.append(length)
                 self._write_scalar(
-                    tag=f"{constants.Constants.TEST}_{constants.Constants.ENSEMBLE_EPISODE_REWARD_MEAN}",
+                    tag=f"{constants.TEST}_{constants.ENSEMBLE_EPISODE_REWARD_MEAN}",
                     episode=episode,
                     scalar=np.mean(test_episode_rewards),
                 )
                 self._write_scalar(
-                    tag=f"{constants.Constants.TEST}_{constants.Constants.ENSEMBLE_EPISODE_LENGTH_MEAN}",
+                    tag=f"{constants.TEST}_{constants.ENSEMBLE_EPISODE_LENGTH_MEAN}",
                     episode=episode,
                     scalar=np.mean(test_episode_lengths),
                 )
                 self._write_scalar(
-                    tag=f"{constants.Constants.TEST}_{constants.Constants.ENSEMBLE_EPISODE_REWARD_STD}",
+                    tag=f"{constants.TEST}_{constants.ENSEMBLE_EPISODE_REWARD_STD}",
                     episode=episode,
                     scalar=np.std(test_episode_rewards),
                 )
                 self._write_scalar(
-                    tag=f"{constants.Constants.TEST}_{constants.Constants.ENSEMBLE_EPISODE_LENGTH_STD}",
+                    tag=f"{constants.TEST}_{constants.ENSEMBLE_EPISODE_LENGTH_STD}",
                     episode=episode,
                     scalar=np.std(test_episode_lengths),
                 )

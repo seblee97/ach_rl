@@ -26,7 +26,7 @@ class ReducingEntropyWindowPenalty(
         self._entropy_history = {}
 
     def compute_penalty(self, episode: int, penalty_info: Dict[str, Any]):
-        state = penalty_info[constants.Constants.STATE]
+        state = penalty_info[constants.STATE]
         if state not in self._entropy_history:
             self._entropy_history[state] = collections.deque(
                 maxlen=self._moving_average_window
@@ -36,7 +36,7 @@ class ReducingEntropyWindowPenalty(
 
         previous_moving_average = np.mean(self._entropy_history[state])
 
-        entropy = penalty_info[constants.Constants.CURRENT_STATE_POLICY_ENTROPY]
+        entropy = penalty_info[constants.CURRENT_STATE_POLICY_ENTROPY]
 
         self._entropy_history[state].append(entropy)
 

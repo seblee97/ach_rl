@@ -44,11 +44,11 @@ class MultiroomCurriculum(multi_room.MultiRoom, base_curriculum.BaseCurriculum):
             representation=representation,
             frame_stack=frame_stack,
             episode_timeout=episode_timeout,
-            json_map_path=json_map_path
+            json_map_path=json_map_path,
         )
         base_curriculum.BaseCurriculum.__init__(
             self, transition_episodes=transition_episodes
-        )   
+        )
 
         self._environment_changes = iter(environment_changes)
         self._next_change = next(self._environment_changes)
@@ -56,13 +56,13 @@ class MultiroomCurriculum(multi_room.MultiRoom, base_curriculum.BaseCurriculum):
     def _transition(self):
         """Transition environment to next phase."""
         for sub_change in self._next_change:
-            if sub_change[0] == constants.Constants.CHANGE_STARTING_POSITION:
+            if sub_change[0] == constants.CHANGE_STARTING_POSITION:
                 new_starting_xy = sub_change[1]
                 self._change_starting_position(new_starting_xy=new_starting_xy)
-            elif sub_change[0] == constants.Constants.CHANGE_REWARD_POSITIONS:
+            elif sub_change[0] == constants.CHANGE_REWARD_POSITIONS:
                 new_positions = [tuple(p) for p in sub_change[1]]
                 self._change_reward_positions(new_positions=new_positions)
-            elif sub_change[0] == constants.Constants.CHANGE_KEY_POSITIONS:
+            elif sub_change[0] == constants.CHANGE_KEY_POSITIONS:
                 new_positions = [tuple(p) for p in sub_change[1]]
                 self._change_key_positions(new_positions=new_positions)
             else:
@@ -81,7 +81,9 @@ class MultiroomCurriculum(multi_room.MultiRoom, base_curriculum.BaseCurriculum):
     def _change_key_positions(self, new_positions: List[List[int]]):
         for new_position in new_positions:
             assert new_position not in self._walls, "new position can not be in wall."
-            assert new_position in self._positional_state_space, "new position must be in positional state space."
+            assert (
+                new_position in self._positional_state_space
+            ), "new position must be in positional state space."
 
         self._key_positions = new_positions
 
@@ -89,7 +91,9 @@ class MultiroomCurriculum(multi_room.MultiRoom, base_curriculum.BaseCurriculum):
         # ensure new reward positions are accessible (i.e. not in wall or outside grid)
         for new_position in new_positions:
             assert new_position not in self._walls, "new position can not be in wall."
-            assert new_position in self._positional_state_space, "new position must be in positional state space."
+            assert (
+                new_position in self._positional_state_space
+            ), "new position must be in positional state space."
 
         self._rewards = self._get_reward_specification(
             reward_positions=new_positions,

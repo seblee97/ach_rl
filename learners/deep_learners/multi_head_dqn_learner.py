@@ -100,11 +100,11 @@ class MultiHeadDQNLearner(base_learner.BaseLearner):
         """Setup optimiser.
 
         Supports adam and rms_prop."""
-        if self._optimiser_type == constants.Constants.ADAM:
+        if self._optimiser_type == constants.ADAM:
             optimiser = torch.optim.Adam(
                 self._q_network.parameters(), lr=self._learning_rate
             )
-        elif self._optimiser_type == constants.Constants.RMS_PROP:
+        elif self._optimiser_type == constants.RMS_PROP:
             optimiser = torch.optim.RMSprop(
                 self._q_network.parameters(),
                 lr=self._learning_rate,

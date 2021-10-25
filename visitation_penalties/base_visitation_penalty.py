@@ -92,14 +92,13 @@ class BaseVisitationPenalty(abc.ABC):
         current_state_select_uncertainty = np.std(current_state_select, axis=0)
 
         return {
-            constants.Constants.STATE: state,
-            constants.Constants.CURRENT_STATE_MAX_UNCERTAINTY: current_state_max_uncertainty,
-            constants.Constants.CURRENT_STATE_MEAN_UNCERTAINTY: current_state_mean_uncertainty,
-            constants.Constants.CURRENT_STATE_SELECT_UNCERTAINTY: current_state_select_uncertainty,
-            constants.Constants.CURRENT_STATE_POLICY_ENTROPY: current_state_policy_entropy,
-            constants.Constants.NEXT_STATE_MAX_UNCERTAINTY: next_state_max_uncertainty,
-            constants.Constants.NEXT_STATE_MEAN_UNCERTAINTY: next_state_mean_uncertainty,
-            constants.Constants.NEXT_STATE_POLICY_ENTROPY: next_state_policy_entropy,
+            constants.CURRENT_STATE_MAX_UNCERTAINTY: current_state_max_uncertainty,
+            constants.CURRENT_STATE_MEAN_UNCERTAINTY: current_state_mean_uncertainty,
+            constants.CURRENT_STATE_SELECT_UNCERTAINTY: current_state_select_uncertainty,
+            constants.CURRENT_STATE_POLICY_ENTROPY: current_state_policy_entropy,
+            constants.NEXT_STATE_MAX_UNCERTAINTY: next_state_max_uncertainty,
+            constants.NEXT_STATE_MEAN_UNCERTAINTY: next_state_mean_uncertainty,
+            constants.NEXT_STATE_POLICY_ENTROPY: next_state_policy_entropy,
         }
 
     def __call__(self, episode, state, action, next_state, *args, **kwargs):

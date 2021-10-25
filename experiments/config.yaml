@@ -29,8 +29,8 @@ multiroom_curriculum:
         - ["change_reward_positions", [[16, 5], [31, 4]]]
 
 multiroom:
-    ascii_map_path: three_room.txt
-    json_map_path: three_room.json
+    map_ascii_path: three_room.txt
+    map_yaml_path: three_room.yaml
     episode_timeout: 400 # infinity if not given
     plot_origin: lower
     
@@ -68,7 +68,7 @@ atari:
 
 
 learner: 
-    type: ensemble_q_learning
+    type: q_learning
 
     pretrained_model_path:
 
@@ -106,7 +106,7 @@ learner:
     # policy_entropy_penalty, potential_based_adaptive_uncertainty
     # reducing_variance_window, or reducing_entropy_window
     # signed_uncertainty_window_penalty
-    visitation_penalty_type: reducing_entropy_window
+    visitation_penalty_type: hard_coded
 
     # when individual penalties are computed with global values (ensemble-wide),
     # how often are these global values updated.
@@ -117,7 +117,7 @@ learner:
 
     hard_coded: 
         vp_schedule:
-            - [0, -0.0] # from step 0, 0 penalty
+            - [0, -0.01] # from step 0, 0 penalty
 
     deterministic_exponential_decay:
         # y = Ab^(cx)
@@ -253,8 +253,8 @@ training:
 
 logging:
     print_frequency: 1
-    checkpoint_frequency: 500
-    model_checkpoint_frequency: 5
+    checkpoint_frequency: 50
+    model_checkpoint_frequency: 
     animation_library: matplotlib_animation
     animation_file_format: gif
     arrays:
@@ -282,13 +282,14 @@ logging:
         # - [value_function_std, 50]
         # - [individual_value_functions, 50]
         # - visitation_count_heatmap
-        - [individual_test_run, 200]
+        # - [individual_test_run, 200]
         - [individual_train_run, 100]
     post_visualisations:
         - value_function
         # - value_function_std
         # - policy_entropy
 
-post_processing:
-    smoothing: 40
+plotting:
+    xlabel: epoch
+    smoothing: 20
         

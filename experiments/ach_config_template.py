@@ -8,34 +8,34 @@ class AChConfigTemplate:
     _minigrid_template = config_template.Template(
         fields=[
             config_field.Field(
-                name=constants.Constants.SIZE,
+                name=constants.SIZE,
                 types=[list],
                 requirements=[lambda x: all(isinstance(y, int) and y > 0 for y in x)],
             ),
             config_field.Field(
-                name=constants.Constants.LIVING_REWARD,
+                name=constants.LIVING_REWARD,
                 types=[float, int, type(None)],
                 requirements=[lambda x: x <= 0],
             ),
             config_field.Field(
-                name=constants.Constants.NO_OP_PENALTY,
+                name=constants.NO_OP_PENALTY,
                 types=[float, int, type(None)],
                 requirements=[lambda x: x is None or x >= 0],
             ),
             config_field.Field(
-                name=constants.Constants.STARTING_POSITION,
+                name=constants.STARTING_POSITION,
                 types=[list, type(None)],
                 requirements=[
                     lambda x: x is None or (len(x) == 2 and all(y >= 0 for y in x))
                 ],
             ),
             config_field.Field(
-                name=constants.Constants.NUM_REWARDS,
+                name=constants.NUM_REWARDS,
                 types=[int],
                 requirements=[lambda x: x > 0],
             ),
             config_field.Field(
-                name=constants.Constants.REWARD_POSITIONS,
+                name=constants.REWARD_POSITIONS,
                 types=[list, type(None)],
                 requirements=[
                     lambda x: x is None or all(isinstance(y, list) for y in x),
@@ -44,657 +44,623 @@ class AChConfigTemplate:
                 ],
             ),
             config_field.Field(
-                name=constants.Constants.REWARD_MAGNITUDES,
+                name=constants.REWARD_MAGNITUDES,
                 types=[list],
                 requirements=[lambda x: all(isinstance(r, float) for r in x)],
             ),
             config_field.Field(
-                name=constants.Constants.REPEAT_REWARDS,
+                name=constants.REPEAT_REWARDS,
                 types=[bool],
             ),
             config_field.Field(
-                name=constants.Constants.EPISODE_TIMEOUT,
+                name=constants.EPISODE_TIMEOUT,
                 types=[int, type(None)],
                 requirements=[lambda x: x is None or x > 0],
             ),
             config_field.Field(
-                name=constants.Constants.PLOT_ORIGIN,
+                name=constants.PLOT_ORIGIN,
                 types=[str],
-                requirements=[
-                    lambda x: x
-                    in [constants.Constants.UPPER, constants.Constants.LOWER]
-                ],
+                requirements=[lambda x: x in [constants.UPPER, constants.LOWER]],
             ),
         ],
-        dependent_variables=[constants.Constants.ENVIRONMENT],
-        dependent_variables_required_values=[[constants.Constants.MINIGRID]],
-        level=[constants.Constants.MINIGRID],
+        dependent_variables=[constants.ENVIRONMENT],
+        dependent_variables_required_values=[[constants.MINIGRID]],
+        level=[constants.MINIGRID],
     )
 
     _minigrid_curriculum_template = config_template.Template(
         fields=[
             config_field.Field(
-                name=constants.Constants.TRANSITION_EPISODES,
+                name=constants.TRANSITION_EPISODES,
                 types=[list],
                 requirements=[lambda x: all(isinstance(y, int) for y in x)],
             ),
             config_field.Field(
-                name=constants.Constants.ENVIRONMENT_CHANGES,
+                name=constants.ENVIRONMENT_CHANGES,
                 types=[list],
             ),
         ],
-        level=[constants.Constants.MINIGRID_CURRICULUM],
+        level=[constants.MINIGRID_CURRICULUM],
         dependent_variables=[
-            constants.Constants.ENVIRONMENT,
-            constants.Constants.APPLY_CURRICULUM,
+            constants.ENVIRONMENT,
+            constants.APPLY_CURRICULUM,
         ],
-        dependent_variables_required_values=[[constants.Constants.MINIGRID], [True]],
+        dependent_variables_required_values=[[constants.MINIGRID], [True]],
     )
 
     _multiroom_curriculum_template = config_template.Template(
         fields=[
             config_field.Field(
-                name=constants.Constants.TRANSITION_EPISODES,
+                name=constants.TRANSITION_EPISODES,
                 types=[list],
                 requirements=[lambda x: all(isinstance(y, int) for y in x)],
             ),
             config_field.Field(
-                name=constants.Constants.ENVIRONMENT_CHANGES,
+                name=constants.ENVIRONMENT_CHANGES,
                 types=[list],
             ),
         ],
-        level=[constants.Constants.MULTIIROOM_CURRICULUM],
+        level=[constants.MULTIIROOM_CURRICULUM],
         dependent_variables=[
-            constants.Constants.ENVIRONMENT,
-            constants.Constants.APPLY_CURRICULUM,
+            constants.ENVIRONMENT,
+            constants.APPLY_CURRICULUM,
         ],
-        dependent_variables_required_values=[[constants.Constants.MULTIROOM], [True]],
+        dependent_variables_required_values=[[constants.MULTIROOM], [True]],
     )
 
     _multiroom_template = config_template.Template(
         fields=[
-            config_field.Field(name=constants.Constants.ASCII_MAP_PATH, types=[str]),
+            config_field.Field(name=constants.MAP_ASCII_PATH, types=[str]),
+            config_field.Field(name=constants.MAP_YAML_PATH, types=[str]),
             config_field.Field(
-                name=constants.Constants.JSON_MAP_PATH, types=[type(None), str]
-            ),
-            config_field.Field(
-                name=constants.Constants.EPISODE_TIMEOUT,
+                name=constants.EPISODE_TIMEOUT,
                 types=[type(None), int],
                 requirements=[lambda x: x is None or x > 0],
             ),
             config_field.Field(
-                name=constants.Constants.PLOT_ORIGIN,
+                name=constants.PLOT_ORIGIN,
                 types=[str],
-                requirements=[
-                    lambda x: x
-                    in [constants.Constants.UPPER, constants.Constants.LOWER]
-                ],
+                requirements=[lambda x: x in [constants.UPPER, constants.LOWER]],
             ),
             config_field.Field(
-                name=constants.Constants.REWARD_SPECIFICATIONS,
+                name=constants.REWARD_SPECIFICATIONS,
                 types=[list],
                 requirements=[lambda x: all(isinstance(y, dict) for y in x)],
             ),
             config_field.Field(
-                name=constants.Constants.REPRESENTATION,
+                name=constants.REPRESENTATION,
                 types=[str],
                 requirements=[
-                    lambda x: x
-                    in [constants.Constants.PIXEL, constants.Constants.AGENT_POSITION]
+                    lambda x: x in [constants.PIXEL, constants.AGENT_POSITION]
                 ],
             ),
             config_field.Field(
-                name=constants.Constants.ENCODED_STATE_DIMENSIONS,
+                name=constants.ENCODED_STATE_DIMENSIONS,
                 types=[list],
                 requirements=[lambda x: all(isinstance(y, int) and y > 0 for y in x)],
             ),
             config_field.Field(
-                name=constants.Constants.FRAME_STACK,
+                name=constants.FRAME_STACK,
                 types=[int],
                 requirements=[lambda x: x > 0],
             ),
         ],
-        level=[constants.Constants.MULTIROOM],
+        level=[constants.MULTIROOM],
         dependent_variables=[
-            constants.Constants.ENVIRONMENT,
+            constants.ENVIRONMENT,
         ],
-        dependent_variables_required_values=[[constants.Constants.MULTIROOM]],
+        dependent_variables_required_values=[[constants.MULTIROOM]],
     )
 
     _atari_template = config_template.Template(
         fields=[
             config_field.Field(
-                name=constants.Constants.ATARI_ENV_NAME,
+                name=constants.ATARI_ENV_NAME,
                 types=[str],
-                requirements=[lambda x: x in constants.Constants.ATARI_ENVS],
+                requirements=[lambda x: x in constants.ATARI_ENVS],
             ),
             config_field.Field(
-                name=constants.Constants.IMPLEMENTATION,
+                name=constants.IMPLEMENTATION,
                 types=[str],
-                requirements=[
-                    lambda x: x
-                    in [constants.Constants.FUNCTIONAL, constants.Constants.WRAPPER]
-                ],
+                requirements=[lambda x: x in [constants.FUNCTIONAL, constants.WRAPPER]],
             ),
             config_field.Field(
-                name=constants.Constants.PRE_PROCESSING,
+                name=constants.PRE_PROCESSING,
                 types=[list],
                 requirements=[lambda x: all(isinstance(y, dict) for y in x)],
             ),
             config_field.Field(
-                name=constants.Constants.FRAME_STACK,
+                name=constants.FRAME_STACK,
                 types=[int],
                 requirements=[lambda x: x > 0],
             ),
             config_field.Field(
-                name=constants.Constants.FRAME_SKIP,
+                name=constants.FRAME_SKIP,
                 types=[int],
                 requirements=[lambda x: x >= 0],
             ),
             config_field.Field(
-                name=constants.Constants.EPISODE_TIMEOUT,
+                name=constants.EPISODE_TIMEOUT,
                 types=[int, type(None)],
                 requirements=[lambda x: x is None or x > 0],
             ),
             config_field.Field(
-                name=constants.Constants.ENCODED_STATE_DIMENSIONS,
+                name=constants.ENCODED_STATE_DIMENSIONS,
                 types=[list],
                 requirements=[lambda x: all(isinstance(y, int) and y > 0 for y in x)],
             ),
             config_field.Field(
-                name=constants.Constants.PLOT_ORIGIN,
+                name=constants.PLOT_ORIGIN,
                 types=[str],
-                requirements=[
-                    lambda x: x
-                    in [constants.Constants.UPPER, constants.Constants.LOWER]
-                ],
+                requirements=[lambda x: x in [constants.UPPER, constants.LOWER]],
             ),
         ],
-        dependent_variables=[constants.Constants.ENVIRONMENT],
-        dependent_variables_required_values=[[constants.Constants.ATARI]],
-        level=[constants.Constants.ATARI],
+        dependent_variables=[constants.ENVIRONMENT],
+        dependent_variables_required_values=[[constants.ATARI]],
+        level=[constants.ATARI],
     )
 
     _hard_coded_vp_template = config_template.Template(
         fields=[
             config_field.Field(
-                name=constants.Constants.VP_SCHEDULE,
+                name=constants.VP_SCHEDULE,
                 types=[list],
                 requirements=[
                     lambda x: all(isinstance(y, list) and len(y) == 2 for y in x)
                 ],
             )
         ],
-        level=[constants.Constants.LEARNER, constants.Constants.HARD_CODED],
-        dependent_variables=[constants.Constants.VISITATION_PENALTY_TYPE],
-        dependent_variables_required_values=[[constants.Constants.HARD_CODED]],
+        level=[constants.LEARNER, constants.HARD_CODED],
+        dependent_variables=[constants.VISITATION_PENALTY_TYPE],
+        dependent_variables_required_values=[[constants.HARD_CODED]],
     )
 
     _exponential_decay_vp_template = config_template.Template(
         fields=[
-            config_field.Field(name=constants.Constants.A, types=[float, int]),
-            config_field.Field(name=constants.Constants.b, types=[float, int]),
-            config_field.Field(name=constants.Constants.c, types=[float, int]),
+            config_field.Field(name=constants.A, types=[float, int]),
+            config_field.Field(name=constants.b, types=[float, int]),
+            config_field.Field(name=constants.c, types=[float, int]),
         ],
         level=[
-            constants.Constants.LEARNER,
-            constants.Constants.DETERMINISTIC_EXPONENTIAL_DECAY,
+            constants.LEARNER,
+            constants.DETERMINISTIC_EXPONENTIAL_DECAY,
         ],
-        dependent_variables=[constants.Constants.VISITATION_PENALTY_TYPE],
+        dependent_variables=[constants.VISITATION_PENALTY_TYPE],
         dependent_variables_required_values=[
-            [constants.Constants.DETERMINISTIC_EXPONENTIAL_DECAY]
+            [constants.DETERMINISTIC_EXPONENTIAL_DECAY]
         ],
     )
 
     _linear_decay_vp_template = config_template.Template(
         fields=[
-            config_field.Field(name=constants.Constants.A, types=[float, int]),
-            config_field.Field(name=constants.Constants.b, types=[float, int]),
+            config_field.Field(name=constants.A, types=[float, int]),
+            config_field.Field(name=constants.b, types=[float, int]),
         ],
         level=[
-            constants.Constants.LEARNER,
-            constants.Constants.DETERMINISTIC_LINEAR_DECAY,
+            constants.LEARNER,
+            constants.DETERMINISTIC_LINEAR_DECAY,
         ],
-        dependent_variables=[constants.Constants.VISITATION_PENALTY_TYPE],
-        dependent_variables_required_values=[
-            [constants.Constants.DETERMINISTIC_LINEAR_DECAY]
-        ],
+        dependent_variables=[constants.VISITATION_PENALTY_TYPE],
+        dependent_variables_required_values=[[constants.DETERMINISTIC_LINEAR_DECAY]],
     )
 
     _sigmoidal_decay_vp_template = config_template.Template(
         fields=[
-            config_field.Field(name=constants.Constants.A, types=[float, int]),
-            config_field.Field(name=constants.Constants.b, types=[float, int]),
-            config_field.Field(name=constants.Constants.c, types=[float, int]),
+            config_field.Field(name=constants.A, types=[float, int]),
+            config_field.Field(name=constants.b, types=[float, int]),
+            config_field.Field(name=constants.c, types=[float, int]),
         ],
         level=[
-            constants.Constants.LEARNER,
-            constants.Constants.DETERMINISTIC_SIGMOIDAL_DECAY,
+            constants.LEARNER,
+            constants.DETERMINISTIC_SIGMOIDAL_DECAY,
         ],
-        dependent_variables=[constants.Constants.VISITATION_PENALTY_TYPE],
-        dependent_variables_required_values=[
-            [constants.Constants.DETERMINISTIC_SIGMOIDAL_DECAY]
-        ],
+        dependent_variables=[constants.VISITATION_PENALTY_TYPE],
+        dependent_variables_required_values=[[constants.DETERMINISTIC_SIGMOIDAL_DECAY]],
     )
 
     _adaptive_uncertainty_template = config_template.Template(
         fields=[
             config_field.Field(
-                name=constants.Constants.MULTIPLICATIVE_FACTOR,
+                name=constants.MULTIPLICATIVE_FACTOR,
                 types=[float, int],
             ),
             config_field.Field(
-                name=constants.Constants.ACTION_FUNCTION,
+                name=constants.ACTION_FUNCTION,
                 types=[str],
                 requirements=[
                     lambda x: x
                     in [
-                        constants.Constants.MEAN,
-                        constants.Constants.MAX,
-                        constants.Constants.SELECT,
+                        constants.MEAN,
+                        constants.MAX,
+                        constants.SELECT,
                     ]
                 ],
             ),
         ],
-        level=[constants.Constants.LEARNER, constants.Constants.ADAPTIVE_UNCERTAINTY],
-        dependent_variables=[constants.Constants.VISITATION_PENALTY_TYPE],
-        dependent_variables_required_values=[
-            [constants.Constants.ADAPTIVE_UNCERTAINTY]
-        ],
+        level=[constants.LEARNER, constants.ADAPTIVE_UNCERTAINTY],
+        dependent_variables=[constants.VISITATION_PENALTY_TYPE],
+        dependent_variables_required_values=[[constants.ADAPTIVE_UNCERTAINTY]],
     )
 
     _adaptive_arriving_uncertainty_template = config_template.Template(
         fields=[
             config_field.Field(
-                name=constants.Constants.MULTIPLICATIVE_FACTOR,
+                name=constants.MULTIPLICATIVE_FACTOR,
                 types=[float, int],
             ),
             config_field.Field(
-                name=constants.Constants.ACTION_FUNCTION,
+                name=constants.ACTION_FUNCTION,
                 types=[str],
                 requirements=[
                     lambda x: x
                     in [
-                        constants.Constants.MEAN,
-                        constants.Constants.MAX,
+                        constants.MEAN,
+                        constants.MAX,
                     ]
                 ],
             ),
         ],
         level=[
-            constants.Constants.LEARNER,
-            constants.Constants.ADAPTIVE_ARRIVING_UNCERTAINTY,
+            constants.LEARNER,
+            constants.ADAPTIVE_ARRIVING_UNCERTAINTY,
         ],
-        dependent_variables=[constants.Constants.VISITATION_PENALTY_TYPE],
-        dependent_variables_required_values=[
-            [constants.Constants.ADAPTIVE_ARRIVING_UNCERTAINTY]
-        ],
+        dependent_variables=[constants.VISITATION_PENALTY_TYPE],
+        dependent_variables_required_values=[[constants.ADAPTIVE_ARRIVING_UNCERTAINTY]],
     )
 
     _potential_based_adaptive_uncertainty_template = config_template.Template(
         fields=[
             config_field.Field(
-                name=constants.Constants.MULTIPLICATIVE_FACTOR,
+                name=constants.MULTIPLICATIVE_FACTOR,
                 types=[float, int],
             ),
             config_field.Field(
-                name=constants.Constants.PRE_ACTION_FUNCTION,
+                name=constants.PRE_ACTION_FUNCTION,
                 types=[str],
                 requirements=[
                     lambda x: x
                     in [
-                        constants.Constants.MEAN,
-                        constants.Constants.MAX,
-                        constants.Constants.SELECT,
+                        constants.MEAN,
+                        constants.MAX,
+                        constants.SELECT,
                     ]
                 ],
             ),
             config_field.Field(
-                name=constants.Constants.POST_ACTION_FUNCTION,
+                name=constants.POST_ACTION_FUNCTION,
                 types=[str],
                 requirements=[
                     lambda x: x
                     in [
-                        constants.Constants.MEAN,
-                        constants.Constants.MAX,
+                        constants.MEAN,
+                        constants.MAX,
                     ]
                 ],
             ),
         ],
         level=[
-            constants.Constants.LEARNER,
-            constants.Constants.POTENTIAL_BASED_ADAPTIVE_UNCERTAINTY,
+            constants.LEARNER,
+            constants.POTENTIAL_BASED_ADAPTIVE_UNCERTAINTY,
         ],
-        dependent_variables=[constants.Constants.VISITATION_PENALTY_TYPE],
+        dependent_variables=[constants.VISITATION_PENALTY_TYPE],
         dependent_variables_required_values=[
-            [constants.Constants.POTENTIAL_BASED_ADAPTIVE_UNCERTAINTY]
+            [constants.POTENTIAL_BASED_ADAPTIVE_UNCERTAINTY]
         ],
     )
 
     _policy_entropy_penalty_template = config_template.Template(
         fields=[
             config_field.Field(
-                name=constants.Constants.MULTIPLICATIVE_FACTOR,
+                name=constants.MULTIPLICATIVE_FACTOR,
                 types=[float, int],
             ),
         ],
         level=[
-            constants.Constants.LEARNER,
-            constants.Constants.POLICY_ENTROPY_PENALTY,
+            constants.LEARNER,
+            constants.POLICY_ENTROPY_PENALTY,
         ],
-        dependent_variables=[constants.Constants.VISITATION_PENALTY_TYPE],
-        dependent_variables_required_values=[
-            [constants.Constants.POLICY_ENTROPY_PENALTY]
-        ],
+        dependent_variables=[constants.VISITATION_PENALTY_TYPE],
+        dependent_variables_required_values=[[constants.POLICY_ENTROPY_PENALTY]],
     )
 
     _potential_based_policy_entropy_penalty_template = config_template.Template(
         fields=[
             config_field.Field(
-                name=constants.Constants.MULTIPLICATIVE_FACTOR,
+                name=constants.MULTIPLICATIVE_FACTOR,
                 types=[float, int],
             ),
         ],
         level=[
-            constants.Constants.LEARNER,
-            constants.Constants.POTENTIAL_BASED_POLICY_ENTROPY_PENALTY,
+            constants.LEARNER,
+            constants.POTENTIAL_BASED_POLICY_ENTROPY_PENALTY,
         ],
-        dependent_variables=[constants.Constants.VISITATION_PENALTY_TYPE],
+        dependent_variables=[constants.VISITATION_PENALTY_TYPE],
         dependent_variables_required_values=[
-            [constants.Constants.POTENTIAL_BASED_POLICY_ENTROPY_PENALTY]
+            [constants.POTENTIAL_BASED_POLICY_ENTROPY_PENALTY]
         ],
     )
 
     _reducing_variance_window_penalty_template = config_template.Template(
         fields=[
             config_field.Field(
-                name=constants.Constants.EXPECTED_MULTIPLICATIVE_FACTOR,
+                name=constants.EXPECTED_MULTIPLICATIVE_FACTOR,
                 types=[float, int],
             ),
             config_field.Field(
-                name=constants.Constants.UNEXPECTED_MULTIPLICATIVE_FACTOR,
+                name=constants.UNEXPECTED_MULTIPLICATIVE_FACTOR,
                 types=[float, int],
             ),
             config_field.Field(
-                name=constants.Constants.ACTION_FUNCTION,
+                name=constants.ACTION_FUNCTION,
                 types=[str],
                 requirements=[
                     lambda x: x
                     in [
-                        constants.Constants.MEAN,
-                        constants.Constants.MAX,
+                        constants.MEAN,
+                        constants.MAX,
                     ]
                 ],
             ),
             config_field.Field(
-                name=constants.Constants.MOVING_AVERAGE_WINDOW,
+                name=constants.MOVING_AVERAGE_WINDOW,
                 types=[int],
                 requirements=[lambda x: x > 0],
             ),
         ],
         level=[
-            constants.Constants.LEARNER,
-            constants.Constants.REDUCING_VARIANCE_WINDOW,
+            constants.LEARNER,
+            constants.REDUCING_VARIANCE_WINDOW,
         ],
-        dependent_variables=[constants.Constants.VISITATION_PENALTY_TYPE],
-        dependent_variables_required_values=[
-            [constants.Constants.REDUCING_VARIANCE_WINDOW]
-        ],
+        dependent_variables=[constants.VISITATION_PENALTY_TYPE],
+        dependent_variables_required_values=[[constants.REDUCING_VARIANCE_WINDOW]],
     )
 
     _reducing_entropy_window_penalty_template = config_template.Template(
         fields=[
             config_field.Field(
-                name=constants.Constants.EXPECTED_MULTIPLICATIVE_FACTOR,
+                name=constants.EXPECTED_MULTIPLICATIVE_FACTOR,
                 types=[float, int],
             ),
             config_field.Field(
-                name=constants.Constants.UNEXPECTED_MULTIPLICATIVE_FACTOR,
+                name=constants.UNEXPECTED_MULTIPLICATIVE_FACTOR,
                 types=[float, int],
             ),
             config_field.Field(
-                name=constants.Constants.MOVING_AVERAGE_WINDOW,
+                name=constants.MOVING_AVERAGE_WINDOW,
                 types=[int],
                 requirements=[lambda x: x > 0],
             ),
         ],
         level=[
-            constants.Constants.LEARNER,
-            constants.Constants.REDUCING_ENTROPY_WINDOW,
+            constants.LEARNER,
+            constants.REDUCING_ENTROPY_WINDOW,
         ],
-        dependent_variables=[constants.Constants.VISITATION_PENALTY_TYPE],
-        dependent_variables_required_values=[
-            [constants.Constants.REDUCING_ENTROPY_WINDOW]
-        ],
+        dependent_variables=[constants.VISITATION_PENALTY_TYPE],
+        dependent_variables_required_values=[[constants.REDUCING_ENTROPY_WINDOW]],
     )
 
     _signed_uncertainty_window_penalty_template = config_template.Template(
         fields=[
             config_field.Field(
-                name=constants.Constants.POSITIVE_MULITPLICATIVE_FACTOR,
+                name=constants.POSITIVE_MULITPLICATIVE_FACTOR,
                 types=[float, int],
             ),
             config_field.Field(
-                name=constants.Constants.NEGATIVE_MULITPLICATIVE_FACTOR,
+                name=constants.NEGATIVE_MULITPLICATIVE_FACTOR,
                 types=[float, int],
             ),
             config_field.Field(
-                name=constants.Constants.ACTION_FUNCTION,
+                name=constants.ACTION_FUNCTION,
                 types=[str],
                 requirements=[
                     lambda x: x
                     in [
-                        constants.Constants.MEAN,
-                        constants.Constants.MAX,
+                        constants.MEAN,
+                        constants.MAX,
                     ]
                 ],
             ),
             config_field.Field(
-                name=constants.Constants.MOVING_AVERAGE_WINDOW,
+                name=constants.MOVING_AVERAGE_WINDOW,
                 types=[int],
                 requirements=[lambda x: x > 0],
             ),
         ],
         level=[
-            constants.Constants.LEARNER,
-            constants.Constants.SIGNED_UNCERTAINTY_WINDOW,
+            constants.LEARNER,
+            constants.SIGNED_UNCERTAINTY_WINDOW,
         ],
-        dependent_variables=[constants.Constants.VISITATION_PENALTY_TYPE],
+        dependent_variables=[constants.VISITATION_PENALTY_TYPE],
         dependent_variables_required_values=[
-            [constants.Constants.SIGNED_UNCERTAINTY_WINDOW_PENALTY]
+            [constants.SIGNED_UNCERTAINTY_WINDOW_PENALTY]
         ],
     )
 
     _constant_epsilon_template = config_template.Template(
         fields=[
             config_field.Field(
-                name=constants.Constants.VALUE,
+                name=constants.VALUE,
                 types=[int, float],
                 requirements=[lambda x: x >= 0 and x <= 1],
             )
         ],
         level=[
-            constants.Constants.LEARNER,
-            constants.Constants.EPSILON,
-            constants.Constants.CONSTANT,
+            constants.LEARNER,
+            constants.EPSILON,
+            constants.CONSTANT,
         ],
-        dependent_variables=[constants.Constants.SCHEDULE],
-        dependent_variables_required_values=[[constants.Constants.CONSTANT]],
+        dependent_variables=[constants.SCHEDULE],
+        dependent_variables_required_values=[[constants.CONSTANT]],
     )
 
     _linear_decay_epsilon_template = config_template.Template(
         fields=[
             config_field.Field(
-                name=constants.Constants.INITIAL_VALUE,
+                name=constants.INITIAL_VALUE,
                 types=[int, float],
                 requirements=[lambda x: x >= 0 and x <= 1],
             ),
             config_field.Field(
-                name=constants.Constants.FINAL_VALUE,
+                name=constants.FINAL_VALUE,
                 types=[int, float],
                 requirements=[lambda x: x >= 0 and x <= 1],
             ),
             config_field.Field(
-                name=constants.Constants.ANNEAL_DURATION,
+                name=constants.ANNEAL_DURATION,
                 types=[int],
                 requirements=[lambda x: x > 0],
             ),
         ],
         level=[
-            constants.Constants.LEARNER,
-            constants.Constants.EPSILON,
-            constants.Constants.LINEAR_DECAY,
+            constants.LEARNER,
+            constants.EPSILON,
+            constants.LINEAR_DECAY,
         ],
-        dependent_variables=[constants.Constants.SCHEDULE],
+        dependent_variables=[constants.SCHEDULE],
         dependent_variables_required_values=[
-            [constants.Constants.LINEAR_DECAY],
+            [constants.LINEAR_DECAY],
         ],
     )
 
     _epsilon_template = config_template.Template(
         fields=[
             config_field.Field(
-                name=constants.Constants.SCHEDULE,
+                name=constants.SCHEDULE,
                 types=[str],
                 requirements=[
-                    lambda x: x
-                    in [constants.Constants.CONSTANT, constants.Constants.LINEAR_DECAY]
+                    lambda x: x in [constants.CONSTANT, constants.LINEAR_DECAY]
                 ],
             ),
         ],
-        level=[constants.Constants.LEARNER, constants.Constants.EPSILON],
+        level=[constants.LEARNER, constants.EPSILON],
         nested_templates=[_constant_epsilon_template, _linear_decay_epsilon_template],
     )
 
     _random_uniform_template = config_template.Template(
         fields=[
-            config_field.Field(
-                name=constants.Constants.LOWER_BOUND, types=[float, int]
-            ),
-            config_field.Field(
-                name=constants.Constants.UPPER_BOUND, types=[float, int]
-            ),
+            config_field.Field(name=constants.LOWER_BOUND, types=[float, int]),
+            config_field.Field(name=constants.UPPER_BOUND, types=[float, int]),
         ],
-        level=[constants.Constants.LEARNER, constants.Constants.RANDOM_UNIFORM],
-        dependent_variables=[constants.Constants.INITIALISATION],
-        dependent_variables_required_values=[[constants.Constants.RANDOM_UNIFORM]],
+        level=[constants.LEARNER, constants.RANDOM_UNIFORM],
+        dependent_variables=[constants.INITIALISATION],
+        dependent_variables_required_values=[[constants.RANDOM_UNIFORM]],
     )
 
     _random_normal_template = config_template.Template(
         fields=[
-            config_field.Field(name=constants.Constants.MEAN, types=[float, int]),
-            config_field.Field(name=constants.Constants.VARIANCE, types=[float, int]),
+            config_field.Field(name=constants.MEAN, types=[float, int]),
+            config_field.Field(name=constants.VARIANCE, types=[float, int]),
         ],
-        level=[constants.Constants.LEARNER, constants.Constants.RANDOM_NORMAL],
-        dependent_variables=[constants.Constants.INITIALISATION],
-        dependent_variables_required_values=[[constants.Constants.RANDOM_NORMAL]],
+        level=[constants.LEARNER, constants.RANDOM_NORMAL],
+        dependent_variables=[constants.INITIALISATION],
+        dependent_variables_required_values=[[constants.RANDOM_NORMAL]],
     )
 
     _learner_template = config_template.Template(
         fields=[
             config_field.Field(
-                name=constants.Constants.TYPE,
+                name=constants.TYPE,
                 types=[str],
                 requirements=[
                     lambda x: x
                     in [
-                        constants.Constants.SARSA_LAMBDA,
-                        constants.Constants.Q_LEARNING,
-                        constants.Constants.VANILLA_DQN,
-                        constants.Constants.ENSEMBLE_Q_LEARNING,
-                        constants.Constants.BOOTSTRAPPED_ENSEMBLE_DQN,
-                        constants.Constants.INDEPENDENT_ENSEMBLE_DQN,
+                        constants.SARSA_LAMBDA,
+                        constants.Q_LEARNING,
+                        constants.VANILLA_DQN,
+                        constants.ENSEMBLE_Q_LEARNING,
+                        constants.BOOTSTRAPPED_ENSEMBLE_DQN,
+                        constants.INDEPENDENT_ENSEMBLE_DQN,
                     ]
                 ],
             ),
             config_field.Field(
-                name=constants.Constants.PRETRAINED_MODEL_PATH,
+                name=constants.PRETRAINED_MODEL_PATH,
                 types=[str, type(None)],
             ),
             config_field.Field(
-                name=constants.Constants.LEARNING_RATE,
+                name=constants.LEARNING_RATE,
                 types=[float],
                 requirements=[lambda x: x > 0],
             ),
             config_field.Field(
-                name=constants.Constants.GRADIENT_MOMENTUM,
+                name=constants.GRADIENT_MOMENTUM,
                 types=[float],
                 requirements=[lambda x: x >= 0],
             ),
             config_field.Field(
-                name=constants.Constants.SQUARED_GRADIENT_MOMENTUM,
+                name=constants.SQUARED_GRADIENT_MOMENTUM,
                 types=[float],
                 requirements=[lambda x: x >= 0],
             ),
             config_field.Field(
-                name=constants.Constants.MIN_SQUARED_GRADIENT,
+                name=constants.MIN_SQUARED_GRADIENT,
                 types=[float],
                 requirements=[lambda x: x >= 0],
             ),
             config_field.Field(
-                name=constants.Constants.DISCOUNT_FACTOR,
+                name=constants.DISCOUNT_FACTOR,
                 types=[float, int],
                 requirements=[lambda x: x <= 1 and x >= 0],
             ),
             config_field.Field(
-                name=constants.Constants.INITIALISATION,
+                name=constants.INITIALISATION,
                 types=[str, float, int],
                 requirements=[
                     lambda x: x
                     in [
-                        constants.Constants.RANDOM_UNIFORM,
-                        constants.Constants.RANDOM_NORMAL,
-                        constants.Constants.ZEROS,
-                        constants.Constants.ONES,
+                        constants.RANDOM_UNIFORM,
+                        constants.RANDOM_NORMAL,
+                        constants.ZEROS,
+                        constants.ONES,
                     ]
                     or isinstance(x, (int, float))
                 ],
             ),
             config_field.Field(
-                name=constants.Constants.SPLIT_VALUE_FUNCTION,
+                name=constants.SPLIT_VALUE_FUNCTION,
                 types=[bool],
             ),
             config_field.Field(
-                name=constants.Constants.VISITATION_PENALTY_TYPE,
+                name=constants.VISITATION_PENALTY_TYPE,
                 types=[str, type(None)],
                 requirements=[
                     lambda x: x is None
                     or x
                     in [
-                        constants.Constants.HARD_CODED,
-                        constants.Constants.DETERMINISTIC_EXPONENTIAL_DECAY,
-                        constants.Constants.DETERMINISTIC_LINEAR_DECAY,
-                        constants.Constants.DETERMINISTIC_SIGMOIDAL_DECAY,
-                        constants.Constants.ADAPTIVE_UNCERTAINTY,
-                        constants.Constants.ADAPTIVE_ARRIVING_UNCERTAINTY,
-                        constants.Constants.POTENTIAL_BASED_ADAPTIVE_UNCERTAINTY,
-                        constants.Constants.POLICY_ENTROPY_PENALTY,
-                        constants.Constants.POTENTIAL_BASED_POLICY_ENTROPY_PENALTY,
-                        constants.Constants.REDUCING_VARIANCE_WINDOW,
-                        constants.Constants.REDUCING_ENTROPY_WINDOW,
-                        constants.Constants.SIGNED_UNCERTAINTY_WINDOW_PENALTY
+                        constants.HARD_CODED,
+                        constants.DETERMINISTIC_EXPONENTIAL_DECAY,
+                        constants.DETERMINISTIC_LINEAR_DECAY,
+                        constants.DETERMINISTIC_SIGMOIDAL_DECAY,
+                        constants.ADAPTIVE_UNCERTAINTY,
+                        constants.ADAPTIVE_ARRIVING_UNCERTAINTY,
+                        constants.POTENTIAL_BASED_ADAPTIVE_UNCERTAINTY,
+                        constants.POLICY_ENTROPY_PENALTY,
+                        constants.POTENTIAL_BASED_POLICY_ENTROPY_PENALTY,
+                        constants.REDUCING_VARIANCE_WINDOW,
+                        constants.REDUCING_ENTROPY_WINDOW,
+                        constants.SIGNED_UNCERTAINTY_WINDOW_PENALTY,
                     ]
                 ],
             ),
             config_field.Field(
-                name=constants.Constants.PENALTY_UPDATE_PERIOD,
+                name=constants.PENALTY_UPDATE_PERIOD,
                 types=[int],
-                requirements=[lambda x: x > 0]
+                requirements=[lambda x: x > 0],
             ),
             config_field.Field(
-                name=constants.Constants.SHAPING_IMPLEMENTATION,
+                name=constants.SHAPING_IMPLEMENTATION,
                 types=[str],
                 requirements=[
                     lambda x: x
                     in [
-                        constants.Constants.ACT,
-                        constants.Constants.TRAIN_Q_NETWORK,
-                        constants.Constants.TRAIN_TARGET_NETWORK,
+                        constants.ACT,
+                        constants.TRAIN_Q_NETWORK,
+                        constants.TRAIN_TARGET_NETWORK,
                     ]
                 ],
             ),
         ],
-        level=[constants.Constants.LEARNER],
+        level=[constants.LEARNER],
         nested_templates=[
             _epsilon_template,
             _random_uniform_template,
@@ -710,183 +676,170 @@ class AChConfigTemplate:
             _potential_based_policy_entropy_penalty_template,
             _reducing_variance_window_penalty_template,
             _reducing_entropy_window_penalty_template,
-            _signed_uncertainty_window_penalty_template
+            _signed_uncertainty_window_penalty_template,
         ],
     )
 
     _sarsa_lambda_template = config_template.Template(
         fields=[
             config_field.Field(
-                name=constants.Constants.TRACE_LAMBDA,
+                name=constants.TRACE_LAMBDA,
                 types=[int, float],
                 requirements=[lambda x: x >= 0 and x <= 1],
             ),
             config_field.Field(
-                name=constants.Constants.BEHAVIOUR,
+                name=constants.BEHAVIOUR,
                 types=[str],
                 requirements=[
-                    lambda x: x
-                    in [constants.Constants.GREEDY, constants.Constants.EPSILON_GREEDY]
+                    lambda x: x in [constants.GREEDY, constants.EPSILON_GREEDY]
                 ],
             ),
             config_field.Field(
-                name=constants.Constants.TARGET,
+                name=constants.TARGET,
                 types=[str],
                 requirements=[
-                    lambda x: x
-                    in [constants.Constants.GREEDY, constants.Constants.EPSILON_GREEDY]
+                    lambda x: x in [constants.GREEDY, constants.EPSILON_GREEDY]
                 ],
             ),
         ],
-        dependent_variables=[constants.Constants.TYPE],
+        dependent_variables=[constants.TYPE],
         dependent_variables_required_values=[
-            [constants.Constants.SARSA_LAMBDA],
+            [constants.SARSA_LAMBDA],
         ],
-        level=[constants.Constants.SARSA_LAMBDA],
+        level=[constants.SARSA_LAMBDA],
     )
 
     _q_learning_template = config_template.Template(
         fields=[
             config_field.Field(
-                name=constants.Constants.BEHAVIOUR,
+                name=constants.BEHAVIOUR,
                 types=[str],
                 requirements=[
-                    lambda x: x
-                    in [constants.Constants.GREEDY, constants.Constants.EPSILON_GREEDY]
+                    lambda x: x in [constants.GREEDY, constants.EPSILON_GREEDY]
                 ],
             ),
             config_field.Field(
-                name=constants.Constants.TARGET,
+                name=constants.TARGET,
                 types=[str],
                 requirements=[
-                    lambda x: x
-                    in [constants.Constants.GREEDY, constants.Constants.EPSILON_GREEDY]
+                    lambda x: x in [constants.GREEDY, constants.EPSILON_GREEDY]
                 ],
             ),
         ],
-        dependent_variables=[constants.Constants.TYPE],
-        dependent_variables_required_values=[[constants.Constants.Q_LEARNING]],
-        level=[constants.Constants.Q_LEARNING],
+        dependent_variables=[constants.TYPE],
+        dependent_variables_required_values=[[constants.Q_LEARNING]],
+        level=[constants.Q_LEARNING],
     )
 
     _ensemble_q_learning_template = config_template.Template(
         fields=[
             config_field.Field(
-                name=constants.Constants.NUM_LEARNERS,
+                name=constants.NUM_LEARNERS,
                 types=[int],
                 requirements=[lambda x: x >= 1],
             ),
             config_field.Field(
-                name=constants.Constants.COPY_LEARNER_INITIALISATION,
+                name=constants.COPY_LEARNER_INITIALISATION,
                 types=[bool],
             ),
             config_field.Field(
-                name=constants.Constants.BEHAVIOUR,
+                name=constants.BEHAVIOUR,
                 types=[str],
                 requirements=[
-                    lambda x: x
-                    in [constants.Constants.GREEDY, constants.Constants.EPSILON_GREEDY]
+                    lambda x: x in [constants.GREEDY, constants.EPSILON_GREEDY]
                 ],
             ),
             config_field.Field(
-                name=constants.Constants.TARGETS,
+                name=constants.TARGETS,
                 types=[list],
                 requirements=[
                     lambda x: x is None
                     or all(
                         y
                         in [
-                            constants.Constants.GREEDY_SAMPLE,
-                            constants.Constants.GREEDY_MEAN,
-                            constants.Constants.GREEDY_VOTE,
+                            constants.GREEDY_SAMPLE,
+                            constants.GREEDY_MEAN,
+                            constants.GREEDY_VOTE,
                         ]
                         for y in x
                     )
                 ],
             ),
-            config_field.Field(
-                name=constants.Constants.PARALLELISE_ENSEMBLE, types=[bool]
-            ),
+            config_field.Field(name=constants.PARALLELISE_ENSEMBLE, types=[bool]),
         ],
-        dependent_variables=[constants.Constants.TYPE],
-        dependent_variables_required_values=[[constants.Constants.ENSEMBLE_Q_LEARNING]],
-        level=[constants.Constants.ENSEMBLE_Q_LEARNING],
+        dependent_variables=[constants.TYPE],
+        dependent_variables_required_values=[[constants.ENSEMBLE_Q_LEARNING]],
+        level=[constants.ENSEMBLE_Q_LEARNING],
     )
 
     _vanilla_dqn_template = config_template.Template(
         fields=[
             config_field.Field(
-                name=constants.Constants.BEHAVIOUR,
+                name=constants.BEHAVIOUR,
                 types=[str],
                 requirements=[
-                    lambda x: x
-                    in [constants.Constants.GREEDY, constants.Constants.EPSILON_GREEDY]
+                    lambda x: x in [constants.GREEDY, constants.EPSILON_GREEDY]
                 ],
             ),
             config_field.Field(
-                name=constants.Constants.TARGETS,
+                name=constants.TARGETS,
                 types=[list, type(None)],
                 requirements=[lambda x: x is None or all(y in [] for y in x)],
             ),
         ],
-        dependent_variables=[constants.Constants.TYPE],
+        dependent_variables=[constants.TYPE],
         dependent_variables_required_values=[
-            [constants.Constants.VANILLA_DQN],
+            [constants.VANILLA_DQN],
         ],
-        level=[constants.Constants.VANILLA_DQN],
+        level=[constants.VANILLA_DQN],
     )
 
     _independent_ensemble_dqn_template = config_template.Template(
         fields=[
             config_field.Field(
-                name=constants.Constants.NUM_LEARNERS,
+                name=constants.NUM_LEARNERS,
                 types=[int],
                 requirements=[lambda x: x >= 1],
             ),
             config_field.Field(
-                name=constants.Constants.COPY_LEARNER_INITIALISATION,
+                name=constants.COPY_LEARNER_INITIALISATION,
                 types=[bool],
             ),
+            config_field.Field(name=constants.SHARE_REPLAY_BUFFER, types=[bool]),
             config_field.Field(
-                name=constants.Constants.SHARE_REPLAY_BUFFER, types=[bool]
-            ),
-            config_field.Field(
-                name=constants.Constants.BEHAVIOUR,
+                name=constants.BEHAVIOUR,
                 types=[str],
                 requirements=[
-                    lambda x: x
-                    in [constants.Constants.GREEDY, constants.Constants.EPSILON_GREEDY]
+                    lambda x: x in [constants.GREEDY, constants.EPSILON_GREEDY]
                 ],
             ),
             config_field.Field(
-                name=constants.Constants.TARGETS,
+                name=constants.TARGETS,
                 types=[list, type(None)],
                 requirements=[lambda x: x is None or all(y in [] for y in x)],
             ),
-            config_field.Field(
-                name=constants.Constants.PARALLELISE_ENSEMBLE, types=[bool]
-            ),
+            config_field.Field(name=constants.PARALLELISE_ENSEMBLE, types=[bool]),
         ],
-        dependent_variables=[constants.Constants.TYPE],
+        dependent_variables=[constants.TYPE],
         dependent_variables_required_values=[
-            [constants.Constants.INDEPENDENT_ENSEMBLE_DQN],
+            [constants.INDEPENDENT_ENSEMBLE_DQN],
         ],
-        level=[constants.Constants.INDEPENDENT_ENSEMBLE_DQN],
+        level=[constants.INDEPENDENT_ENSEMBLE_DQN],
     )
 
     _bootstrapped_ensemble_dqn_template = config_template.Template(
         fields=[
             config_field.Field(
-                name=constants.Constants.NUM_LEARNERS,
+                name=constants.NUM_LEARNERS,
                 types=[int],
                 requirements=[lambda x: x >= 1],
             ),
             config_field.Field(
-                name=constants.Constants.COPY_LEARNER_INITIALISATION,
+                name=constants.COPY_LEARNER_INITIALISATION,
                 types=[bool],
             ),
             config_field.Field(
-                name=constants.Constants.SHARED_LAYERS,
+                name=constants.SHARED_LAYERS,
                 types=[list, type(None)],
                 requirements=[
                     lambda x: x is None
@@ -894,68 +847,67 @@ class AChConfigTemplate:
                 ],
             ),
             config_field.Field(
-                name=constants.Constants.BEHAVIOUR,
+                name=constants.BEHAVIOUR,
                 types=[str],
                 requirements=[
-                    lambda x: x
-                    in [constants.Constants.GREEDY, constants.Constants.EPSILON_GREEDY]
+                    lambda x: x in [constants.GREEDY, constants.EPSILON_GREEDY]
                 ],
             ),
             config_field.Field(
-                name=constants.Constants.TARGETS,
+                name=constants.TARGETS,
                 types=[list, type(None)],
                 requirements=[
                     lambda x: x is None
                     or all(
                         y
                         in [
-                            constants.Constants.GREEDY_INDIVIDUAL,
-                            constants.Constants.GREEDY_SAMPLE,
-                            constants.Constants.GREEDY_MEAN,
-                            constants.Constants.GREEDY_VOTE,
+                            constants.GREEDY_INDIVIDUAL,
+                            constants.GREEDY_SAMPLE,
+                            constants.GREEDY_MEAN,
+                            constants.GREEDY_VOTE,
                         ]
                         for y in x
                     )
                 ],
             ),
             config_field.Field(
-                name=constants.Constants.MASK_PROBABILITY,
+                name=constants.MASK_PROBABILITY,
                 types=[int, float],
                 requirements=[lambda x: x >= 0 and x <= 1],
             ),
         ],
-        dependent_variables=[constants.Constants.TYPE],
+        dependent_variables=[constants.TYPE],
         dependent_variables_required_values=[
-            [constants.Constants.BOOTSTRAPPED_ENSEMBLE_DQN],
+            [constants.BOOTSTRAPPED_ENSEMBLE_DQN],
         ],
-        level=[constants.Constants.BOOTSTRAPPED_ENSEMBLE_DQN],
+        level=[constants.BOOTSTRAPPED_ENSEMBLE_DQN],
     )
 
     _dqn_template = config_template.Template(
         fields=[
             config_field.Field(
-                name=constants.Constants.BATCH_SIZE,
+                name=constants.BATCH_SIZE,
                 types=[int],
                 requirements=[lambda x: x > 0],
             ),
             config_field.Field(
-                name=constants.Constants.NUM_REPLAY_FILL_TRAJECTORIES,
+                name=constants.NUM_REPLAY_FILL_TRAJECTORIES,
                 types=[int],
                 requirements=[lambda x: x > 0],
             ),
             config_field.Field(
-                name=constants.Constants.REPLAY_BUFFER_SIZE,
+                name=constants.REPLAY_BUFFER_SIZE,
                 types=[int],
                 requirements=[lambda x: x > 0],
             ),
             config_field.Field(
-                name=constants.Constants.TARGET_NETWORK_UPDATE_PERIOD,
+                name=constants.TARGET_NETWORK_UPDATE_PERIOD,
                 types=[int],
                 requirements=[lambda x: x >= 0],
             ),
-            config_field.Field(name=constants.Constants.NORMALISE_STATE, types=[bool]),
+            config_field.Field(name=constants.NORMALISE_STATE, types=[bool]),
             config_field.Field(
-                name=constants.Constants.GRADIENT_CLIPPING,
+                name=constants.GRADIENT_CLIPPING,
                 types=[list, type(None)],
                 requirements=[
                     lambda x: x is None
@@ -966,89 +918,84 @@ class AChConfigTemplate:
                 ],
             ),
             config_field.Field(
-                name=constants.Constants.OPTIMISER,
+                name=constants.OPTIMISER,
                 types=[str],
-                requirements=[
-                    lambda x: x
-                    in [constants.Constants.ADAM, constants.Constants.RMS_PROP]
-                ],
+                requirements=[lambda x: x in [constants.ADAM, constants.RMS_PROP]],
             ),
             config_field.Field(
-                name=constants.Constants.LAYER_SPECIFICATIONS,
+                name=constants.LAYER_SPECIFICATIONS,
                 types=[list],
             ),
         ],
-        dependent_variables=[constants.Constants.TYPE],
+        dependent_variables=[constants.TYPE],
         dependent_variables_required_values=[
             [
-                constants.Constants.VANILLA_DQN,
-                constants.Constants.BOOTSTRAPPED_ENSEMBLE_DQN,
-                constants.Constants.INDEPENDENT_ENSEMBLE_DQN,
+                constants.VANILLA_DQN,
+                constants.BOOTSTRAPPED_ENSEMBLE_DQN,
+                constants.INDEPENDENT_ENSEMBLE_DQN,
             ]
         ],
-        level=[constants.Constants.DQN],
+        level=[constants.DQN],
     )
 
     _training_template = config_template.Template(
         fields=[
             config_field.Field(
-                name=constants.Constants.NUM_EPISODES,
+                name=constants.NUM_EPISODES,
                 types=[int],
                 requirements=[lambda x: x > 0],
             ),
             config_field.Field(
-                name=constants.Constants.TEST_FREQUENCY,
+                name=constants.TEST_FREQUENCY,
                 types=[int],
                 requirements=[lambda x: x > 0],
             ),
             config_field.Field(
-                name=constants.Constants.TESTING,
+                name=constants.TESTING,
                 types=[list, type(None)],
                 requirements=[
                     lambda x: x is None or all(isinstance(y, str) for y in x)
                 ],
             ),
         ],
-        level=[constants.Constants.TRAINING],
+        level=[constants.TRAINING],
     )
 
     _logging_template = config_template.Template(
         fields=[
             config_field.Field(
-                name=constants.Constants.PRINT_FREQUENCY,
+                name=constants.PRINT_FREQUENCY,
                 types=[int, type(None)],
                 requirements=[lambda x: x is None or x > 0],
             ),
             config_field.Field(
-                name=constants.Constants.CHECKPOINT_FREQUENCY,
+                name=constants.CHECKPOINT_FREQUENCY,
                 types=[int],
                 requirements=[lambda x: x > 0],
             ),
             config_field.Field(
-                name=constants.Constants.MODEL_CHECKPOINT_FREQUENCY,
+                name=constants.MODEL_CHECKPOINT_FREQUENCY,
                 types=[type(None), int],
                 requirements=[lambda x: x is None or x > 0],
             ),
             config_field.Field(
-                name=constants.Constants.ANIMATION_LIBRARY,
+                name=constants.ANIMATION_LIBRARY,
                 types=[str],
                 requirements=[
                     lambda x: x
                     in [
-                        constants.Constants.MATPLOTLIB_ANIMATION,
-                        constants.Constants.IMAGEIO,
+                        constants.MATPLOTLIB_ANIMATION,
+                        constants.IMAGEIO,
                     ]
                 ],
             ),
             config_field.Field(
-                name=constants.Constants.ANIMATION_FILE_FORMAT,
+                name=constants.ANIMATION_FILE_FORMAT,
                 types=[str],
-                requirements=[
-                    lambda x: x in [constants.Constants.MP4, constants.Constants.GIF]
-                ],
+                requirements=[lambda x: x in [constants.MP4, constants.GIF]],
             ),
             config_field.Field(
-                name=constants.Constants.ARRAYS,
+                name=constants.ARRAYS,
                 types=[list, type(None)],
                 requirements=[
                     lambda x: x is None
@@ -1069,7 +1016,7 @@ class AChConfigTemplate:
                 ],
             ),
             config_field.Field(
-                name=constants.Constants.SCALARS,
+                name=constants.SCALARS,
                 types=[list],
                 requirements=[
                     lambda x: all(
@@ -1090,7 +1037,7 @@ class AChConfigTemplate:
                 ],
             ),
             config_field.Field(
-                name=constants.Constants.VISUALISATIONS,
+                name=constants.VISUALISATIONS,
                 types=[list, type(None)],
                 requirements=[
                     lambda x: x is None
@@ -1111,63 +1058,55 @@ class AChConfigTemplate:
                 ],
             ),
             config_field.Field(
-                name=constants.Constants.POST_VISUALISATIONS,
+                name=constants.POST_VISUALISATIONS,
                 types=[list, type(None)],
                 requirements=[
                     lambda x: x is None or all(isinstance(y, str) for y in x),
                 ],
             ),
         ],
-        level=[constants.Constants.LOGGING],
+        level=[constants.LOGGING],
     )
 
-    _post_processing_template = config_template.Template(
+    _plotting_template = config_template.Template(
         fields=[
-            # config_field.Field(
-            #     name=constants.Constants.PLOT_TAGS,
-            #     types=[list],
-            #     requirements=[lambda x: all(isinstance(y, str) for y in x)],
-            # ),
-            config_field.Field(
-                name=constants.Constants.SMOOTHING,
-                types=[int],
-                requirements=[lambda x: x > 0],
-            ),
+            config_field.Field(name=constants.XLABEL, types=[str]),
+            config_field.Field(name=constants.SMOOTHING, types=[int]),
         ],
-        level=[constants.Constants.POST_PROCESSING],
+        level=[constants.PLOTTING],
     )
 
     base_template = config_template.Template(
         fields=[
             config_field.Field(
-                name=constants.Constants.EXPERIMENT_NAME,
+                name=constants.EXPERIMENT_NAME,
                 types=[str, type(None)],
             ),
-            config_field.Field(name=constants.Constants.USE_GPU, types=[bool]),
+            config_field.Field(name=constants.USE_GPU, types=[bool]),
             config_field.Field(
-                name=constants.Constants.GPU_ID,
+                name=constants.GPU_ID,
                 types=[int],
                 requirements=[lambda x: x >= 0],
             ),
             config_field.Field(
-                name=constants.Constants.SEED,
+                name=constants.SEED,
                 types=[int],
                 requirements=[lambda x: x >= 0],
             ),
             config_field.Field(
-                name=constants.Constants.ENVIRONMENT,
+                name=constants.ENVIRONMENT,
                 types=[str],
                 requirements=[
                     lambda x: x
                     in [
-                        constants.Constants.MINIGRID,
-                        constants.Constants.ATARI,
-                        constants.Constants.MULTIROOM,
+                        constants.MINIGRID,
+                        constants.ATARI,
+                        constants.MULTIROOM,
                     ]
                 ],
             ),
             config_field.Field(
-                name=constants.Constants.APPLY_CURRICULUM,
+                name=constants.APPLY_CURRICULUM,
                 types=[bool],
             ),
         ],
@@ -1187,6 +1126,6 @@ class AChConfigTemplate:
             _dqn_template,
             _training_template,
             _logging_template,
-            _post_processing_template,
+            _plotting_template,
         ],
     )

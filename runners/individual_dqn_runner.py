@@ -74,11 +74,9 @@ class DQNRunner(base_runner.BaseRunner):
 
     def _pre_episode_log(self, episode: int):
         if episode != 0:
-            if self._visualisation_iteration(
-                constants.Constants.INDIVIDUAL_TRAIN_RUN, episode
-            ):
+            if self._visualisation_iteration(constants.INDIVIDUAL_TRAIN_RUN, episode):
                 self._logger.plot_array_data(
-                    name=f"{constants.Constants.INDIVIDUAL_TRAIN_RUN}_{episode}",
+                    name=f"{constants.INDIVIDUAL_TRAIN_RUN}_{episode}",
                     data=self._environment.plot_episode_history(),
                 )
 
@@ -139,23 +137,19 @@ class DQNRunner(base_runner.BaseRunner):
             episode_loss += loss
             episode_steps += 1
 
-        if self._scalar_log_iteration(
-            constants.Constants.AVERAGE_ACTION_VALUE, episode
-        ):
+        if self._scalar_log_iteration(constants.AVERAGE_ACTION_VALUE, episode):
             average_action_value = self._compute_average_action_value()
             self._logger.write_scalar(
-                tag=constants.Constants.AVERAGE_ACTION_VALUE,
+                tag=constants.AVERAGE_ACTION_VALUE,
                 step=episode,
                 scalar=average_action_value,
             )
         self._write_scalar(
-            tag=constants.Constants.LOSS,
+            tag=constants.LOSS,
             episode=episode,
             scalar=episode_loss / episode_steps,
         )
-        self._write_scalar(
-            tag=constants.Constants.EPSILON, episode=episode, scalar=epsilon
-        )
+        self._write_scalar(tag=constants.EPSILON, episode=episode, scalar=epsilon)
 
         return episode_reward, self._environment.episode_step_count
 

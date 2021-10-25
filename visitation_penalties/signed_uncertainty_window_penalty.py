@@ -28,7 +28,7 @@ class SignedUncertaintyWindowPenalty(
         self._uncertainty_history = {}
 
     def compute_penalty(self, episode: int, penalty_info: Dict[str, Any]):
-        state = penalty_info[constants.Constants.STATE]
+        state = penalty_info[constants.STATE]
         if state not in self._uncertainty_history:
             self._uncertainty_history[state] = collections.deque(
                 maxlen=self._moving_average_window
@@ -38,24 +38,18 @@ class SignedUncertaintyWindowPenalty(
 
         previous_moving_average = np.mean(self._uncertainty_history[state])
 
-        if self._action_function == constants.Constants.MAX:
-            uncertainty = penalty_info[
-                constants.Constants.CURRENT_STATE_MAX_UNCERTAINTY
-            ]
-        elif self._action_function == constants.Constants.MEAN:
-            uncertainty = penalty_info[
-                constants.Constants.CURRENT_STATE_MEAN_UNCERTAINTY
-            ]
-        elif self._action_function == constants.Constants.SELECT:
-            uncertainty = penalty_info[
-                constants.Constants.CURRENT_STATE_SELECT_UNCERTAINTY
-            ]
+        if self._action_function == constants.MAX:
+            uncertainty = penalty_info[constants.CURRENT_STATE_MAX_UNCERTAINTY]
+        elif self._action_function == constants.MEAN:
+            uncertainty = penalty_info[constants.CURRENT_STATE_MEAN_UNCERTAINTY]
+        elif self._action_function == constants.SELECT:
+            uncertainty = penalty_info[constants.CURRENT_STATE_SELECT_UNCERTAINTY]
 
         self._uncertainty_history[state].append(uncertainty)
 
         new_moving_average = np.mean(self._uncertainty_history[state])
         moving_average_difference = new_moving_average - previous_moving_average
-        
+
         if moving_average_difference > 0:
             penalty = self._positive_multiplicative_factor * moving_average_difference
         else:

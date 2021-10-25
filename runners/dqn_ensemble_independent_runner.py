@@ -169,42 +169,42 @@ class EnsembleDQNIndependentRunner(base_runner.BaseRunner):
         # log data from individual runners in ensemble
         for i in range(len(self._learner.ensemble)):
             self._write_scalar(
-                tag=(f"{constants.Constants.TRAIN_EPISODE_REWARD}"
-                     f"_{constants.Constants.ENSEMBLE_RUNNER}"),
+                tag=(f"{constants..TRAIN_EPISODE_REWARD}"
+                     f"_{constants..ENSEMBLE_RUNNER}"),
                 episode=episode,
                 scalar=ensemble_rewards[i],
-                df_tag=(f"{constants.Constants.TRAIN_EPISODE_REWARD}"
-                        f"_{constants.Constants.ENSEMBLE_RUNNER}_{i}"),
+                df_tag=(f"{constants..TRAIN_EPISODE_REWARD}"
+                        f"_{constants..ENSEMBLE_RUNNER}_{i}"),
             )
             self._write_scalar(
-                tag=(f"{constants.Constants.TRAIN_EPISODE_LENGTH}"
-                     f"_{constants.Constants.ENSEMBLE_RUNNER}"),
+                tag=(f"{constants..TRAIN_EPISODE_LENGTH}"
+                     f"_{constants..ENSEMBLE_RUNNER}"),
                 episode=episode,
                 scalar=ensemble_step_counts[i],
-                df_tag=(f"{constants.Constants.TRAIN_EPISODE_LENGTH}"
-                        f"_{constants.Constants.ENSEMBLE_RUNNER}_{i}"),
+                df_tag=(f"{constants..TRAIN_EPISODE_LENGTH}"
+                        f"_{constants..ENSEMBLE_RUNNER}_{i}"),
             )
 
         # averages over ensemble
         self._write_scalar(
-            tag=constants.Constants.ENSEMBLE_EPISODE_REWARD_STD,
+            tag=constants..ENSEMBLE_EPISODE_REWARD_STD,
             episode=episode,
             scalar=std_reward,
         )
         self._write_scalar(
-            tag=constants.Constants.ENSEMBLE_EPISODE_LENGTH_STD,
+            tag=constants..ENSEMBLE_EPISODE_LENGTH_STD,
             episode=episode,
             scalar=std_step_count,
         )
         self._write_scalar(
-            tag=constants.Constants.MEAN_VISITATION_PENALTY,
+            tag=constants..MEAN_VISITATION_PENALTY,
             episode=episode,
             scalar=np.mean(ensemble_mean_penalties),
         )
         for penalty_info, ensemble_penalty_info in ensemble_mean_penalty_infos.items(
         ):
             self._write_scalar(
-                tag=constants.Constants.MEAN_PENALTY_INFO,
+                tag=constants..MEAN_PENALTY_INFO,
                 episode=episode,
                 scalar=np.mean(ensemble_penalty_info),
                 df_tag=penalty_info,
@@ -408,16 +408,16 @@ class EnsembleDQNIndependentRunner(base_runner.BaseRunner):
         Here, there are various methods for performing inference.
         """
         pass
-        # greedy_sample = constants.Constants.GREEDY_SAMPLE
-        # greedy_mean = constants.Constants.GREEDY_MEAN
-        # greedy_vote = constants.Constants.GREEDY_VOTE
+        # greedy_sample = constants..GREEDY_SAMPLE
+        # greedy_mean = constants..GREEDY_MEAN
+        # greedy_vote = constants..GREEDY_VOTE
 
         # no_rep_greedy_sample = "_".join(
-        #     [constants.Constants.NO_REP, constants.Constants.GREEDY_SAMPLE])
+        #     [constants..NO_REP, constants..GREEDY_SAMPLE])
         # no_rep_greedy_mean = "_".join(
-        #     [constants.Constants.NO_REP, constants.Constants.GREEDY_MEAN])
+        #     [constants..NO_REP, constants..GREEDY_MEAN])
         # no_rep_greedy_vote = "_".join(
-        #     [constants.Constants.NO_REP, constants.Constants.GREEDY_VOTE])
+        #     [constants..NO_REP, constants..GREEDY_VOTE])
 
         # if greedy_sample in self._targets:
         #     self._greedy_test_episode(
@@ -425,7 +425,7 @@ class EnsembleDQNIndependentRunner(base_runner.BaseRunner):
         #         action_selection_method=SampleGreedyEnsemble.
         #         select_target_action,
         #         action_selection_method_args={
-        #             constants.Constants.LEARNERS: self._learner.ensemble
+        #             constants..LEARNERS: self._learner.ensemble
         #         },
         #         tag_=f"_{greedy_sample}",
         #     )
@@ -434,7 +434,7 @@ class EnsembleDQNIndependentRunner(base_runner.BaseRunner):
         #         episode=episode,
         #         action_selection_method=MeanGreedyEnsemble.select_target_action,
         #         action_selection_method_args={
-        #             constants.Constants.LEARNERS: self._learner.ensemble
+        #             constants..LEARNERS: self._learner.ensemble
         #         },
         #         tag_=f"_{greedy_mean}",
         #     )
@@ -444,7 +444,7 @@ class EnsembleDQNIndependentRunner(base_runner.BaseRunner):
         #         action_selection_method=MajorityVoteEnsemble.
         #         select_target_action,
         #         action_selection_method_args={
-        #             constants.Constants.LEARNERS: self._learner.ensemble
+        #             constants..LEARNERS: self._learner.ensemble
         #         },
         #         tag_=f"_{greedy_vote}",
         #     )
@@ -454,7 +454,7 @@ class EnsembleDQNIndependentRunner(base_runner.BaseRunner):
         #         action_selection_method=SampleGreedyEnsemble.
         #         select_target_action,
         #         action_selection_method_args={
-        #             constants.Constants.LEARNERS: self._learner.ensemble
+        #             constants..LEARNERS: self._learner.ensemble
         #         },
         #         tag_=f"_{no_rep_greedy_sample}",
         #     )
@@ -463,7 +463,7 @@ class EnsembleDQNIndependentRunner(base_runner.BaseRunner):
         #         episode=episode,
         #         action_selection_method=MeanGreedyEnsemble.select_target_action,
         #         action_selection_method_args={
-        #             constants.Constants.LEARNERS: self._learner.ensemble
+        #             constants..LEARNERS: self._learner.ensemble
         #         },
         #         tag_=f"_{no_rep_greedy_mean}",
         #     )
@@ -473,7 +473,7 @@ class EnsembleDQNIndependentRunner(base_runner.BaseRunner):
         #         action_selection_method=MajorityVoteEnsemble.
         #         select_target_action,
         #         action_selection_method_args={
-        #             constants.Constants.LEARNERS: self._learner.ensemble
+        #             constants..LEARNERS: self._learner.ensemble
         #         },
         #         tag_=f"_{no_rep_greedy_vote}",
         #     )

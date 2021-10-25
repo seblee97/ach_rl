@@ -25,8 +25,9 @@ def set_random_seeds(seed: int) -> None:
     torch.manual_seed(seed)
 
 
-def set_device(config: ach_config.AchConfig,
-               logger: Optional = None) -> ach_config.AchConfig:
+def set_device(
+    config: ach_config.AchConfig, logger: Optional = None
+) -> ach_config.AchConfig:
     """Establish availability of GPU."""
     if logger is not None:
         print_fn = logger.info
@@ -38,23 +39,23 @@ def set_device(config: ach_config.AchConfig,
             print_fn("GPU found, using the GPU...")
             torch.backends.cudnn.deterministic = True
             torch.backends.cudnn.benchmark = False
-            config.add_property(constants.Constants.USING_GPU, True)
+            config.add_property(constants.USING_GPU, True)
             experiment_device = torch.device("cuda:{}".format(config.gpu_id))
             print_fn(f"Device in use: {experiment_device}")
         else:
             print_fn("GPU not found, reverting to CPU")
-            config.add_property(constants.Constants.USING_GPU, False)
+            config.add_property(constants.USING_GPU, False)
             experiment_device = torch.device("cpu")
     else:
         print_fn("Using the CPU")
         experiment_device = torch.device("cpu")
-    config.add_property(constants.Constants.EXPERIMENT_DEVICE,
-                        experiment_device)
+    config.add_property(constants.EXPERIMENT_DEVICE, experiment_device)
     return config
 
 
-def save_config_changes(config_changes: Dict[str, List[Tuple[str, Any, bool]]],
-                        file_name: str) -> None:
+def save_config_changes(
+    config_changes: Dict[str, List[Tuple[str, Any, bool]]], file_name: str
+) -> None:
     with open(file_name, "w") as fp:
         json.dump(config_changes, fp, indent=4)
 
@@ -77,8 +78,7 @@ def _distribute_over_gpus(config_changes: Dict[str, List[Tuple[Any]]]):
 
         for i in range(num_gpus_available):
             jobs_with_id_i = {
-                j: i for j in range(i * even_runs_per_gpu, (i + 1) *
-                                    even_runs_per_gpu)
+                j: i for j in range(i * even_runs_per_gpu, (i + 1) * even_runs_per_gpu)
             }
             gpu_ids.update(jobs_with_id_i)
 
@@ -86,7 +86,7 @@ def _distribute_over_gpus(config_changes: Dict[str, List[Tuple[Any]]]):
             gpu_ids[num_runs - excess_runs + i] = i
 
         for i, config_change in enumerate(config_changes.values()):
-            config_change.append((constants.Constants.GPU_ID, gpu_ids[i]))
+            config_change.append((constants.GPU_ID, gpu_ids[i]))
 
 
 def config_changes_to_json(config_changes: List[Dict], json_path: str) -> None:
@@ -116,6 +116,5 @@ def get_checkpoint_path(
     subfolder_name: Optional[str] = "",
 ) -> str:
     """Get full checkpoint path for experiment logs etc."""
-    checkpoint_path = os.path.join(folder, timestamp, experiment_name,
-                                   subfolder_name)
+    checkpoint_path = os.path.join(folder, timestamp, experiment_name, subfolder_name)
     return checkpoint_path

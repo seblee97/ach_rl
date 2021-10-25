@@ -22,18 +22,26 @@ args = parser.parse_args()
 MAIN_FILE_PATH = os.path.dirname(os.path.realpath(__file__))
 
 
-def cluster_array_run(config_path: str, results_folder: str, timestamp: str,
-                      config_changes: Dict[str, List[Dict]], seeds: List[int],
-                      num_cpus: int, memory: int) -> None:
+def cluster_array_run(
+    config_path: str,
+    results_folder: str,
+    timestamp: str,
+    config_changes: Dict[str, List[Dict]],
+    seeds: List[int],
+    num_cpus: int,
+    memory: int,
+) -> None:
 
     config_changes_dir = os.path.join(
-        results_folder, timestamp, constants.Constants.CONFIG_CHANGES_SYM_PATH)
+        results_folder, timestamp, constants.CONFIG_CHANGES_SYM_PATH
+    )
     # error_files_dir = os.path.join(results_folder, timestamp,
-    #                                constants.Constants.ERROR_FILES_SYM_PATH)
+    #                                constants.ERROR_FILES_SYM_PATH)
     # output_files_dir = os.path.join(results_folder, timestamp,
-    # constants.Constants.OUTPUT_FILES_SYM_PATH)
+    # constants.OUTPUT_FILES_SYM_PATH)
     checkpoint_paths_dir = os.path.join(
-        results_folder, timestamp, constants.Constants.CHECKPOINTS_SYM_PATH)
+        results_folder, timestamp, constants.CHECKPOINTS_SYM_PATH
+    )
 
     os.makedirs(config_changes_dir, exist_ok=True)
     # os.makedirs(error_files_dir, exist_ok=True)
@@ -54,42 +62,43 @@ def cluster_array_run(config_path: str, results_folder: str, timestamp: str,
                 f"Run name: {run_name}, seed: {seed}, array_job_index: {array_job_index}"
             )
 
-            checkpoint_path = os.path.join(results_folder, timestamp, run_name,
-                                           str(seed))
-            checkpoint_sym_path = os.path.join(checkpoint_paths_dir,
-                                               str(array_job_index))
+            checkpoint_path = os.path.join(
+                results_folder, timestamp, run_name, str(seed)
+            )
+            checkpoint_sym_path = os.path.join(
+                checkpoint_paths_dir, str(array_job_index)
+            )
             os.makedirs(name=checkpoint_path, exist_ok=True)
 
-            config_changes_path = os.path.join(checkpoint_path,
-                                               "config_changes.json")
+            config_changes_path = os.path.join(checkpoint_path, "config_changes.json")
             config_changes_sym_path = os.path.join(
-                config_changes_dir, f"config_changes_{array_job_index}.json")
+                config_changes_dir, f"config_changes_{array_job_index}.json"
+            )
 
             # error_path = os.path.join(checkpoint_path,
-            #                           constants.Constants.ERROR_FILE_NAME)
+            #                           constants.ERROR_FILE_NAME)
             # with open(error_path, "w") as empty:
             #     pass
             # error_sym_path = os.path.join(error_files_dir,
             #                               f"error_{array_job_index}.txt")
             # output_path = os.path.join(checkpoint_path,
-            #                            constants.Constants.OUTPUT_FILE_NAME)
+            #                            constants.OUTPUT_FILE_NAME)
             # with open(output_path, "w") as empty:
             #     pass
             # output_sym_path = os.path.join(output_files_dir,
             # f"output_{array_job_index}.txt")
 
             os.symlink(config_changes_path, config_changes_sym_path)
-            os.symlink(checkpoint_path,
-                       checkpoint_sym_path,
-                       target_is_directory=True)
+            os.symlink(checkpoint_path, checkpoint_sym_path, target_is_directory=True)
             # os.symlink(error_path, error_sym_path)
             # os.symlink(output_path, output_sym_path)
 
             # add seed to config changes
-            changes.append({constants.Constants.SEED: seed})
+            changes.append({constants.SEED: seed})
 
             experiment_utils.config_changes_to_json(
-                config_changes=changes, json_path=config_changes_path)
+                config_changes=changes, json_path=config_changes_path
+            )
 
     pbs_array_index = "$PBS_ARRAY_INDEX/"
     # error_pbs_array_index = "error_$PBS_ARRAY_INDEX.txt"
@@ -99,7 +108,7 @@ def cluster_array_run(config_path: str, results_folder: str, timestamp: str,
     # output_path_string = f'"{os.path.join(output_files_dir, output_pbs_array_index)}"'
 
     run_command = (
-        f'python cluster_array_run.py --config_path {config_path} '
+        f"python cluster_array_run.py --config_path {config_path} "
         f'--config_changes "{os.path.join(config_changes_dir, config_changes_pbs_array_index)}" '
         f'--checkpoint_path "{os.path.join(checkpoint_paths_dir, pbs_array_index)}" '
     )
@@ -113,14 +122,13 @@ def cluster_array_run(config_path: str, results_folder: str, timestamp: str,
         error_path="",
         output_path="",
         checkpoint_path=os.path.join(checkpoint_paths_dir, pbs_array_index),
-        array_job_length=num_configurations * num_seeds)
+        array_job_length=num_configurations * num_seeds,
+    )
 
     subprocess.call(f"qsub {job_script_path}", shell=True)
 
 
-def single_run(config_path: str,
-               checkpoint_path: str,
-               changes: List[Dict] = []):
+def single_run(config_path: str, checkpoint_path: str, changes: List[Dict] = []):
 
     config = ach_config.AchConfig(config=config_path, changes=changes)
 
@@ -129,25 +137,24 @@ def single_run(config_path: str,
     experiment_utils.set_random_seeds(seed)
     config = experiment_utils.set_device(config)
 
-    config.amend_property(property_name=constants.Constants.SEED,
-                          new_property_value=seed)
+    config.amend_property(property_name=constants.SEED, new_property_value=seed)
 
-    config.add_property(constants.Constants.CHECKPOINT_PATH, checkpoint_path)
+    config.add_property(constants.CHECKPOINT_PATH, checkpoint_path)
     config.add_property(
-        constants.Constants.LOGFILE_PATH,
+        constants.LOGFILE_PATH,
         os.path.join(checkpoint_path, "data_logger.csv"),
     )
-    config.add_property(constants.Constants.RUN_PATH, MAIN_FILE_PATH)
+    config.add_property(constants.RUN_PATH, MAIN_FILE_PATH)
 
     # os.makedirs(name=checkpoint_path, exist_ok=True)
 
-    if config.type == constants.Constants.SARSA_LAMBDA:
+    if config.type == constants.SARSA_LAMBDA:
         r = sarsa_lambda_runner.SARSALambdaRunner(config=config)
-    elif config.type == constants.Constants.Q_LEARNING:
+    elif config.type == constants.Q_LEARNING:
         r = q_learning_runner.QLearningRunner(config=config)
-    elif config.type == constants.Constants.DQN:
+    elif config.type == constants.DQN:
         r = dqn_runner.DQNRunner(config=config)
-    elif config.type == constants.Constants.ENSEMBLE_Q_LEARNING:
+    elif config.type == constants.ENSEMBLE_Q_LEARNING:
         r = q_learning_ensemble_runner.EnsembleQLearningRunner(config=config)
     else:
         raise ValueError(f"Learner type {type} not recognised.")
@@ -156,9 +163,10 @@ def single_run(config_path: str,
     r.post_process()
 
 
-if __name__ == '__main__':
-    config_changes = experiment_utils.json_to_config_changes(
-        args.config_changes)
-    single_run(config_path=args.config_path,
-               checkpoint_path=args.checkpoint_path,
-               changes=config_changes)
+if __name__ == "__main__":
+    config_changes = experiment_utils.json_to_config_changes(args.config_changes)
+    single_run(
+        config_path=args.config_path,
+        checkpoint_path=args.checkpoint_path,
+        changes=config_changes,
+    )

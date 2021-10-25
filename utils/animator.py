@@ -25,7 +25,7 @@ def animate(
     # add extension to file_name
     file_name = f"{file_name}.{file_format}"
 
-    if library == constants.Constants.MATPLOTLIB_ANIMATION:
+    if library == constants.MATPLOTLIB_ANIMATION:
         fig, ax = plt.subplots(figsize=(10, 10))
 
         def update(image):
@@ -38,5 +38,5 @@ def animate(
             writer="imagemagick",
         )
         plt.close()
-    elif library == constants.Constants.IMAGEIO:
+    elif library == constants.IMAGEIO:
         imageio.mimwrite(file_name, images)

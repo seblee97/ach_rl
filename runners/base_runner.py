@@ -13,19 +13,15 @@ import constants
 import numpy as np
 import torch
 from curricula import base_curriculum
-from curricula import minigrid_curriculum
-from curricula import multiroom_curriculum
 from environments import atari
 from environments import base_environment
-from environments import minigrid
-from environments import multi_room
 from environments import wrapper_atari
 from experiments import ach_config
-from utils import data_logger
+from key_door import key_door_env
+from key_door import visualisation_env
+from run_modes import base_runner
 from utils import decorators
 from utils import epsilon_schedules
-from utils import experiment_logger
-from utils import plotter
 from visitation_penalties import \
     adaptive_arriving_uncertainty_visitation_penalty
 from visitation_penalties import adaptive_uncertainty_visitation_penalty
@@ -44,10 +40,13 @@ from visitation_penalties import signed_uncertainty_window_penalty
 from visitation_penalties import tabular_visitation_penalty
 
 
-class BaseRunner(abc.ABC):
+class BaseRunner(base_runner.BaseRunner):
     """Base class for runners (orchestrating training, testing, logging etc.)."""
 
-    def __init__(self, config: ach_config.AchConfig) -> None:
+    def __init__(self, config: ach_config.AchConfig, unique_id: str) -> None:
+
+        super().__init__(config=config)
+
         self._environment = self._setup_environment(config=config)
         if config.visitation_penalty_type is None:
             self._visitation_penalty = None
@@ -55,12 +54,7 @@ class BaseRunner(abc.ABC):
             self._visitation_penalty = self._setup_visitation_penalty(config=config)
         self._epsilon_function = self._setup_epsilon_function(config=config)
         self._learner = self._setup_learner(config=config)
-        self._logger = experiment_logger.get_logger(
-            experiment_path=config.checkpoint_path, name=__name__
-        )
-        self._data_logger = self._setup_data_logger(config=config)
 
-        self._checkpoint_path = config.checkpoint_path
         self._apply_curriculum = config.apply_curriculum
         self._print_frequency = config.print_frequency or np.inf
         self._checkpoint_frequency = config.checkpoint_frequency
@@ -70,20 +64,17 @@ class BaseRunner(abc.ABC):
         self._num_episodes = config.num_episodes
 
         self._array_logging = self._setup_logging_frequencies(config.arrays)
-        self._array_folder_path = os.path.join(
-            self._checkpoint_path, constants.Constants.ARRAYS
-        )
+        self._array_folder_path = os.path.join(self._checkpoint_path, constants.ARRAYS)
         os.makedirs(name=self._array_folder_path, exist_ok=True)
         for tag in self._array_logging.keys():
             os.makedirs(name=os.path.join(self._array_folder_path, tag), exist_ok=True)
         self._scalar_logging = self._setup_logging_frequencies(config.scalars)
         self._visualisations = self._setup_logging_frequencies(config.visualisations)
         self._visualisations_folder_path = os.path.join(
-            self._checkpoint_path, constants.Constants.VISUALISATIONS
+            self._checkpoint_path, constants.VISUALISATIONS
         )
         os.makedirs(name=self._visualisations_folder_path, exist_ok=True)
         self._post_visualisations = config.post_visualisations
-        self._plotter = self._setup_plotter(config=config)
 
         config.save_configuration(folder_path=config.checkpoint_path)
 
@@ -124,21 +115,22 @@ class BaseRunner(abc.ABC):
             curriculum_wrapper = self.get_curriculum_wrapper(config.environment)
             environment = curriculum_wrapper(**environment_args, **curriculum_args)
         else:
-            if config.environment == constants.Constants.MINIGRID:
+            if config.environment == constants.MINIGRID:
                 environment = minigrid.MiniGrid(**environment_args)
-            elif config.environment == constants.Constants.ATARI:
-                if config.implementation == constants.Constants.WRAPPER:
+            elif config.environment == constants.ATARI:
+                if config.implementation == constants.WRAPPER:
                     environment = wrapper_atari.AtariEnv(**environment_args)
-                elif config.implementation == constants.Constants.FUNCTIONAL:
+                elif config.implementation == constants.FUNCTIONAL:
                     environment = atari.AtariEnv(**environment_args)
-            elif config.environment == constants.Constants.MULTIROOM:
-                environment = multi_room.MultiRoom(**environment_args)
+            elif config.environment == constants.MULTIROOM:
+                environment = key_door_env.KeyDoorGridworld(**environment_args)
+                environment = visualisation_env.VisualisationEnv(environment)
 
         return environment
 
     def _get_environment_args(self, config: ach_config.AchConfig) -> Dict[str, Any]:
         """Get arguments needed to pass to environment."""
-        if config.environment == constants.Constants.MINIGRID:
+        if config.environment == constants.MINIGRID:
             if config.reward_positions is not None:
                 reward_positions = [
                     tuple(position) for position in config.reward_positions
@@ -150,126 +142,94 @@ class BaseRunner(abc.ABC):
             else:
                 agent_starting_position = None
             env_args = {
-                constants.Constants.SIZE: tuple(config.size),
-                constants.Constants.NUM_REWARDS: config.num_rewards,
-                constants.Constants.REWARD_MAGNITUDES: config.reward_magnitudes,
-                constants.Constants.STARTING_XY: agent_starting_position,
-                constants.Constants.REWARD_XY: reward_positions,
-                constants.Constants.REPEAT_REWARDS: config.repeat_rewards,
-                constants.Constants.EPISODE_TIMEOUT: config.episode_timeout,
+                constants.SIZE: tuple(config.size),
+                constants.NUM_REWARDS: config.num_rewards,
+                constants.REWARD_MAGNITUDES: config.reward_magnitudes,
+                constants.STARTING_XY: agent_starting_position,
+                constants.REWARD_XY: reward_positions,
+                constants.REPEAT_REWARDS: config.repeat_rewards,
+                constants.EPISODE_TIMEOUT: config.episode_timeout,
             }
-        elif config.environment == constants.Constants.ATARI:
+        elif config.environment == constants.ATARI:
             env_args = {
-                constants.Constants.ATARI_ENV_NAME: config.atari_env_name,
-                constants.Constants.EPISODE_TIMEOUT: config.episode_timeout,
-                constants.Constants.FRAME_STACK: config.frame_stack,
-                constants.Constants.FRAME_SKIP: config.frame_skip,
+                constants.ATARI_ENV_NAME: config.atari_env_name,
+                constants.EPISODE_TIMEOUT: config.episode_timeout,
+                constants.FRAME_STACK: config.frame_stack,
+                constants.FRAME_SKIP: config.frame_skip,
             }
-            if config.implementation == constants.Constants.FUNCTIONAL:
-                env_args[constants.Constants.PRE_PROCESSING] = config.pre_processing
-        elif config.environment == constants.Constants.MULTIROOM:
-            if config.json_map_path is not None:
-                json_map_path = os.path.join(config.run_path, config.json_map_path)
-            else:
-                json_map_path = None
+            if config.implementation == constants.FUNCTIONAL:
+                env_args[constants.PRE_PROCESSING] = config.pre_processing
+        elif config.environment == constants.MULTIROOM:
             env_args = {
-                constants.Constants.ASCII_MAP_PATH: os.path.join(
-                    config.run_path, config.ascii_map_path
-                ),
-                constants.Constants.JSON_MAP_PATH: json_map_path,
-                constants.Constants.REPRESENTATION: config.representation,
-                constants.Constants.FRAME_STACK: config.frame_stack,
-                constants.Constants.EPISODE_TIMEOUT: config.episode_timeout,
-                constants.Constants.REWARD_SPECIFICATIONS: config.reward_specifications,
+                constants.MAP_ASCII_PATH: os.path.join(config.map_ascii_path),
+                constants.MAP_YAML_PATH: os.path.join(config.map_yaml_path),
+                constants.REPRESENTATION: config.representation,
+                constants.EPISODE_TIMEOUT: config.episode_timeout,
             }
         return env_args
 
     def _get_curriculum_args(self, config: ach_config.AchConfig) -> Dict[str, Any]:
         """Get arguments needed to pass to environment curriculum wrapper."""
-        if config.environment == constants.Constants.MINIGRID:
+        if config.environment == constants.MINIGRID:
             curriculum_args = {
-                constants.Constants.TRANSITION_EPISODES: config.transition_episodes,
-                constants.Constants.ENVIRONMENT_CHANGES: config.environment_changes,
+                constants.TRANSITION_EPISODES: config.transition_episodes,
+                constants.ENVIRONMENT_CHANGES: config.environment_changes,
             }
-        elif config.environment == constants.Constants.MULTIROOM:
+        elif config.environment == constants.MULTIROOM:
             curriculum_args = {
-                constants.Constants.TRANSITION_EPISODES: config.transition_episodes,
-                constants.Constants.ENVIRONMENT_CHANGES: config.environment_changes,
+                constants.TRANSITION_EPISODES: config.transition_episodes,
+                constants.ENVIRONMENT_CHANGES: config.environment_changes,
             }
         return curriculum_args
 
     @staticmethod
     def get_curriculum_wrapper(environment: str) -> base_curriculum.BaseCurriculum:
         """Get relevant wrapper for environment to add curriculum features."""
-        if environment == constants.Constants.MINIGRID:
+        if environment == constants.MINIGRID:
             wrapper = minigrid_curriculum.MinigridCurriculum
-        elif environment == constants.Constants.MULTIROOM:
+        elif environment == constants.MULTIROOM:
             wrapper = multiroom_curriculum.MultiroomCurriculum
         return wrapper
-
-    def _setup_data_logger(
-        self, config: ach_config.AchConfig
-    ) -> data_logger.DataLogger:
-        """Initialise logger object to record data from experiment."""
-        return data_logger.DataLogger(config=config)
-
-    def _setup_plotter(self, config: ach_config.AchConfig) -> plotter.Plotter:
-        """Initialise plotter object for use in post-processing run."""
-        return plotter.Plotter(
-            save_folder=config.checkpoint_path,
-            logfile_path=config.logfile_path,
-            smoothing=config.smoothing,
-        )
 
     def _setup_visitation_penalty(
         self, config: ach_config.AchConfig
     ) -> base_visitation_penalty.BaseVisitationPenalty:
         """Initialise object to act as visitation penalty."""
-        if config.visitation_penalty_type == constants.Constants.HARD_CODED:
+        if config.visitation_penalty_type == constants.HARD_CODED:
             penalty_computer = hard_coded_visitation_penalty.HardCodedPenalty(
                 hard_coded_penalties=config.vp_schedule
             )
         elif (
-            config.visitation_penalty_type
-            == constants.Constants.DETERMINISTIC_EXPONENTIAL_DECAY
+            config.visitation_penalty_type == constants.DETERMINISTIC_EXPONENTIAL_DECAY
         ):
             penalty_computer = (
                 exponential_decay_visitation_penalty.ExponentialDecayPenalty(
                     A=config.A, b=config.b, c=config.c
                 )
             )
-        elif (
-            config.visitation_penalty_type
-            == constants.Constants.DETERMINISTIC_LINEAR_DECAY
-        ):
+        elif config.visitation_penalty_type == constants.DETERMINISTIC_LINEAR_DECAY:
             penalty_computer = linear_decay_visitation_penalty.LinearDecayPenalty(
                 A=config.A, b=config.b
             )
-        elif (
-            config.visitation_penalty_type
-            == constants.Constants.DETERMINISTIC_SIGMOIDAL_DECAY
-        ):
+        elif config.visitation_penalty_type == constants.DETERMINISTIC_SIGMOIDAL_DECAY:
             penalty_computer = sigmoidal_decay_visitation_penalty.SigmoidalDecayPenalty(
                 A=config.A, b=config.b, c=config.c
             )
-        elif config.visitation_penalty_type == constants.Constants.ADAPTIVE_UNCERTAINTY:
+        elif config.visitation_penalty_type == constants.ADAPTIVE_UNCERTAINTY:
             penalty_computer = (
                 adaptive_uncertainty_visitation_penalty.AdaptiveUncertaintyPenalty(
                     multiplicative_factor=config.multiplicative_factor,
                     action_function=config.action_function,
                 )
             )
-        elif (
-            config.visitation_penalty_type
-            == constants.Constants.ADAPTIVE_ARRIVING_UNCERTAINTY
-        ):
+        elif config.visitation_penalty_type == constants.ADAPTIVE_ARRIVING_UNCERTAINTY:
             penalty_computer = adaptive_arriving_uncertainty_visitation_penalty.AdaptiveArrivingUncertaintyPenalty(
                 multiplicative_factor=config.multiplicative_factor,
                 action_function=config.action_function,
             )
         elif (
             config.visitation_penalty_type
-            == constants.Constants.POTENTIAL_BASED_ADAPTIVE_UNCERTAINTY
+            == constants.POTENTIAL_BASED_ADAPTIVE_UNCERTAINTY
         ):
             penalty_computer = potential_adaptive_uncertainty_penalty.PotentialAdaptiveUncertaintyPenalty(
                 gamma=config.discount_factor,
@@ -277,15 +237,13 @@ class BaseRunner(abc.ABC):
                 pre_action_function=config.pre_action_function,
                 post_action_function=config.post_action_function,
             )
-        elif (
-            config.visitation_penalty_type == constants.Constants.POLICY_ENTROPY_PENALTY
-        ):
+        elif config.visitation_penalty_type == constants.POLICY_ENTROPY_PENALTY:
             penalty_computer = policy_entropy_penalty.PolicyEntropyPenalty(
                 multiplicative_factor=config.multiplicative_factor
             )
         elif (
             config.visitation_penalty_type
-            == constants.Constants.POTENTIAL_BASED_POLICY_ENTROPY_PENALTY
+            == constants.POTENTIAL_BASED_POLICY_ENTROPY_PENALTY
         ):
             penalty_computer = (
                 potential_policy_entropy_penalty.PotentialPolicyEntropyPenalty(
@@ -293,26 +251,23 @@ class BaseRunner(abc.ABC):
                     multiplicative_factor=config.multiplicative_factor,
                 )
             )
-        elif (
-            config.visitation_penalty_type
-            == constants.Constants.REDUCING_VARIANCE_WINDOW
-        ):
+        elif config.visitation_penalty_type == constants.REDUCING_VARIANCE_WINDOW:
             penalty_computer = reducing_variance_window_penalty.ReducingVarianceWindowPenalty(
                 expected_multiplicative_factor=config.expected_multiplicative_factor,
                 unexpected_multiplicative_factor=config.unexpected_multiplicative_factor,
                 action_function=config.action_function,
                 moving_average_window=config.moving_average_window,
             )
-        elif (
-            config.visitation_penalty_type
-            == constants.Constants.REDUCING_ENTROPY_WINDOW
-        ):
+        elif config.visitation_penalty_type == constants.REDUCING_ENTROPY_WINDOW:
             penalty_computer = reducing_entropy_window_penalty.ReducingEntropyWindowPenalty(
                 expected_multiplicative_factor=config.expected_multiplicative_factor,
                 unexpected_multiplicative_factor=config.unexpected_multiplicative_factor,
                 moving_average_window=config.moving_average_window,
             )
-        elif config.visitation_penalty_type == constants.Constants.SIGNED_UNCERTAINTY_WINDOW_PENALTY:
+        elif (
+            config.visitation_penalty_type
+            == constants.SIGNED_UNCERTAINTY_WINDOW_PENALTY
+        ):
             penalty_computer = signed_uncertainty_window_penalty.SignedUncertaintyWindowPenalty(
                 positive_multiplicative_factor=config.positive_multiplicative_factor,
                 negative_multiplicative_factor=config.negative_multiplicative_factor,
@@ -325,25 +280,22 @@ class BaseRunner(abc.ABC):
             )
 
         if config.type in [
-            constants.Constants.BOOTSTRAPPED_ENSEMBLE_DQN,
-            constants.Constants.VANILLA_DQN,
-            constants.Constants.INDEPENDENT_ENSEMBLE_DQN,
+            constants.BOOTSTRAPPED_ENSEMBLE_DQN,
+            constants.VANILLA_DQN,
+            constants.INDEPENDENT_ENSEMBLE_DQN,
         ]:
-            if config.shaping_implementation == constants.Constants.TRAIN_Q_NETWORK:
+            if config.shaping_implementation == constants.TRAIN_Q_NETWORK:
                 use_target_network = False
-            elif (
-                config.shaping_implementation
-                == constants.Constants.TRAIN_TARGET_NETWORK
-            ):
+            elif config.shaping_implementation == constants.TRAIN_TARGET_NETWORK:
                 use_target_network = True
             visitation_penalty = network_visitation_penalty.NetworkVisitationPenalty(
                 penalty_computer=penalty_computer,
                 use_target_network=use_target_network,
             )
         elif config.type in [
-            constants.Constants.Q_LEARNING,
-            constants.Constants.SARSA_LAMBDA,
-            constants.Constants.ENSEMBLE_Q_LEARNING,
+            constants.Q_LEARNING,
+            constants.SARSA_LAMBDA,
+            constants.ENSEMBLE_Q_LEARNING,
         ]:
             visitation_penalty = tabular_visitation_penalty.TabularVisitationPenalty(
                 penalty_computer=penalty_computer
@@ -358,9 +310,9 @@ class BaseRunner(abc.ABC):
 
     def _setup_epsilon_function(self, config: ach_config.AchConfig):
         """Setup epsilon function."""
-        if config.schedule == constants.Constants.CONSTANT:
+        if config.schedule == constants.CONSTANT:
             epsilon_function = epsilon_schedules.ConstantEpsilon(value=config.value)
-        elif config.schedule == constants.Constants.LINEAR_DECAY:
+        elif config.schedule == constants.LINEAR_DECAY:
             epsilon_function = epsilon_schedules.LinearDecayEpsilon(
                 initial_value=config.initial_value,
                 final_value=config.final_value,
@@ -447,7 +399,7 @@ class BaseRunner(abc.ABC):
                     self._learner.checkpoint(
                         checkpoint_path=os.path.join(
                             self._checkpoint_path,
-                            f"{constants.Constants.MODEL_CHECKPOINT}_{i}",
+                            f"{constants.MODEL_CHECKPOINT}_{i}",
                         )
                     )
 
@@ -461,21 +413,21 @@ class BaseRunner(abc.ABC):
             train_reward, train_step_count = self._train_episode(episode=i)
 
             self._write_scalar(
-                tag=constants.Constants.TRAIN_EPISODE_LENGTH,
+                tag=constants.TRAIN_EPISODE_LENGTH,
                 episode=i,
                 scalar=train_step_count,
             )
             self._write_scalar(
-                tag=constants.Constants.TRAIN_EPISODE_REWARD,
+                tag=constants.TRAIN_EPISODE_REWARD,
                 episode=i,
                 scalar=train_reward,
             )
 
             episode_duration = time.time() - episode_start_time
 
-        if constants.Constants.VISITATION_COUNT_HEATMAP in self._visualisations:
+        if constants.VISITATION_COUNT_HEATMAP in self._visualisations:
             self._data_logger.plot_array_data(
-                name=constants.Constants.VISITATION_COUNT_HEATMAP,
+                name=constants.VISITATION_COUNT_HEATMAP,
                 data=self._environment.visitation_counts,
             )
 
@@ -511,9 +463,9 @@ class BaseRunner(abc.ABC):
 
             with torch.no_grad():
                 if self._test_types is not None:
-                    if constants.Constants.GREEDY in self._test_types:
+                    if constants.GREEDY in self._test_types:
                         self._greedy_test_episode(episode=episode)
-                    if constants.Constants.NO_REP in self._test_types:
+                    if constants.NO_REP in self._test_types:
                         self._non_repeat_test_episode(episode=episode)
 
                 self._run_specific_tests(episode=episode)
@@ -550,22 +502,22 @@ class BaseRunner(abc.ABC):
             episode_reward += reward
 
         self._data_logger.write_scalar(
-            tag=constants.Constants.TEST_EPISODE_LENGTH + tag_,
+            tag=constants.TEST_EPISODE_LENGTH + tag_,
             step=episode,
             scalar=self._environment.episode_step_count,
         )
         self._data_logger.write_scalar(
-            tag=constants.Constants.TEST_EPISODE_REWARD + tag_,
+            tag=constants.TEST_EPISODE_REWARD + tag_,
             step=episode,
             scalar=episode_reward,
         )
 
         if episode != 0:
             if self._visualisation_iteration(
-                constants.Constants.INDIVIDUAL_TEST_RUN + tag_, episode
+                constants.INDIVIDUAL_TEST_RUN + tag_, episode
             ):
                 self._data_logger.plot_array_data(
-                    name=f"{constants.Constants.INDIVIDUAL_TEST_RUN + tag_}_{episode}",
+                    name=f"{constants.INDIVIDUAL_TEST_RUN + tag_}_{episode}",
                     data=self._environment.plot_episode_history(),
                 )
 
@@ -611,22 +563,22 @@ class BaseRunner(abc.ABC):
             episode_reward += reward
 
         self._data_logger.write_scalar_df(
-            tag=constants.Constants.NO_REPEAT_TEST_EPISODE_LENGTH,
+            tag=constants.NO_REPEAT_TEST_EPISODE_LENGTH,
             step=episode,
             scalar=self._environment.episode_step_count,
         )
         self._data_logger.write_scalar_df(
-            tag=constants.Constants.NO_REPEAT_TEST_EPISODE_REWARD,
+            tag=constants.NO_REPEAT_TEST_EPISODE_REWARD,
             step=episode,
             scalar=episode_reward,
         )
 
         if episode != 0:
             if self._visualisation_iteration(
-                constants.Constants.INDIVIDUAL_NO_REP_TEST_RUN, episode
+                constants.INDIVIDUAL_NO_REP_TEST_RUN, episode
             ):
                 self._data_logger.plot_array_data(
-                    name=f"{constants.Constants.INDIVIDUAL_NO_REP_TEST_RUN}_{episode}",
+                    name=f"{constants.INDIVIDUAL_NO_REP_TEST_RUN}_{episode}",
                     data=self._environment.plot_episode_history(),
                 )
 
