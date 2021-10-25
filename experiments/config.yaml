@@ -24,20 +24,17 @@ minigrid_curriculum:
         - []
 
 multiroom_curriculum:
-    transition_episodes: [100]
+    transition_episodes: [5]
     environment_changes:
-        - ["change_reward_positions", [[16, 5], [31, 4]]]
+        - [["change_key_positions", [[17, 5], [18, 5]]], ["change_reward_positions", [[16, 5], [31, 4]]]]
 
 multiroom:
-    ascii_map_path: three_room.txt
-    json_map_path: three_room.json
+    ascii_map_path: simple_map_1.txt
+    json_map_path: 
     episode_timeout: 400 # infinity if not given
     plot_origin: lower
     
     reward_specifications:
-        - gaussian:
-            mean: 1
-            variance: 0
         - gaussian:
             mean: 1
             variance: 0
@@ -72,7 +69,7 @@ learner:
 
     pretrained_model_path:
 
-    learning_rate: 0.01
+    learning_rate: 1.0
     gradient_momentum: 0.95 # unused
     squared_gradient_momentum: 0.95 # unused
     min_squared_gradient: 0.01 # unused
@@ -86,7 +83,7 @@ learner:
             action_function: max
 
     epsilon:
-        schedule: constant
+        schedule: unexpected_uncertainty
 
         constant:
             value: 0.1
@@ -99,12 +96,12 @@ learner:
         unexpected_uncertainty:
             epsilon_update_period: 1
             action_function: max
-            moving_average_window: 10
+            moving_average_window: 5
             minimum_value: 0.1
 
         expected_uncertainty:
             epsilon_update_period: 1
-            action_funtion: max
+            action_function: max
             minimum_value: 0.1
     
     initialisation: random_normal
@@ -117,7 +114,7 @@ learner:
 
     random_normal:
         mean: 0
-        variance: 1
+        variance: 0.1
 
     # hard_coded, adaptive_uncertainty, adaptive_arriving_uncertainty, 
     # deterministic_exponential_decay, deterministic_linear_decay, 
@@ -125,18 +122,18 @@ learner:
     # policy_entropy_penalty, potential_based_adaptive_uncertainty
     # reducing_variance_window, or reducing_entropy_window
     # signed_uncertainty_window_penalty
-    visitation_penalty_type: reducing_entropy_window
+    visitation_penalty_type: hard_coded
 
     # when individual penalties are computed with global values (ensemble-wide),
     # how often are these global values updated.
-    penalty_update_period: 50
+    penalty_update_period: 1
 
     # train_q_network, train_target_network, act; only relevant for DQN-based
     shaping_implementation: train_q_network
 
     hard_coded: 
         vp_schedule:
-            - [0, -0.0] # from step 0, 0 penalty
+            - [0, -0.01] # from step 0, 0 penalty
 
     deterministic_exponential_decay:
         # y = Ab^(cx)
@@ -169,7 +166,7 @@ learner:
         multiplicative_factor: 0.5
 
     policy_entropy_penalty:
-        multiplicative_factor: 0.5
+        multiplicative_factor: 1
 
     potential_based_policy_entropy_penalty:
         multiplicative_factor: 0.5   
@@ -244,6 +241,14 @@ dqn:
         - conv:
             in_channels: 1
             num_filters: 8 
+            kernel_size: 3
+            stride: 2
+            nonlinearity:  relu
+            bias_initialisation: 
+            weight_initialisation:
+        - conv:
+            in_channels: 8
+            num_filters: 8
             kernel_size: 2
             stride: 1
             nonlinearity:  relu
@@ -252,7 +257,7 @@ dqn:
         - flatten:
             nonlinearity: identity
         - fc:
-            in_features: 1536
+            in_features: 648
             out_features: 512
             nonlinearity: relu
             bias_initialisation: 
@@ -265,7 +270,7 @@ dqn:
 
 training:
     num_episodes: 6000
-    test_frequency: 100
+    test_frequency: 50
     testing: 
         # - greedy
         # - no_rep
@@ -273,7 +278,7 @@ training:
 logging:
     print_frequency: 1
     checkpoint_frequency: 500
-    model_checkpoint_frequency: 5
+    model_checkpoint_frequency: 500
     animation_library: matplotlib_animation
     animation_file_format: gif
     arrays:
@@ -287,10 +292,12 @@ logging:
         # - [average_action_value, 50]
         # - [loss, 1]
         # - [epsilon, 1]
-        # - [[train_episode_reward_ensemble_runner, 4], 1]
-        # - [[train_episode_length_ensemble_runner, 4], 1]
+        - [[train_episode_reward_ensemble_runner, 8], 1]
+        - [[train_episode_length_ensemble_runner, 8], 1]
         # - [ensemble_episode_reward_std, 1]
         # - [ensemble_episode_length_std, 1]
+        - [mean_epsilon, 1]
+        - [mean_lr_scaling, 1]
         - [mean_visitation_penalty, 1]
         - [mean_penalty_info, 1]
         # - [no_repeat_test_episode_reward, 1]
@@ -301,8 +308,8 @@ logging:
         # - [value_function_std, 50]
         # - [individual_value_functions, 50]
         # - visitation_count_heatmap
-        - [individual_test_run, 200]
-        - [individual_train_run, 100]
+        # - [individual_test_run, 200]
+        - [individual_train_run, 500]
     post_visualisations:
         - value_function
         # - value_function_std
