@@ -112,12 +112,17 @@ def plot_all_multi_seed_multi_run(
         mpl.rcParams["axes.prop_cycle"] = color_cycle
 
     for tag, relevant_experiments in tag_set.items():
-        # if tag == "test_ensemble_episode_reward_mean":
-        #     import pdb
+        if tag not in [
+            "mean_lr_scaling",
+            "current_state_max_uncertainty_mean",
+            "current_state_mean_uncertainty_mean",
+            "current_state_select_uncertainty_mean",
+            "next_state_max_uncertainty_mean",
+            "next_state_mean_uncertainty_mean",
+            "next_state_select_uncertainty_mean",
+        ]:
+            print(tag)
 
-        #     pdb.set_trace()
-        print(tag)
-        if "branch" not in tag:
             fig = plt.figure(figsize=(constants.Constants.SUMMARY_FIGSIZE))
             for exp in relevant_experiments:
                 attribute_data = []
@@ -133,6 +138,8 @@ def plot_all_multi_seed_multi_run(
                     )
                     tag_data = df[tag].dropna()
                     attribute_data.append(tag_data)
+
+            if len(attribute_data):
                 mean_attribute_data = np.mean(attribute_data, axis=0)
                 std_attribute_data = np.std(attribute_data, axis=0)
                 smooth_mean_data = smooth_data(
@@ -141,21 +148,22 @@ def plot_all_multi_seed_multi_run(
                 smooth_std_data = smooth_data(
                     std_attribute_data, window_width=window_width
                 )
-                scaled_x = (len(df) / len(smooth_mean_data)) * np.arange(
-                    len(smooth_mean_data)
-                )
-                plt.plot(
-                    scaled_x,
-                    smooth_mean_data,
-                    linewidth=linewidth,
-                    label=exp,
-                )
-                plt.fill_between(
-                    scaled_x,
-                    smooth_mean_data - smooth_std_data,
-                    smooth_mean_data + smooth_std_data,
-                    alpha=0.3,
-                )
+                if len(smooth_mean_data):
+                    scaled_x = (len(df) / len(smooth_mean_data)) * np.arange(
+                        len(smooth_mean_data)
+                    )
+                    plt.plot(
+                        scaled_x,
+                        smooth_mean_data,
+                        linewidth=linewidth,
+                        label=exp,
+                    )
+                    plt.fill_between(
+                        scaled_x,
+                        smooth_mean_data - smooth_std_data,
+                        smooth_mean_data + smooth_std_data,
+                        alpha=0.3,
+                    )
             plt.legend(
                 bbox_to_anchor=(
                     1.01,
