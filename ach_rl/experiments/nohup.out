@@ -1,0 +1,76 @@
+Field 'experiment_name' at level 'ROOT' in config validated.
+Field 'experiment_name' at level 'ROOT' in config set with key 'experiment_name'.
+Field 'use_gpu' at level 'ROOT' in config validated.
+Field 'use_gpu' at level 'ROOT' in config set with key 'use_gpu'.
+Field 'gpu_id' at level 'ROOT' in config validated.
+Field 'gpu_id' at level 'ROOT' in config set with key 'gpu_id'.
+Field 'seed' at level 'ROOT' in config validated.
+Field 'seed' at level 'ROOT' in config set with key 'seed'.
+Field 'environment' at level 'ROOT' in config validated.
+Field 'environment' at level 'ROOT' in config set with key 'environment'.
+Field 'apply_curriculum' at level 'ROOT' in config validated.
+Field 'apply_curriculum' at level 'ROOT' in config set with key 'apply_curriculum'.
+Field 'ascii_map_path' at level 'multiroom' in config validated.
+Field 'ascii_map_path' at level 'multiroom' in config set with key 'ascii_map_path'.
+Field 'episode_timeout' at level 'multiroom' in config validated.
+Field 'episode_timeout' at level 'multiroom' in config set with key 'episode_timeout'.
+Field 'plot_origin' at level 'multiroom' in config validated.
+Field 'plot_origin' at level 'multiroom' in config set with key 'plot_origin'.
+Field 'type' at level 'learner' in config validated.
+Field 'type' at level 'learner' in config set with key 'type'.
+Field 'learning_rate' at level 'learner' in config validated.
+Field 'learning_rate' at level 'learner' in config set with key 'learning_rate'.
+Field 'gradient_momentum' at level 'learner' in config validated.
+Field 'gradient_momentum' at level 'learner' in config set with key 'gradient_momentum'.
+Field 'squared_gradient_momentum' at level 'learner' in config validated.
+Field 'squared_gradient_momentum' at level 'learner' in config set with key 'squared_gradient_momentum'.
+Field 'min_squared_gradient' at level 'learner' in config validated.
+Field 'min_squared_gradient' at level 'learner' in config set with key 'min_squared_gradient'.
+Field 'discount_factor' at level 'learner' in config validated.
+Field 'discount_factor' at level 'learner' in config set with key 'discount_factor'.
+Field 'initialisation' at level 'learner' in config validated.
+Field 'initialisation' at level 'learner' in config set with key 'initialisation'.
+Field 'visitation_penalty_type' at level 'learner' in config validated.
+Field 'visitation_penalty_type' at level 'learner' in config set with key 'visitation_penalty_type'.
+Field 'schedule' at level 'learner/epsilon' in config validated.
+Field 'schedule' at level 'learner/epsilon' in config set with key 'schedule'.
+Field 'value' at level 'learner/epsilon/constant' in config validated.
+Field 'value' at level 'learner/epsilon/constant' in config set with key 'value'.
+Field 'vp_schedule' at level 'learner/hard_coded' in config validated.
+Field 'vp_schedule' at level 'learner/hard_coded' in config set with key 'vp_schedule'.
+Field 'behaviour' at level 'q_learning' in config validated.
+Field 'behaviour' at level 'q_learning' in config set with key 'behaviour'.
+Field 'target' at level 'q_learning' in config validated.
+Field 'target' at level 'q_learning' in config set with key 'target'.
+Field 'num_episodes' at level 'training' in config validated.
+Field 'num_episodes' at level 'training' in config set with key 'num_episodes'.
+Field 'test_frequency' at level 'training' in config validated.
+Field 'test_frequency' at level 'training' in config set with key 'test_frequency'.
+Field 'testing' at level 'training' in config validated.
+Field 'testing' at level 'training' in config set with key 'testing'.
+Field 'train_log_frequency' at level 'training' in config validated.
+Field 'train_log_frequency' at level 'training' in config set with key 'train_log_frequency'.
+Field 'full_test_log_frequency' at level 'training' in config validated.
+Field 'full_test_log_frequency' at level 'training' in config set with key 'full_test_log_frequency'.
+Field 'print_frequency' at level 'logging' in config validated.
+Field 'print_frequency' at level 'logging' in config set with key 'print_frequency'.
+Field 'checkpoint_frequency' at level 'logging' in config validated.
+Field 'checkpoint_frequency' at level 'logging' in config set with key 'checkpoint_frequency'.
+Field 'arrays' at level 'logging' in config validated.
+Field 'arrays' at level 'logging' in config set with key 'arrays'.
+Field 'scalars' at level 'logging' in config validated.
+Field 'scalars' at level 'logging' in config set with key 'scalars'.
+Field 'visualisations' at level 'logging' in config validated.
+Field 'visualisations' at level 'logging' in config set with key 'visualisations'.
+Field 'smoothing' at level 'post_processing' in config validated.
+Field 'smoothing' at level 'post_processing' in config set with key 'smoothing'.
+objc[81189]: +[NSApplication initialize] may have been in progress in another thread when fork() was called.
+objc[81189]: +[NSApplication initialize] may have been in progress in another thread when fork() was called. We cannot safely call it or ignore it in the fork() child process. Crashing instead. Set a breakpoint on objc_initializeAfterForkError to debug.
+objc[81192]: +[NSApplication initialize] may have been in progress in another thread when fork() was called.
+objc[81192]: +[NSApplication initialize] may have been in progress in another thread when fork() was called. We cannot safely call it or ignore it in the fork() child process. Crashing instead. Set a breakpoint on objc_initializeAfterForkError to debug.
+objc[81190]: +[NSApplication initialize] may have been in progress in another thread when fork() was called.
+objc[81190]: +[NSApplication initialize] may have been in progress in another thread when fork() was called. We cannot safely call it or ignore it in the fork() child process. Crashing instead. Set a breakpoint on objc_initializeAfterForkError to debug.
+objc[81193]: +[NSApplication initialize] may have been in progress in another thread when fork() was called.
+objc[81193]: +[NSApplication initialize] may have been in progress in another thread when fork() was called. We cannot safely call it or ignore it in the fork() child process. Crashing instead. Set a breakpoint on objc_initializeAfterForkError to debug.
+objc[81191]: +[NSApplication initialize] may have been in progress in another thread when fork() was called.
+objc[81191]: +[NSApplication initialize] may have been in progress in another thread when fork() was called. We cannot safely call it or ignore it in the fork() child process. Crashing instead. Set a breakpoint on objc_initializeAfterForkError to debug.
