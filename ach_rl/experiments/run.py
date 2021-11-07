@@ -35,7 +35,7 @@ if __name__ == "__main__":
 
     results_folder = os.path.join(MAIN_FILE_PATH, constants.RESULTS)
 
-    config_class_name = "AChConfig"
+    config_class_name = "AchConfig"
     config_module_name = "ach_config"
     config_module_path = os.path.join(MAIN_FILE_PATH, "ach_config.py")
     config_class = ach_config.AchConfig
