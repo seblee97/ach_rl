@@ -311,6 +311,7 @@ SIGNED_UNCERTAINTY_WINDOW = "signed_uncertainty_window"
 PENALTY_UPDATE_PERIOD = "penalty_update_period"
 XLABEL = "xlabel"
 PLOTTING = "plotting"
+ROLLOUTS = "rollouts"
 
 ATARI_ENVS = ["PongNoFrameskip-v4", "GravitarNoFrameskip-v4"]
 
