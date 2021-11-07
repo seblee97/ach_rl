@@ -2,7 +2,7 @@ import os
 from typing import Tuple
 
 import constants
-from experiments import ach_config
+# from experiments import ach_config
 from learners.tabular_learners import q_learner
 from runners import base_runner
 
@@ -10,7 +10,7 @@ from runners import base_runner
 class QLearningRunner(base_runner.BaseRunner):
     """Runner for vanilla Q-learning."""
 
-    def __init__(self, config: ach_config.AchConfig, unique_id: str):
+    def __init__(self, config, unique_id: str):
         super().__init__(config=config, unique_id=unique_id)
 
     def _get_data_columns(self):
@@ -28,7 +28,7 @@ class QLearningRunner(base_runner.BaseRunner):
         ]
         return columns
 
-    def _setup_learner(self, config: ach_config.AchConfig):  # TODO: similar to envs
+    def _setup_learner(self, config):  # TODO: similar to envs
         """Initialise learner specified in configuration."""
         initialisation_strategy = self._get_initialisation_strategy(config)
         learner = q_learner.TabularQLearner(
@@ -44,7 +44,7 @@ class QLearningRunner(base_runner.BaseRunner):
         )
         return learner
 
-    def _get_initialisation_strategy(self, config: ach_config.AchConfig):
+    def _get_initialisation_strategy(self, config):
         if config.initialisation == constants.RANDOM_UNIFORM:
             initialisation_strategy = {
                 constants.RANDOM_UNIFORM: {
