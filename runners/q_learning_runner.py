@@ -105,24 +105,10 @@ class QLearningRunner(base_runner.BaseRunner):
                 self._environment.visualise_episode_history(
                     save_path=os.path.join(
                         self._checkpoint_path,
+                        constants.ROLLOUTS,
                         f"{constants.INDIVIDUAL_TRAIN_RUN}_{episode}.mp4",
                     )
                 )
-                # self._data_logger.plot_array_data(
-                #     name=f"{constants.INDIVIDUAL_TRAIN_RUN}_{episode}",
-                #     data=self._environment.plot_episode_history(),
-                # )
-
-        if self._scalar_log_iteration(constants.CYCLE_COUNT, episode):
-            num_cycles = cycle_counter.evaluate_loops_on_value_function(
-                size=self._grid_size,
-                state_action_values=self._learner.state_action_values,
-            )
-            self._logger.write_scalar(
-                tag=constants.CYCLE_COUNT,
-                step=episode,
-                scalar=num_cycles,
-            )
 
     def _train_episode(self, episode: int) -> Tuple[float, int]:
         """Perform single training loop.
