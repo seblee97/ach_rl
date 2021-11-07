@@ -2,6 +2,7 @@ import argparse
 import os
 
 import constants
+import runners
 from experiments import ach_config
 from run_modes import cluster_run
 from run_modes import parallel_run
@@ -40,17 +41,19 @@ if __name__ == "__main__":
     config_class = ach_config.AchConfig
     config = config_class(args.config_path)
 
+    runners_module_path = os.path.abspath(runners.__file__)
+
     if config.type == constants.Q_LEARNING:
         runner_class = q_learning_runner.QLearningRunner
         runner_class_name = "QLearningRunner"
         runner_module_name = "q_learning_runner"
-        runner_module_path = os.path.join(MAIN_FILE_PATH, "q_learning_runner.py")
+        runner_module_path = os.path.join(runners_module_path, "q_learning_runner.py")
     elif config.type == constants.ENSEMBLE_Q_LEARNING:
         runner_class = q_learning_ensemble_runner.EnsembleQLearningRunner
         runner_class_name = "EnsembleQLearningRunner"
         runner_module_name = "q_learning_ensemble_runner"
         runner_module_path = os.path.join(
-            MAIN_FILE_PATH, "q_learning_ensemble_runner.py"
+            runners_module_path, "q_learning_ensemble_runner.py"
         )
 
     if args.mode == constants.SINGLE:
