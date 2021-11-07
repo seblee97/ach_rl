@@ -41,7 +41,7 @@ if __name__ == "__main__":
     config_class = ach_config.AchConfig
     config = config_class(args.config_path)
 
-    runners_module_path = os.path.abspath(runners.__file__)
+    runners_module_path = os.path.dirname(os.path.abspath(runners.__file__))
 
     if config.type == constants.Q_LEARNING:
         runner_class = q_learning_runner.QLearningRunner
