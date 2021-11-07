@@ -36,10 +36,10 @@ from visitation_penalties.potential_adaptive_uncertainty_penalty import \
 class EnsembleQLearningRunner(base_runner.BaseRunner):
     """Runner for Q-learning ensemble."""
 
-    def __init__(self, config: ach_config.AchConfig):
+    def __init__(self, config: ach_config.AchConfig, unique_id: str):
         self._num_learners = config.num_learners
         self._targets = config.targets
-        super().__init__(config=config)
+        super().__init__(config=config, unique_id=unique_id)
 
         self._parallelise_ensemble = config.parallelise_ensemble
         if self._parallelise_ensemble:
@@ -47,6 +47,27 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
             self._pool = multiprocessing.Pool(processes=num_cores)
 
         self._penalty_update_period = config.penalty_update_period
+
+    def _get_data_columns(self):
+        columns = [
+            constants.TRAIN_EPISODE_REWARD,
+            constants.TRAIN_EPISODE_LENGTH,
+            constants.MEAN_VISITATION_PENALTY,
+            f"{constants.NEXT_STATE_POLICY_ENTROPY}_{constants.MEAN}",
+            f"{constants.CURRENT_STATE_POLICY_ENTROPY}_{constants.MEAN}",
+            f"{constants.NEXT_STATE_MEAN_UNCERTAINTY}_{constants.MEAN}",
+            f"{constants.NEXT_STATE_MAX_UNCERTAINTY}_{constants.MEAN}",
+            f"{constants.TEST_EPISODE_LENGTH}_{constants.GREEDY_SAMPLE}",
+            f"{constants.TEST_EPISODE_LENGTH}_{constants.GREEDY_MEAN}",
+            f"{constants.TEST_EPISODE_LENGTH}_{constants.GREEDY_VOTE}",
+            f"{constants.TEST_EPISODE_REWARD}_{constants.GREEDY_SAMPLE}",
+            f"{constants.TEST_EPISODE_REWARD}_{constants.GREEDY_MEAN}",
+            f"{constants.TEST_EPISODE_REWARD}_{constants.GREEDY_VOTE}",
+            f"{constants.CURRENT_STATE_MAX_UNCERTAINTY}_{constants.MEAN}",
+            f"{constants.CURRENT_STATE_MEAN_UNCERTAINTY}_{constants.MEAN}",
+            f"{constants.CURRENT_STATE_SELECT_UNCERTAINTY}_{constants.MEAN}",
+        ]
+        return columns
 
     def _setup_learner(self, config: ach_config.AchConfig):  # TODO: similar to envs
         """Initialise learner specified in configuration."""
@@ -150,15 +171,20 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
                         "Serial value function visualisation: "
                         f"{visualisation_configuration[0]}"
                     )
-                    self._environment.plot_value_function(
-                        values=averaged_state_action_values,
-                        save_path=os.path.join(
+                    averaged_values = (
+                        self._environment.average_values_over_positional_states(
+                            self._learner.state_action_values
+                        )
+                    )
+                    averaged_max_values = {
+                        p: max(v) for p, v in averaged_values.items()
+                    }
+                    self._environment.plot_heatmap_over_env(
+                        heatmap=averaged_max_values,
+                        save_name=os.path.join(
                             self._visualisations_folder_path,
                             f"{episode}_{visualisation_configuration[0]}",
                         ),
-                        plot_max_values=visualisation_configuration[1],
-                        quiver=visualisation_configuration[2],
-                        over_actions=constants.MAX,
                     )
 
         if self._visualisation_iteration(constants.INDIVIDUAL_VALUE_FUNCTIONS, episode):
@@ -225,9 +251,13 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
 
         if episode != 0:
             if self._visualisation_iteration(constants.INDIVIDUAL_TRAIN_RUN, episode):
-                self._data_logger.plot_array_data(
-                    name=f"{constants.INDIVIDUAL_TRAIN_RUN}_{episode}",
-                    data=self._environment.plot_episode_history(),
+                self._environment.visualise_episode_history(
+                    save_path=os.path.join(
+                        self._checkpoint_path,
+                        constants.ROLLOUTS,
+                        f"{constants.INDIVIDUAL_TRAIN_RUN}_{episode}.mp4",
+                    ),
+                    history=self._latest_train_history,
                 )
 
     @decorators.timer
@@ -290,7 +320,8 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
         ) = train_fn(episode=episode, rng_state=rng_state)
 
         # add episode history to environment (for now arbitrarily choose last of ensemble)
-        self._environment.train_episode_history = train_episode_histories[-1]
+        # self._environment.train_episode_history = train_episode_histories[-1]
+        self._latest_train_history = train_episode_histories[-1]
 
         # set again, to ensure serial/parallel consistency
         experiment_utils.set_random_seeds(rng_state)
