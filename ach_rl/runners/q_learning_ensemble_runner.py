@@ -254,8 +254,7 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
             if self._visualisation_iteration(constants.INDIVIDUAL_TRAIN_RUN, episode):
                 self._environment.visualise_episode_history(
                     save_path=os.path.join(
-                        self._checkpoint_path,
-                        constants.ROLLOUTS,
+                        self._rollout_folder_path,
                         f"{constants.INDIVIDUAL_TRAIN_RUN}_{episode}.mp4",
                     ),
                     history=self._latest_train_history,
