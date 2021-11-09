@@ -2,7 +2,7 @@ import argparse
 import json
 import os
 
-from ach_rl.utils import plotting_functions
+from plotter import plot_functions
 
 parser = argparse.ArgumentParser()
 
@@ -54,7 +54,15 @@ if __name__ == "__main__":
 
             exp_names = [name for name in exp_names if name not in excluded_experiments]
 
-    plotting_functions.plot_all_multi_seed_multi_run(
+    plot_functions.plot_all_multi_seed_multi_run(
+        folder_path=args.results_folder,
+        exp_names=exp_names,
+        window_width=args.smoothing,
+        linewidth=args.linewidth,
+        colormap=args.cmap,
+    )
+
+    plot_functions.plot_multi_seed_multi_run(
         folder_path=args.results_folder,
         exp_names=exp_names,
         window_width=args.smoothing,
