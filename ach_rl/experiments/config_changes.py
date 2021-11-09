@@ -17,20 +17,40 @@ systematically modify it for each different run.
 #     }] for i in range(2)
 # }
 
-CONFIG_CHANGES = {
+hard_coded_changes = {
+    f"hard_coded_{i}": [
+        {"learner": {"hard_coded": {"vp_schedule": [[0, i]]}}},
+        {"learner": {"visitation_penalty_type": "hard_coded"}},
+    ]
+    for i in [-0.1, 0.01, 0.01, 0.1]
+}
+
+policy_entropy_changes = {
+    f"policy_entropy_{i}": [
+        {"learner": {"policy_entropy_penalty": {"multiplicative_factor": i}}},
+        {"learner": {"visitation_penalty_type": "policy_entropy_penalty"}},
+    ]
+    for i in [-0.1, 0.01, 0.01, 0.1]
+}
+
+uncertainty_changes = {
+    f"uncertainty_{i}": [
+        {"learner": {"adaptive_uncertainty": {"multiplicative_factor": i}}},
+        {"learner": {"visitation_penalty_type": "adaptive_uncertainty"}},
+    ]
+    for i in [-0.1, 0.01, 0.01, 0.1]
+}
+
+baseline_changes = {
     "baseline": [
         {"learner": {"hard_coded": {"vp_schedule": [[0, 0]]}}},
         {"learner": {"visitation_penalty_type": "hard_coded"}},
-        {"gpu_id": 0},
     ],
-    "hard_coded": [
-        {"learner": {"hard_coded": {"vp_schedule": [[0, -0.025]]}}},
-        {"learner": {"visitation_penalty_type": "hard_coded"}},
-        {"gpu_id": 1},
-    ],
-    "policy_entropy": [
-        {"learner": {"policy_entropy_penalty": {"multiplicative_factor": -0.01}}},
-        {"learner": {"visitation_penalty_type": "policy_entropy_penalty"}},
-        {"gpu_id": 2},
-    ],
+}
+
+CONFIG_CHANGES = {
+    **baseline_changes,
+    **hard_coded_changes,
+    **policy_entropy_changes,
+    **uncertainty_changes,
 }
