@@ -32,7 +32,11 @@ class BaseRunner(setup_runner.SetupRunner):
 
         self._array_logging = self._setup_logging_frequencies(config.arrays)
         self._array_folder_path = os.path.join(self._checkpoint_path, constants.ARRAYS)
+        self._rollout_folder_path = os.path.join(
+            self._checkpoint_path, constants.ROLLOUTS
+        )
         os.makedirs(name=self._array_folder_path, exist_ok=True)
+        os.makedirs(name=self._rollout_folder_path, exist_ok=True)
         for tag in self._array_logging.keys():
             os.makedirs(name=os.path.join(self._array_folder_path, tag), exist_ok=True)
         self._scalar_logging = self._setup_logging_frequencies(config.scalars)
