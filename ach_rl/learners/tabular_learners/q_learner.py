@@ -3,6 +3,7 @@ from typing import Dict
 from typing import List
 from typing import Optional
 from typing import Tuple
+from typing import Union
 
 from ach_rl.learners.tabular_learners import tabular_learner
 from ach_rl.utils import epsilon_schedules
