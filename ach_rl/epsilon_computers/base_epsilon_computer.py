@@ -4,16 +4,16 @@ from typing import Dict
 from typing import List
 from typing import Tuple
 
-import constants
 import numpy as np
-from utils import custom_functions
+from ach_rl import constants
+from ach_rl.utils import custom_functions
 
 
-class BaseLearningRateScaler(abc.ABC):
-    """Base class for adaptive learning rate scaling."""
+class BaseEpsilonComputer(abc.ABC):
+    """Base class for adaptive epsilon computations."""
 
     @abc.abstractmethod
-    def _compute_lr_scaling(self, episode: int, lr_info: Dict[str, Any]):
+    def _compute_epsilon(self, episode: int, epsilon_info: Dict[str, Any]):
         pass
 
     @property
@@ -27,7 +27,7 @@ class BaseLearningRateScaler(abc.ABC):
     def _compute_state_values(self, state):
         return np.array([s[state] for s in self._state_action_values])
 
-    def _get_lr_info(self, state):
+    def _get_epsilon_info(self, state):
         """compute series of uncertainties over states."""
         current_state_values = self._compute_state_values(
             state=state
@@ -69,14 +69,13 @@ class BaseLearningRateScaler(abc.ABC):
             constants.Constants.CURRENT_STATE_MAX_UNCERTAINTY: current_state_max_uncertainty,
             constants.Constants.CURRENT_STATE_MEAN_UNCERTAINTY: current_state_mean_uncertainty,
             constants.Constants.CURRENT_STATE_POLICY_ENTROPY: current_state_policy_entropy,
-            constants.Constants.NORMALISED_POLICY_ENTROPY: current_state_policy_entropy / np.log(num_actions)
+            constants.Constants.NORMALISED_POLICY_ENTROPY: current_state_policy_entropy
+            / np.log(num_actions),
         }
 
     def __call__(self, episode, state, *args, **kwargs):
-        lr_info = self._get_lr_info(state=state)
+        epsilon_info = self._get_epsilon_info(state=state)
 
-        lr_scaling = self._compute_lr_scaling(
-            episode=episode, lr_info=lr_info
-        )
+        epsilon = self._compute_epsilon(episode=episode, epsilon_info=epsilon_info)
 
-        return lr_scaling, lr_info
+        return epsilon, epsilon_info

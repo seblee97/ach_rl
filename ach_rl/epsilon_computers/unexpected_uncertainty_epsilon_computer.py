@@ -3,16 +3,20 @@ from typing import Any
 from typing import Dict
 from typing import Union
 
-import constants
 import numpy as np
-from epsilon_computers import base_epsilon_computer
+from ach_rl import constants
+from ach_rl.epsilon_computers import base_epsilon_computer
 
 
-class UnexpectedUncertaintyEpsilonComputer(
-        base_epsilon_computer.BaseEpsilonComputer):
+class UnexpectedUncertaintyEpsilonComputer(base_epsilon_computer.BaseEpsilonComputer):
     """Epsilon tuned to 'unexpected' uncertainty over an ensemble."""
 
-    def __init__(self, moving_average_window: int, action_function: str, minimum_value: Union[int, float]):
+    def __init__(
+        self,
+        moving_average_window: int,
+        action_function: str,
+        minimum_value: Union[int, float],
+    ):
         self._moving_average_window = moving_average_window
         self._action_function = action_function
         self._minimum_value = minimum_value
@@ -30,11 +34,13 @@ class UnexpectedUncertaintyEpsilonComputer(
 
         previous_moving_average = np.mean(self._policy_entropy_history[state])
 
-        self._policy_entropy_history[state].append(epsilon_info[constants.Constants.NORMALISED_POLICY_ENTROPY])
+        self._policy_entropy_history[state].append(
+            epsilon_info[constants.Constants.NORMALISED_POLICY_ENTROPY]
+        )
 
         new_moving_average = np.mean(self._policy_entropy_history[state])
         moving_average_difference = new_moving_average - previous_moving_average
-        
+
         computed_epsilon = abs(moving_average_difference)
 
         return np.amax([computed_epsilon, self._minimum_value])

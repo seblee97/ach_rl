@@ -1,13 +1,13 @@
 from typing import Any
 from typing import Dict
-from typing import Union
 
-import constants
-from learning_rate_scalers import base_learning_rate_scaler
+from ach_rl import constants
+from ach_rl.learning_rate_scalers import base_learning_rate_scaler
 
 
 class ExpectedUncertaintyLearningRateScaler(
-        base_learning_rate_scaler.BaseLearningRateScaler):
+    base_learning_rate_scaler.BaseLearningRateScaler
+):
     """LR tuned to 'expected' uncertainty over an ensemble."""
 
     def __init__(self, action_function: str):
