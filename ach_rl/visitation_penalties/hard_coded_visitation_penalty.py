@@ -33,8 +33,9 @@ class HardCodedPenalty(base_visitation_penalty.BaseVisitationPenalty):
             self._get_next_penalty_set()
 
         reference_measure = penalty_info.get(constants.CURRENT_STATE_MAX_UNCERTAINTY)
-        if reference_measure is None:
+
+        if reference_measure is None or isinstance(reference_measure, float):
             return self._current_penalty
-        else:
+        elif isinstance(reference_measure, np.ndarray):
             batch_dimension = reference_measure.shape[0]
             return self._current_penalty * np.ones(batch_dimension)
