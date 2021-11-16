@@ -7,7 +7,7 @@ from ach_rl import constants
 from ach_rl.visitation_penalties import base_visitation_penalty
 
 
-class ExponentialDecayPenalty(base_visitation_penalty.BaseVisitationPenaltyComputer):
+class ExponentialDecayPenalty(base_visitation_penalty.BaseVisitationPenalty):
     """Hard-coded (or deterministic) exponential penalty."""
 
     def __init__(
@@ -17,7 +17,7 @@ class ExponentialDecayPenalty(base_visitation_penalty.BaseVisitationPenaltyCompu
         self._b = b
         self._c = c
 
-    def compute_penalty(self, episode: int, penalty_info: Dict[str, Any]) -> float:
+    def __call__(self, episode: int, penalty_info: Dict[str, Any]) -> float:
         current_penalty = self._A * self._b ** (self._c * episode)
 
         reference_measure = penalty_info[constants.CURRENT_STATE_MAX_UNCERTAINTY]

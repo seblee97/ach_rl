@@ -7,14 +7,14 @@ from ach_rl import constants
 from ach_rl.visitation_penalties import base_visitation_penalty
 
 
-class LinearDecayPenalty(base_visitation_penalty.BaseVisitationPenaltyComputer):
+class LinearDecayPenalty(base_visitation_penalty.BaseVisitationPenalty):
     """Hard-coded (or deterministic) linear function penalty."""
 
     def __init__(self, A: Union[int, float], b: Union[int, float]):
         self._A = A
         self._b = b
 
-    def compute_penalty(self, episode: int, penalty_info: Dict[str, Any]) -> float:
+    def __call__(self, episode: int, penalty_info: Dict[str, Any]) -> float:
         current_penalty = self._A * episode + self._b
 
         reference_measure = penalty_info[constants.CURRENT_STATE_MAX_UNCERTAINTY]

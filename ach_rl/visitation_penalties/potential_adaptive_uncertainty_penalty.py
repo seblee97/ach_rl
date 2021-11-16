@@ -9,7 +9,7 @@ from ach_rl.visitation_penalties import base_visitation_penalty
 
 
 class PotentialAdaptiveUncertaintyPenalty(
-    base_visitation_penalty.BaseVisitationPenaltyComputer
+    base_visitation_penalty.BaseVisitationPenalty
 ):
     """Visitation penalty tuned to uncertainty,
     in the potential-based reward shaping formulation of Ng, Harada, Russell (1999)."""
@@ -28,7 +28,7 @@ class PotentialAdaptiveUncertaintyPenalty(
         self._pre_action_function = pre_action_function
         self._post_action_function = post_action_function
 
-    def compute_penalty(self, episode: int, penalty_info: Dict[str, Any]):
+    def __call__(self, episode: int, penalty_info: Dict[str, Any]):
         if self._pre_action_function == constants.MAX:
             pre_uncertainty = penalty_info[constants.CURRENT_STATE_MAX_UNCERTAINTY]
         elif self._pre_action_function == constants.MEAN:

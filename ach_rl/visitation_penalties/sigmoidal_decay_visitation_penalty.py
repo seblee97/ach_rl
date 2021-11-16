@@ -7,7 +7,7 @@ from ach_rl import constants
 from ach_rl.visitation_penalties import base_visitation_penalty
 
 
-class SigmoidalDecayPenalty(base_visitation_penalty.BaseVisitationPenaltyComputer):
+class SigmoidalDecayPenalty(base_visitation_penalty.BaseVisitationPenalty):
     """Hard-coded (or deterministic) sigmoidal penalty."""
 
     def __init__(
@@ -17,7 +17,7 @@ class SigmoidalDecayPenalty(base_visitation_penalty.BaseVisitationPenaltyCompute
         self._b = b
         self._c = c
 
-    def compute_penalty(self, episode: int, penalty_info: Dict[str, Any]) -> float:
+    def __call__(self, episode: int, penalty_info: Dict[str, Any]) -> float:
         # Logistic function: f(x) = A / (1 + e^(-b(x-c)))
         current_penalty = self._A / (1 + np.exp(-self._b * (episode - self._c)))
 

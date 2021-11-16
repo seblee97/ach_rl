@@ -8,9 +8,7 @@ from ach_rl import constants
 from ach_rl.visitation_penalties import base_visitation_penalty
 
 
-class ReducingEntropyWindowPenalty(
-    base_visitation_penalty.BaseVisitationPenaltyComputer
-):
+class ReducingEntropyWindowPenalty(base_visitation_penalty.BaseVisitationPenalty):
     """Visitation penalty tuned to number of steps of reducing entropy over an ensemble."""
 
     def __init__(
@@ -25,7 +23,7 @@ class ReducingEntropyWindowPenalty(
 
         self._entropy_history = {}
 
-    def compute_penalty(self, episode: int, penalty_info: Dict[str, Any]):
+    def __call__(self, episode: int, penalty_info: Dict[str, Any]):
         state = penalty_info[constants.STATE]
         if state not in self._entropy_history:
             self._entropy_history[state] = collections.deque(

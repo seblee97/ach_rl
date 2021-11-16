@@ -8,9 +8,7 @@ from ach_rl import constants
 from ach_rl.visitation_penalties import base_visitation_penalty
 
 
-class ReducingVarianceWindowPenalty(
-    base_visitation_penalty.BaseVisitationPenaltyComputer
-):
+class ReducingVarianceWindowPenalty(base_visitation_penalty.BaseVisitationPenalty):
     """Visitation penalty tuned to number of steps of reducing uncertainty over an ensemble."""
 
     def __init__(
@@ -27,7 +25,7 @@ class ReducingVarianceWindowPenalty(
 
         self._uncertainty_history = {}
 
-    def compute_penalty(self, episode: int, penalty_info: Dict[str, Any]):
+    def __call__(self, episode: int, penalty_info: Dict[str, Any]):
         state = penalty_info[constants.STATE]
         if state not in self._uncertainty_history:
             self._uncertainty_history[state] = collections.deque(

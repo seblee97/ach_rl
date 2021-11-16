@@ -7,7 +7,7 @@ from ach_rl import constants
 from ach_rl.visitation_penalties import base_visitation_penalty
 
 
-class HardCodedPenalty(base_visitation_penalty.BaseVisitationPenaltyComputer):
+class HardCodedPenalty(base_visitation_penalty.BaseVisitationPenalty):
     """Hard-coded penalties."""
 
     def __init__(self, hard_coded_penalties: List[List]):
@@ -28,13 +28,13 @@ class HardCodedPenalty(base_visitation_penalty.BaseVisitationPenaltyComputer):
         except StopIteration:
             pass
 
-    def compute_penalty(self, episode: int, penalty_info: Dict[str, Any]) -> float:
+    def __call__(self, episode: int, penalty_info: Dict[str, Any]) -> float:
         if episode == self._next_switch_episode:
             self._get_next_penalty_set()
 
-        reference_measure = penalty_info[constants.CURRENT_STATE_MAX_UNCERTAINTY]
-        if isinstance(reference_measure, float):
+        reference_measure = penalty_info.get(constants.CURRENT_STATE_MAX_UNCERTAINTY)
+        if reference_measure is None:
             return self._current_penalty
-        elif isinstance(reference_measure, np.ndarray):
+        else:
             batch_dimension = reference_measure.shape[0]
             return self._current_penalty * np.ones(batch_dimension)
