@@ -1,6 +1,7 @@
 import abc
 import os
 import time
+from typing import Any
 from typing import Callable
 from typing import Dict
 from typing import Optional
@@ -84,6 +85,51 @@ class BaseRunner(setup_runner.SetupRunner):
             file_path = os.path.join(self._array_folder_path, tag, f"{tag}_{episode}")
             np.save(file_path, array)
 
+    def _print_info(
+        self,
+        episode: int,
+        episode_duration: float,
+        train_reward: float,
+        train_step_count: int,
+    ) -> None:
+        """Print/log latest information.
+
+        Args:
+            episode: current episode count.
+            episode_duration: time taken for latest episode to complete.
+            train_reward: reward received by agent in last episode (train).
+            train_step_count: number of steps taken in last episode (train).
+        """
+        if episode % self._print_frequency == 0:
+            if episode != 0:
+                self._logger.info(f"    Latest Episode Duration {episode_duration}")
+                self._logger.info(f"    Latest Train Reward: {train_reward}")
+                self._logger.info(f"    Latest Train Length: {train_step_count}")
+            self._logger.info(f"Episode {episode + 1}/{self._num_episodes}: ")
+
+    def _checkpoint(self, episode: int, final: bool = False) -> None:
+        """Checkpoint data and models.
+
+        Args:
+            episode: current episode count.
+            final: whether this is the last checkpoint. If true,
+                checkpoint is performed regardless of stated checkpoint period.
+        """
+        condition_data = episode % self._checkpoint_frequency == 0 and episode != 0
+        if condition_data or final:
+            self._data_logger.checkpoint()
+        if self._model_checkpoint_frequency is not None:
+            condition_model = (
+                episode % self._model_checkpoint_frequency == 0 and episode != 0
+            )
+            if condition_model or final:
+                self._learner.checkpoint(
+                    checkpoint_path=os.path.join(
+                        self._checkpoint_path,
+                        f"{constants.MODEL_CHECKPOINT}_{episode + 1}",
+                    )
+                )
+
     def train(self) -> None:
         """Perform training (and validation) on given number of episodes."""
         train_reward: float = 0
@@ -92,34 +138,25 @@ class BaseRunner(setup_runner.SetupRunner):
 
         self._logger.info("Starting Training...")
 
+        # self._pre_train_logging()
+
         for i in range(self._num_episodes):
 
             episode_start_time = time.time()
 
-            if i % self._print_frequency == 0:
-                if i != 0:
-                    self._logger.info(f"    Latest Episode Duration {episode_duration}")
-                    self._logger.info(f"    Latest Train Reward: {train_reward}")
-                    self._logger.info(f"    Latest Train Length: {train_step_count}")
-                self._logger.info(f"Episode {i + 1}/{self._num_episodes}: ")
+            self._print_info(
+                episode=i,
+                episode_duration=episode_duration,
+                train_reward=train_reward,
+                train_step_count=train_step_count,
+            )
+            self._checkpoint(episode=i)
 
-            if i % self._checkpoint_frequency == 0 and i != 0:
-                self._data_logger.checkpoint()
-            if self._model_checkpoint_frequency is not None:
-                if i % self._model_checkpoint_frequency == 0 and i != 0:
-                    self._learner.checkpoint(
-                        checkpoint_path=os.path.join(
-                            self._checkpoint_path,
-                            f"{constants.MODEL_CHECKPOINT}_{i}",
-                        )
-                    )
-
-            self._pre_episode_log(i)
             self._test_episode(episode=i)
 
-            if self._apply_curriculum:
-                if i == self._environment.next_transition_episode:
-                    next(self._environment)
+            # if self._apply_curriculum:
+            #     if i == self._environment.next_transition_episode:
+            #         next(self._environment)
 
             train_reward, train_step_count = self._train_episode(episode=i)
 
@@ -142,18 +179,17 @@ class BaseRunner(setup_runner.SetupRunner):
                 data=self._environment.visitation_counts,
             )
 
-        self._data_logger.checkpoint()
+        self._checkpoint(final=True)
 
     @abc.abstractmethod
-    def _train_episode(self, episode: int) -> Tuple[float, int]:
+    def _train_episode(self, episode: int) -> Dict[str, Any]:
         """Perform single training loop.
 
         Args:
             episode: index of episode
 
         Returns:
-            episode_reward: scalar reward accumulated over episode.
-            num_steps: number of steps taken for episode.
+            logging_dict: dictionary of items to log (e.g. episode reward).
         """
         pass
 
