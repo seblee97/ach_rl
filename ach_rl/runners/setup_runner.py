@@ -12,10 +12,14 @@ from ach_rl.curricula import base_curriculum
 from ach_rl.environments import atari
 from ach_rl.environments import base_environment
 from ach_rl.environments import wrapper_atari
+from ach_rl.epsilon_computers import expected_uncertainty_epsilon_computer
+from ach_rl.epsilon_computers import unexpected_uncertainty_epsilon_computer
 from ach_rl.experiments import ach_config
 from ach_rl.information_computers import base_information_computer
 from ach_rl.information_computers import network_information_computer
 from ach_rl.information_computers import tabular_information_computer
+from ach_rl.learning_rate_scalers import \
+    expected_uncertainty_learning_rate_scaler
 from ach_rl.utils import epsilon_schedules
 from ach_rl.visitation_penalties import \
     adaptive_arriving_uncertainty_visitation_penalty
@@ -66,7 +70,9 @@ class SetupRunner(base_runner.BaseRunner):
             self._visitation_penalty = None
         else:
             self._visitation_penalty = self._setup_visitation_penalty(config=config)
+        self._epsilon_computer = self._setup_epsilon_computer(config=config)
         self._epsilon_function = self._setup_epsilon_function(config=config)
+        self._lr_scaler = self._setup_lr_scaler(config=config)
         self._learner = self._setup_learner(config=config)
 
     def _setup_logging_frequencies(
@@ -304,6 +310,23 @@ class SetupRunner(base_runner.BaseRunner):
 
         return penalty_computer
 
+    def _setup_epsilon_computer(self, config: ach_config.AchConfig):
+        """Setup epsilon computer, for anything adaptive e.g. Doya"""
+        if config.schedule == constants.EXPECTED_UNCERTAINTY:
+            epsilon_computer = expected_uncertainty_epsilon_computer.ExpectedUncertaintyEpsilonComputer(
+                action_function=config.epsilon_action_function,
+                minimum_value=config.minimum_value,
+            )
+        elif config.schedule == constants.UNEXPECTED_UNCERTAINTY:
+            epsilon_computer = unexpected_uncertainty_epsilon_computer.UnexpectedUncertaintyEpsilonComputer(
+                action_function=config.epsilon_action_function,
+                moving_average_window=config.epsilon_moving_average_window,
+                minimum_value=config.minimum_value,
+            )
+        else:
+            epsilon_computer = None
+        return epsilon_computer
+
     def _setup_epsilon_function(self, config: ach_config.AchConfig):
         """Setup epsilon function."""
         if config.schedule == constants.CONSTANT:
@@ -314,7 +337,21 @@ class SetupRunner(base_runner.BaseRunner):
                 final_value=config.final_value,
                 anneal_duration=config.anneal_duration,
             )
+        else:
+            # placeholder epsilon function, computer will be used.
+            # NaN string used to ensure error is thrown if it is used.
+            epsilon_function = epsilon_schedules.ConstantEpsilon(value="NaN")
         return epsilon_function
+
+    def _setup_lr_scaler(self, config: ach_config.AchConfig):
+        """Setup LR scaler"""
+        if config.lr_scaler_type == constants.EXPECTED_UNCERTAINTY:
+            lr_scaler = expected_uncertainty_learning_rate_scaler.ExpectedUncertaintyLearningRateScaler(
+                action_function=config.lr_scaler_action_function,
+            )
+        else:
+            lr_scaler = None
+        return lr_scaler
 
     @abc.abstractmethod
     def _setup_learner(self, config: ach_config.AchConfig):
