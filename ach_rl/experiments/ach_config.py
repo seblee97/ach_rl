@@ -123,6 +123,8 @@ class AchConfig(base_configuration.BaseConfiguration):
                 constants.NO_REPEAT_TEST_EPISODE_REWARD,
                 constants.NO_REPEAT_TEST_EPISODE_LENGTH,
                 constants.CYCLE_COUNT,
+                constants.MEAN_EPSILON,
+                constants.MEAN_LR_SCALING,
             ]
             test_constants = [
                 constants.TEST_EPISODE_REWARD,
