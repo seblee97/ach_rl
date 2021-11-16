@@ -1,5 +1,6 @@
 import os
-from typing import Tuple
+from typing import Any
+from typing import Dict
 
 from ach_rl import constants
 from ach_rl.experiments import ach_config
@@ -17,13 +18,6 @@ class QLearningRunner(base_runner.BaseRunner):
         columns = [
             constants.TRAIN_EPISODE_REWARD,
             constants.TRAIN_EPISODE_LENGTH,
-            constants.NEXT_STATE_POLICY_ENTROPY,
-            constants.CURRENT_STATE_MEAN_UNCERTAINTY,
-            constants.CURRENT_STATE_POLICY_ENTROPY,
-            constants.NEXT_STATE_MEAN_UNCERTAINTY,
-            constants.CURRENT_STATE_MAX_UNCERTAINTY,
-            constants.NEXT_STATE_MAX_UNCERTAINTY,
-            constants.CURRENT_STATE_SELECT_UNCERTAINTY,
             constants.MEAN_VISITATION_PENALTY,
         ]
         return columns
@@ -108,15 +102,14 @@ class QLearningRunner(base_runner.BaseRunner):
                     )
                 )
 
-    def _train_episode(self, episode: int) -> Tuple[float, int]:
+    def _train_episode(self, episode: int) -> Dict[str, Any]:
         """Perform single training loop.
 
         Args:
             episode: index of episode
 
         Returns:
-            episode_reward: scalar reward accumulated over episode.
-            num_steps: number of steps taken for episode.
+            logging_dict: dictionary of items to log (e.g. episode reward).
         """
         episode_reward = 0
 
@@ -127,7 +120,7 @@ class QLearningRunner(base_runner.BaseRunner):
                 save_path=os.path.join(self._visualisations_folder_path, "map.pdf")
             )
 
-        self._visitation_penalty.state_action_values = [
+        self._information_computer.state_action_values = [
             self._learner.state_action_values
         ]
 
@@ -135,8 +128,14 @@ class QLearningRunner(base_runner.BaseRunner):
             action = self._learner.select_behaviour_action(state)
             reward, new_state = self._environment.step(action)
 
-            penalty, penalty_info = self._visitation_penalty(
-                episode=episode, state=state, action=action, next_state=new_state
+            # state here refers to overall state of agent/env system.
+            current_state_info = self._information_computer(
+                state=state, action=action, next_state=new_state
+            )
+
+            penalty = self._visitation_penalty(
+                episode=episode,
+                penalty_info={},
             )
 
             self._learner.step(
@@ -150,20 +149,13 @@ class QLearningRunner(base_runner.BaseRunner):
             state = new_state
             episode_reward += reward
 
-        self._write_scalar(
-            tag=constants.MEAN_VISITATION_PENALTY,
-            episode=episode,
-            scalar=penalty,
-        )
-        for penalty_info_name, info in penalty_info.items():
-            self._write_scalar(
-                tag=constants.MEAN_PENALTY_INFO,
-                episode=episode,
-                scalar=info,
-                df_tag=penalty_info_name,
-            )
+        logging_dict = {
+            constants.MEAN_VISITATION_PENALTY: penalty,
+            constants.TRAIN_EPISODE_REWARD: episode_reward,
+            constants.TRAIN_EPISODE_LENGTH: self._environment.episode_step_count,
+        }
 
-        return episode_reward, self._environment.episode_step_count
+        return logging_dict
 
     def _run_specific_tests(self, episode: int):
         """Implement specific test runs for each runner."""
