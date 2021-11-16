@@ -23,7 +23,7 @@ class UnexpectedUncertaintyEpsilonComputer(base_epsilon_computer.BaseEpsilonComp
 
         self._policy_entropy_history = {}
 
-    def _compute_epsilon(self, episode: int, epsilon_info: Dict[str, Any]):
+    def __call__(self, episode: int, epsilon_info: Dict[str, Any]):
         state = epsilon_info[constants.Constants.STATE]
         if state not in self._policy_entropy_history:
             self._policy_entropy_history[state] = collections.deque(
