@@ -325,6 +325,8 @@ EPSILON_MOVING_AVERAGE_WINDOW = "epsilon_moving_average_window"
 NORMALISED_POLICY_ENTROPY = "normalised_policy_entropy"
 MINIMUM_VALUE = "minimum_value"
 MEAN_EPSILON = "mean_epsilon"
+LR_SCALING = "lr_scaling"
+INFORMATION_COMPUTER_UPDATE_PERIOD = "information_computer_update_period"
 
 ATARI_ENVS = ["PongNoFrameskip-v4", "GravitarNoFrameskip-v4"]
 
