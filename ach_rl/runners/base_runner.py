@@ -130,11 +130,21 @@ class BaseRunner(setup_runner.SetupRunner):
                     )
                 )
 
+    def _log_episode(self, episode: int, logging_dict: Dict[str, float]) -> None:
+        """Write scalars for all quantities collected in logging dictionary.
+
+        Args:
+            episode: current episode.
+            logging_dict: dictionary of items to be logged collected during training.
+        """
+        for tag, scalar in logging_dict.items():
+            self._write_scalar(tag=tag, episode=episode, scalar=scalar)
+
     def train(self) -> None:
         """Perform training (and validation) on given number of episodes."""
-        train_reward: float = 0
-        train_step_count: float = np.inf
-        episode_duration: float = 0
+        # train_reward: float = 0
+        # train_step_count: float = np.inf
+        # episode_duration: float = 0
 
         self._logger.info("Starting Training...")
 
@@ -144,34 +154,22 @@ class BaseRunner(setup_runner.SetupRunner):
 
             episode_start_time = time.time()
 
-            self._print_info(
-                episode=i,
-                episode_duration=episode_duration,
-                train_reward=train_reward,
-                train_step_count=train_step_count,
-            )
             self._checkpoint(episode=i)
 
             self._test_episode(episode=i)
 
-            # if self._apply_curriculum:
-            #     if i == self._environment.next_transition_episode:
-            #         next(self._environment)
+            episode_logging_dict = self._train_episode(episode=i)
 
-            train_reward, train_step_count = self._train_episode(episode=i)
-
-            self._write_scalar(
-                tag=constants.TRAIN_EPISODE_LENGTH,
-                episode=i,
-                scalar=train_step_count,
-            )
-            self._write_scalar(
-                tag=constants.TRAIN_EPISODE_REWARD,
-                episode=i,
-                scalar=train_reward,
-            )
+            self._log_episode(episode=i + 1, logging_dict=episode_logging_dict)
 
             episode_duration = time.time() - episode_start_time
+
+            self._print_info(
+                episode=i,
+                episode_duration=episode_duration,
+                train_reward=episode_logging_dict[constants.TRAIN_EPISODE_REWARD],
+                train_step_count=episode_logging_dict[constants.TRAIN_EPISODE_LENGTH],
+            )
 
         if constants.VISITATION_COUNT_HEATMAP in self._visualisations:
             self._data_logger.plot_array_data(
