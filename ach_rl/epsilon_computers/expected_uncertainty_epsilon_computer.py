@@ -14,7 +14,7 @@ class ExpectedUncertaintyEpsilonComputer(base_epsilon_computer.BaseEpsilonComput
         self._minimum_value = minimum_value
         self._action_function = action_function
 
-    def _compute_epsilon(self, episode: int, epsilon_info: Dict[str, Any]):
+    def __call__(self, episode: int, epsilon_info: Dict[str, Any]):
         if self._action_function == constants.Constants.MAX:
             computed_epsilon = (
                 1 - 1 / epsilon_info[constants.Constants.CURRENT_STATE_MAX_UNCERTAINTY]
