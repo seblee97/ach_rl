@@ -37,10 +37,10 @@ def get_base_config() -> ach_config.AchConfig:
         experiment_timestamp = raw_datetime.strftime("%Y-%m-%d-%H-%M-%S")
         checkpoint_path = os.path.join(tmpdir, "test_results", experiment_timestamp)
 
-    config.add_property(constants.Constants.EXPERIMENT_TIMESTAMP, experiment_timestamp)
-    config.add_property(constants.Constants.CHECKPOINT_PATH, checkpoint_path)
+    config.add_property(constants.EXPERIMENT_TIMESTAMP, experiment_timestamp)
+    config.add_property(constants.CHECKPOINT_PATH, checkpoint_path)
     config.add_property(
-        constants.Constants.LOGFILE_PATH,
+        constants.LOGFILE_PATH,
         os.path.join(checkpoint_path, "data_logger.csv"),
     )
 

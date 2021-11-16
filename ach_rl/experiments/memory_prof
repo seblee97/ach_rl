@@ -1,0 +1,324 @@
+Field 'experiment_name' at level 'ROOT' in config validated.
+Field 'experiment_name' at level 'ROOT' in config set with key 'experiment_name'.
+Field 'use_gpu' at level 'ROOT' in config validated.
+Field 'use_gpu' at level 'ROOT' in config set with key 'use_gpu'.
+Field 'gpu_id' at level 'ROOT' in config validated.
+Field 'gpu_id' at level 'ROOT' in config set with key 'gpu_id'.
+Field 'seed' at level 'ROOT' in config validated.
+Field 'seed' at level 'ROOT' in config set with key 'seed'.
+Field 'environment' at level 'ROOT' in config validated.
+Field 'environment' at level 'ROOT' in config set with key 'environment'.
+Field 'apply_curriculum' at level 'ROOT' in config validated.
+Field 'apply_curriculum' at level 'ROOT' in config set with key 'apply_curriculum'.
+Field 'atari_env_name' at level 'atari' in config validated.
+Field 'atari_env_name' at level 'atari' in config set with key 'atari_env_name'.
+Field 'implementation' at level 'atari' in config validated.
+Field 'implementation' at level 'atari' in config set with key 'implementation'.
+Field 'pre_processing' at level 'atari' in config validated.
+Field 'pre_processing' at level 'atari' in config set with key 'pre_processing'.
+Field 'frame_stack' at level 'atari' in config validated.
+Field 'frame_stack' at level 'atari' in config set with key 'frame_stack'.
+Field 'frame_skip' at level 'atari' in config validated.
+Field 'frame_skip' at level 'atari' in config set with key 'frame_skip'.
+Field 'episode_timeout' at level 'atari' in config validated.
+Field 'episode_timeout' at level 'atari' in config set with key 'episode_timeout'.
+Field 'encoded_state_dimensions' at level 'atari' in config validated.
+Field 'encoded_state_dimensions' at level 'atari' in config set with key 'encoded_state_dimensions'.
+Field 'plot_origin' at level 'atari' in config validated.
+Field 'plot_origin' at level 'atari' in config set with key 'plot_origin'.
+Field 'type' at level 'learner' in config validated.
+Field 'type' at level 'learner' in config set with key 'type'.
+Field 'learning_rate' at level 'learner' in config validated.
+Field 'learning_rate' at level 'learner' in config set with key 'learning_rate'.
+Field 'gradient_momentum' at level 'learner' in config validated.
+Field 'gradient_momentum' at level 'learner' in config set with key 'gradient_momentum'.
+Field 'squared_gradient_momentum' at level 'learner' in config validated.
+Field 'squared_gradient_momentum' at level 'learner' in config set with key 'squared_gradient_momentum'.
+Field 'min_squared_gradient' at level 'learner' in config validated.
+Field 'min_squared_gradient' at level 'learner' in config set with key 'min_squared_gradient'.
+Field 'discount_factor' at level 'learner' in config validated.
+Field 'discount_factor' at level 'learner' in config set with key 'discount_factor'.
+Field 'initialisation' at level 'learner' in config validated.
+Field 'initialisation' at level 'learner' in config set with key 'initialisation'.
+Field 'visitation_penalty_type' at level 'learner' in config validated.
+Field 'visitation_penalty_type' at level 'learner' in config set with key 'visitation_penalty_type'.
+Field 'shaping_implementation' at level 'learner' in config validated.
+Field 'shaping_implementation' at level 'learner' in config set with key 'shaping_implementation'.
+Field 'schedule' at level 'learner/epsilon' in config validated.
+Field 'schedule' at level 'learner/epsilon' in config set with key 'schedule'.
+Field 'value' at level 'learner/epsilon/constant' in config validated.
+Field 'value' at level 'learner/epsilon/constant' in config set with key 'value'.
+Field 'vp_schedule' at level 'learner/hard_coded' in config validated.
+Field 'vp_schedule' at level 'learner/hard_coded' in config set with key 'vp_schedule'.
+Field 'num_learners' at level 'bootstrapped_ensemble_dqn' in config validated.
+Field 'num_learners' at level 'bootstrapped_ensemble_dqn' in config set with key 'num_learners'.
+Field 'copy_learner_initialisation' at level 'bootstrapped_ensemble_dqn' in config validated.
+Field 'copy_learner_initialisation' at level 'bootstrapped_ensemble_dqn' in config set with key 'copy_learner_initialisation'.
+Field 'shared_layers' at level 'bootstrapped_ensemble_dqn' in config validated.
+Field 'shared_layers' at level 'bootstrapped_ensemble_dqn' in config set with key 'shared_layers'.
+Field 'behaviour' at level 'bootstrapped_ensemble_dqn' in config validated.
+Field 'behaviour' at level 'bootstrapped_ensemble_dqn' in config set with key 'behaviour'.
+Field 'targets' at level 'bootstrapped_ensemble_dqn' in config validated.
+Field 'targets' at level 'bootstrapped_ensemble_dqn' in config set with key 'targets'.
+Field 'mask_probability' at level 'bootstrapped_ensemble_dqn' in config validated.
+Field 'mask_probability' at level 'bootstrapped_ensemble_dqn' in config set with key 'mask_probability'.
+Field 'batch_size' at level 'dqn' in config validated.
+Field 'batch_size' at level 'dqn' in config set with key 'batch_size'.
+Field 'num_replay_fill_trajectories' at level 'dqn' in config validated.
+Field 'num_replay_fill_trajectories' at level 'dqn' in config set with key 'num_replay_fill_trajectories'.
+Field 'replay_buffer_size' at level 'dqn' in config validated.
+Field 'replay_buffer_size' at level 'dqn' in config set with key 'replay_buffer_size'.
+Field 'target_network_update_period' at level 'dqn' in config validated.
+Field 'target_network_update_period' at level 'dqn' in config set with key 'target_network_update_period'.
+Field 'normalise_state' at level 'dqn' in config validated.
+Field 'normalise_state' at level 'dqn' in config set with key 'normalise_state'.
+Field 'gradient_clipping' at level 'dqn' in config validated.
+Field 'gradient_clipping' at level 'dqn' in config set with key 'gradient_clipping'.
+Field 'optimiser' at level 'dqn' in config validated.
+Field 'optimiser' at level 'dqn' in config set with key 'optimiser'.
+Field 'layer_specifications' at level 'dqn' in config validated.
+Field 'layer_specifications' at level 'dqn' in config set with key 'layer_specifications'.
+Field 'num_episodes' at level 'training' in config validated.
+Field 'num_episodes' at level 'training' in config set with key 'num_episodes'.
+Field 'test_frequency' at level 'training' in config validated.
+Field 'test_frequency' at level 'training' in config set with key 'test_frequency'.
+Field 'testing' at level 'training' in config validated.
+Field 'testing' at level 'training' in config set with key 'testing'.
+Field 'print_frequency' at level 'logging' in config validated.
+Field 'print_frequency' at level 'logging' in config set with key 'print_frequency'.
+Field 'checkpoint_frequency' at level 'logging' in config validated.
+Field 'checkpoint_frequency' at level 'logging' in config set with key 'checkpoint_frequency'.
+Field 'animation_library' at level 'logging' in config validated.
+Field 'animation_library' at level 'logging' in config set with key 'animation_library'.
+Field 'animation_file_format' at level 'logging' in config validated.
+Field 'animation_file_format' at level 'logging' in config set with key 'animation_file_format'.
+Field 'arrays' at level 'logging' in config validated.
+Field 'arrays' at level 'logging' in config set with key 'arrays'.
+Field 'scalars' at level 'logging' in config validated.
+Field 'scalars' at level 'logging' in config set with key 'scalars'.
+Field 'visualisations' at level 'logging' in config validated.
+Field 'visualisations' at level 'logging' in config set with key 'visualisations'.
+Field 'post_visualisations' at level 'logging' in config validated.
+Field 'post_visualisations' at level 'logging' in config set with key 'post_visualisations'.
+Field 'smoothing' at level 'post_processing' in config validated.
+Field 'smoothing' at level 'post_processing' in config set with key 'smoothing'.
+Plotting graph 1/2
+Plotting graph 2/2
+Filename: /Users/sebastianlee/Dropbox/Documents/Research/Projects/ach_rl/runners/dqn_runner.py
+
+Line #    Mem usage    Increment  Occurences   Line Contents
+============================================================
+   171  187.613 MiB  187.613 MiB           1       @profile
+   172                                             def _train_episode(self, episode: int) -> Tuple[float, int]:
+   173                                                 """Perform single training loop (per learner in ensemble).
+   174                                         
+   175                                                 Args:
+   176                                                     episode: index of episode
+   177                                         
+   178                                                 Returns:
+   179                                                     episode_reward: mean scalar reward accumulated over ensemble episodes.
+   180                                                     num_steps: mean number of steps taken for ensemble episodes.
+   181                                                 """
+   182  187.613 MiB    0.000 MiB           1           gc.collect()
+   183                                         
+   184  193.863 MiB    6.250 MiB           1           self._visitation_penalty.q_network = copy.deepcopy(self._learner.q_network)
+   185  193.922 MiB    0.059 MiB           2           self._visitation_penalty.target_q_network = copy.deepcopy(
+   186  193.863 MiB    0.000 MiB           1               self._learner.target_q_network
+   187                                                 )
+   188                                         
+   189  193.922 MiB    0.000 MiB           1           if self._ensemble:
+   190                                                     # select branch uniformly at random for rollout
+   191  193.922 MiB    0.000 MiB           1               branch = random.choice(range(self._num_learners))
+   192                                         
+   193  193.922 MiB    0.000 MiB           1           episode_reward = 0
+   194  193.922 MiB    0.000 MiB           1           episode_loss = 0
+   195                                         
+   196  193.922 MiB    0.000 MiB           1           acting_penalties = []
+   197  193.922 MiB    0.000 MiB           1           acting_penalties_infos = {}
+   198                                         
+   199  193.922 MiB    0.000 MiB           1           sample_penalties = []
+   200  193.922 MiB    0.000 MiB           1           sample_penalties_infos = {}
+   201                                         
+   202  187.922 MiB   -6.000 MiB           1           state = self._environment.reset_environment(train=True)
+   203                                         
+   204  401.293 MiB    0.000 MiB         501           while self._environment.active:
+   205                                         
+   206  400.938 MiB    0.000 MiB         500               if self._ensemble:
+   207  400.938 MiB    0.191 MiB         500                   action = self._learner.select_behaviour_action(state, branch=branch)
+   208                                                     else:
+   209                                                         action = self._learner.select_behaviour_action(state)
+   210  400.938 MiB   -0.277 MiB         500               reward, next_state = self._environment.step(action)
+   211                                         
+   212  400.938 MiB    0.152 MiB        1000               acting_penalty, acting_penalty_info = self._visitation_penalty(
+   213  400.938 MiB    0.000 MiB         500                   episode=episode,
+   214  400.938 MiB    0.000 MiB        1000                   state=torch.from_numpy(state).to(
+   215  400.938 MiB    0.000 MiB         500                       device=self._device, dtype=torch.float
+   216                                                         ),
+   217  400.938 MiB    0.000 MiB         500                   action=action,
+   218  400.938 MiB    0.000 MiB        1000                   next_state=torch.from_numpy(next_state).to(
+   219  400.938 MiB    0.000 MiB         500                       device=self._device, dtype=torch.float
+   220                                                         ),
+   221                                                     )
+   222                                         
+   223  400.938 MiB    0.000 MiB         500               acting_penalties.append(acting_penalty)
+   224                                         
+   225  400.938 MiB    0.000 MiB        4000               for info_key, info in acting_penalty_info.items():
+   226  400.938 MiB    0.000 MiB        3500                   if info_key not in acting_penalties_infos.keys():
+   227  188.031 MiB    0.000 MiB           7                       acting_penalties_infos[info_key] = []
+   228  400.938 MiB    0.000 MiB        3500                   acting_penalties_infos[info_key].append(info)
+   229                                         
+   230  400.938 MiB    0.000 MiB         500               if self._shaping_implementation == constants.Constants.ACT:
+   231                                                         buffer_penalty = None
+   232                                                     else:
+   233  400.938 MiB    0.000 MiB         500                   buffer_penalty = acting_penalty
+   234  400.938 MiB    0.000 MiB         500               if self._ensemble:
+   235  400.938 MiB    0.000 MiB         500                   mask = self._get_random_mask()
+   236                                                     else:
+   237                                                         mask = None
+   238                                         
+   239  401.148 MiB  107.668 MiB        1000               self._replay_buffer.add(
+   240  400.938 MiB    0.000 MiB         500                   state=state,
+   241  400.938 MiB    0.000 MiB         500                   action=action,
+   242  400.938 MiB    0.000 MiB         500                   reward=reward,
+   243  400.938 MiB    0.000 MiB         500                   next_state=next_state,
+   244  400.938 MiB    0.000 MiB         500                   active=self._environment.active,
+   245  400.938 MiB    0.000 MiB         500                   mask=mask,
+   246  400.938 MiB    0.000 MiB         500                   penalty=buffer_penalty,
+   247                                                     )
+   248                                         
+   249  402.012 MiB  432.680 MiB         500               experience_sample = self._replay_buffer.sample(self._batch_size)
+   250                                         
+   251  402.012 MiB    0.000 MiB        1000               state_sample = torch.from_numpy(experience_sample[0]).to(
+   252  402.012 MiB    0.000 MiB         500                   device=self._device, dtype=torch.float
+   253                                                     )
+   254  402.012 MiB    0.016 MiB        1000               action_sample = torch.from_numpy(experience_sample[1]).to(
+   255  402.012 MiB    0.000 MiB         500                   device=self._device, dtype=torch.int
+   256                                                     )
+   257  402.012 MiB    0.004 MiB        1000               reward_sample = torch.from_numpy(experience_sample[2]).to(
+   258  402.012 MiB    0.000 MiB         500                   device=self._device, dtype=torch.float
+   259                                                     )
+   260  402.012 MiB    0.000 MiB        1000               next_state_sample = torch.from_numpy(experience_sample[3]).to(
+   261  402.012 MiB    0.000 MiB         500                   device=self._device, dtype=torch.float
+   262                                                     )
+   263  402.012 MiB    0.008 MiB        1000               active_sample = torch.from_numpy(experience_sample[4]).to(
+   264  402.012 MiB    0.000 MiB         500                   device=self._device, dtype=torch.int
+   265                                                     )
+   266  402.012 MiB    0.000 MiB         500               if self._ensemble:
+   267  402.012 MiB    0.000 MiB        1000                   mask_sample = torch.from_numpy(experience_sample[5]).to(
+   268  402.012 MiB    0.000 MiB         500                       device=self._device, dtype=torch.int
+   269                                                         )
+   270                                         
+   271  402.016 MiB    1.152 MiB        1000               sample_penalty, sample_penalty_infos = self._visitation_penalty(
+   272  402.012 MiB    0.000 MiB         500                   episode=episode,
+   273  402.012 MiB    0.000 MiB         500                   state=state_sample,
+   274  402.012 MiB    0.000 MiB         500                   action=experience_sample[1],
+   275  402.012 MiB    0.000 MiB         500                   next_state=next_state_sample,
+   276                                                     )
+   277                                         
+   278  402.016 MiB    0.000 MiB         500               sample_penalties.append(np.mean(sample_penalty))
+   279  402.016 MiB    0.000 MiB        4000               for info_key, info in sample_penalty_infos.items():
+   280  402.016 MiB    0.000 MiB        3500                   if info_key not in sample_penalties_infos.keys():
+   281  191.020 MiB    0.000 MiB           7                       sample_penalties_infos[info_key] = []
+   282  402.016 MiB    0.016 MiB        3500                   sample_penalties_infos[info_key].append(np.mean(info))
+   283                                         
+   284  402.016 MiB    0.000 MiB        1000               if self._shaping_implementation in [
+   285  402.016 MiB    0.000 MiB         500                   constants.Constants.TRAIN_Q_NETWORK,
+   286  402.016 MiB    0.000 MiB         500                   constants.Constants.TRAIN_TARGET_NETWORK,
+   287                                                     ]:
+   288  402.016 MiB    0.020 MiB        1000                   penalty = torch.Tensor(sample_penalty).to(
+   289  402.016 MiB    0.000 MiB         500                       device=self._device, dtype=torch.float
+   290                                                         )
+   291                                                     elif self._shaping_implementation in [constants.Constants.ACT]:
+   292                                                         penalty = torch.from_numpy(experience_sample[6]).to(
+   293                                                             device=self._device, dtype=torch.float
+   294                                                         )
+   295                                         
+   296  402.016 MiB    0.000 MiB         500               if self._ensemble:
+   297  402.016 MiB -328.258 MiB        1000                   loss, epsilon = self._learner.step(
+   298  402.016 MiB    0.000 MiB         500                       state=state_sample,
+   299  402.016 MiB    0.000 MiB         500                       action=action_sample,
+   300  402.016 MiB    0.000 MiB         500                       reward=reward_sample,
+   301  402.016 MiB    0.000 MiB         500                       next_state=next_state_sample,
+   302  402.016 MiB    0.000 MiB         500                       active=active_sample,
+   303  402.016 MiB    0.000 MiB         500                       visitation_penalty=penalty,
+   304  402.016 MiB    0.000 MiB         500                       mask=mask_sample,
+   305                                                         )
+   306                                                     else:
+   307                                                         loss, epsilon = self._learner.step(
+   308                                                             state=state_sample,
+   309                                                             action=action_sample,
+   310                                                             reward=reward_sample,
+   311                                                             next_state=next_state_sample,
+   312                                                             active=active_sample,
+   313                                                             visitation_penalty=penalty,
+   314                                                         )
+   315                                         
+   316  401.293 MiB -358.652 MiB         500               state = next_state
+   317  401.293 MiB    0.000 MiB         500               episode_reward += reward
+   318  401.293 MiB    0.000 MiB         500               episode_loss += loss
+   319                                         
+   320  401.293 MiB    0.000 MiB           1           mean_sample_penalty = np.mean(sample_penalties)
+   321  401.297 MiB    0.004 MiB          11           mean_sample_penalty_info = {
+   322  401.297 MiB    0.000 MiB           8               k: np.mean(v) for k, v in sample_penalties_infos.items()
+   323                                                 }
+   324  401.297 MiB    0.000 MiB          11           std_sample_penalty_info = {
+   325  401.297 MiB    0.000 MiB           8               k: np.std(v) for k, v in sample_penalties_infos.items()
+   326                                                 }
+   327  401.297 MiB    0.000 MiB           1           mean_acting_penalty = np.mean(acting_penalties)
+   328  401.297 MiB   -1.758 MiB          11           mean_acting_penalty_info = {
+   329  401.297 MiB   -1.406 MiB           8               k: np.mean(v) for k, v in acting_penalties_infos.items()
+   330                                                 }
+   331  400.945 MiB   -1.117 MiB          11           std_acting_penalty_info = {
+   332  400.945 MiB   -0.613 MiB           8               k: np.std(v) for k, v in acting_penalties_infos.items()
+   333                                                 }
+   334  400.793 MiB   -0.152 MiB           1           episode_steps = self._environment.episode_step_count
+   335                                         
+   336  400.793 MiB    0.000 MiB           2           self._write_scalar(
+   337  400.793 MiB    0.000 MiB           1               tag=constants.Constants.LOSS,
+   338  400.793 MiB    0.000 MiB           1               episode=episode,
+   339  400.793 MiB    0.000 MiB           1               scalar=episode_loss / episode_steps,
+   340                                                 )
+   341  400.793 MiB    0.000 MiB           2           self._write_scalar(
+   342  400.793 MiB    0.000 MiB           1               tag=constants.Constants.MEAN_VISITATION_PENALTY,
+   343  400.793 MiB    0.000 MiB           1               episode=episode,
+   344  400.793 MiB    0.000 MiB           1               scalar=mean_sample_penalty,
+   345  400.793 MiB    0.000 MiB           1               df_tag=f"sample_{constants.Constants.MEAN_VISITATION_PENALTY}",
+   346                                                 )
+   347  400.793 MiB    0.000 MiB           2           self._write_scalar(
+   348  400.793 MiB    0.000 MiB           1               tag=constants.Constants.MEAN_VISITATION_PENALTY,
+   349  400.793 MiB    0.000 MiB           1               episode=episode,
+   350  400.793 MiB    0.000 MiB           1               scalar=mean_acting_penalty,
+   351  400.793 MiB    0.000 MiB           1               df_tag=f"acting_{constants.Constants.MEAN_VISITATION_PENALTY}",
+   352                                                 )
+   353  400.793 MiB    0.000 MiB           8           for penalty_info, ensemble_penalty_info in mean_sample_penalty_info.items():
+   354  400.793 MiB    0.000 MiB          14               self._write_scalar(
+   355  400.793 MiB    0.000 MiB           7                   tag=constants.Constants.MEAN_PENALTY_INFO,
+   356  400.793 MiB    0.000 MiB           7                   episode=episode,
+   357  400.793 MiB    0.000 MiB           7                   scalar=ensemble_penalty_info,
+   358  400.793 MiB    0.000 MiB           7                   df_tag=f"sample_{penalty_info}",
+   359                                                     )
+   360  400.793 MiB    0.000 MiB           8           for penalty_info, ensemble_penalty_info in std_sample_penalty_info.items():
+   361  400.793 MiB    0.000 MiB          14               self._write_scalar(
+   362  400.793 MiB    0.000 MiB           7                   tag=constants.Constants.STD_PENALTY_INFO,
+   363  400.793 MiB    0.000 MiB           7                   episode=episode,
+   364  400.793 MiB    0.000 MiB           7                   scalar=ensemble_penalty_info,
+   365  400.793 MiB    0.000 MiB           7                   df_tag=f"sample_{penalty_info}_std",
+   366                                                     )
+   367  400.793 MiB    0.000 MiB           8           for penalty_info, ensemble_penalty_info in mean_acting_penalty_info.items():
+   368  400.793 MiB    0.000 MiB          14               self._write_scalar(
+   369  400.793 MiB    0.000 MiB           7                   tag=constants.Constants.MEAN_PENALTY_INFO,
+   370  400.793 MiB    0.000 MiB           7                   episode=episode,
+   371  400.793 MiB    0.000 MiB           7                   scalar=ensemble_penalty_info,
+   372  400.793 MiB    0.000 MiB           7                   df_tag=f"acting_{penalty_info}",
+   373                                                     )
+   374  400.793 MiB    0.000 MiB           8           for penalty_info, ensemble_penalty_info in std_acting_penalty_info.items():
+   375  400.793 MiB    0.000 MiB          14               self._write_scalar(
+   376  400.793 MiB    0.000 MiB           7                   tag=constants.Constants.STD_PENALTY_INFO,
+   377  400.793 MiB    0.000 MiB           7                   episode=episode,
+   378  400.793 MiB    0.000 MiB           7                   scalar=ensemble_penalty_info,
+   379  400.793 MiB    0.000 MiB           7                   df_tag=f"acting_{penalty_info}_std",
+   380                                                     )
+   381                                         
+   382  400.793 MiB    0.000 MiB           1           return episode_reward, episode_steps
+
+

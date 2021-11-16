@@ -1,0 +1,327 @@
+experiment_name:
+seed: 0
+use_gpu: True
+gpu_id: 0
+
+environment: multiroom
+apply_curriculum: False
+    
+minigrid:
+    size: [20, 20]
+    living_reward: 0
+    no_op_penalty: 0
+    starting_position: [0, 0] # random if not given
+    num_rewards: 1
+    reward_positions: [[10, 10]] # random if not given
+    reward_magnitudes: [1.]
+    repeat_rewards: False
+    episode_timeout: 200 # infinity if not given
+    plot_origin: lower
+
+minigrid_curriculum:
+    transition_episodes: []
+    environment_changes: 
+        - []
+
+multiroom_curriculum:
+    transition_episodes: [5]
+    environment_changes:
+        - [["change_key_positions", [[17, 5], [18, 5]]], ["change_reward_positions", [[16, 5], [31, 4]]]]
+
+multiroom:
+    map_ascii_path: three_room.txt
+    map_yaml_path: three_room.yaml
+    episode_timeout: 400 # infinity if not given
+    plot_origin: lower
+    
+    reward_specifications:
+        - gaussian:
+            mean: 1
+            variance: 0
+
+    representation: agent_position # agent_position for tabular or pixel for DL
+
+    encoded_state_dimensions: [1,21,21] # for use with DL method
+    frame_stack: 1 # for use with DL method
+
+atari:
+    atari_env_name: "PongNoFrameskip-v4"
+
+    implementation: wrapper
+
+    pre_processing:
+        - max_over:
+            num_frames: 2
+        - gray_scale:
+        - down_sample:
+            width: 84
+            height: 84
+
+    frame_stack: 4
+    frame_skip: 4
+    episode_timeout: 2000 # infinity if not given
+    encoded_state_dimensions: [4, 84, 84]
+    plot_origin: upper
+
+
+learner: 
+    type: ensemble_q_learning
+
+    pretrained_model_path:
+
+    learning_rate: 1.0
+    gradient_momentum: 0.95 # unused
+    squared_gradient_momentum: 0.95 # unused
+    min_squared_gradient: 0.01 # unused
+    discount_factor: 0.99 
+
+    lr_scaler:
+        type: expected_uncertainty
+
+        expected_uncertainty:
+            lr_scaler_update_period: 1
+            action_function: max
+
+    epsilon:
+        schedule: unexpected_uncertainty
+
+        constant:
+            value: 0.1
+        
+        linear_decay:
+            initial_value: 0.9
+            final_value: 0.02
+            anneal_duration: 100000
+
+        unexpected_uncertainty:
+            epsilon_update_period: 1
+            action_function: max
+            moving_average_window: 5
+            minimum_value: 0.1
+
+        expected_uncertainty:
+            epsilon_update_period: 1
+            action_function: max
+            minimum_value: 0.1
+    
+    initialisation: random_normal
+
+    split_value_function: False
+
+    random_uniform:
+        lower_bound: 0
+        upper_bound: 1
+
+    random_normal:
+        mean: 0
+        variance: 0.1
+
+    # hard_coded, adaptive_uncertainty, adaptive_arriving_uncertainty, 
+    # deterministic_exponential_decay, deterministic_linear_decay, 
+    # deterministic_sigmoidal_decay,
+    # policy_entropy_penalty, potential_based_adaptive_uncertainty
+    # reducing_variance_window, or reducing_entropy_window
+    # signed_uncertainty_window_penalty
+    visitation_penalty_type: hard_coded
+
+    # when individual penalties are computed with global values (ensemble-wide),
+    # how often are these global values updated.
+    penalty_update_period: 1
+
+    # train_q_network, train_target_network, act; only relevant for DQN-based
+    shaping_implementation: train_q_network
+
+    hard_coded: 
+        vp_schedule:
+            - [0, -0.01] # from step 0, 0 penalty
+
+    deterministic_exponential_decay:
+        # y = Ab^(cx)
+        A: -1
+        b: 2.7
+        c: -0.0001
+
+    deterministic_linear_decay: 
+        # y = Ax + b
+        A: -1
+        b: 0
+
+    deterministic_sigmoidal_decay:
+        # y = A / (1 + e^(-b(x-c)))
+        A: -1
+        b: 1
+        c: 0
+        
+    adaptive_uncertainty:
+        action_function: mean # mean or max or select
+        multiplicative_factor: 0.5
+
+    adaptive_arriving_uncertainty:
+        action_function: mean # mean or max
+        multiplicative_factor: 0.5
+
+    potential_based_adaptive_uncertainty:
+        pre_action_function: mean # mean or max or select
+        post_action_function: mean # mean or max or select
+        multiplicative_factor: 0.5
+
+    policy_entropy_penalty:
+        multiplicative_factor: 1
+
+    potential_based_policy_entropy_penalty:
+        multiplicative_factor: 0.5   
+
+    reducing_variance_window:
+        expected_multiplicative_factor: -0.1
+        unexpected_multiplicative_factor: 0.1
+        action_function: mean
+        moving_average_window: 10
+
+    reducing_entropy_window:
+        expected_multiplicative_factor: -0.01
+        unexpected_multiplicative_factor: 0
+        moving_average_window: 10
+
+    signed_uncertainty_window:
+        positive_multiplicative_factor: -0.1
+        negative_multiplicative_factor: -0.1
+        action_function: mean
+        moving_average_window: 10
+
+sarsa_lambda:
+    trace_lambda: 0.05
+    behaviour: epsilon_greedy
+    target: greedy
+
+q_learning:
+    behaviour: epsilon_greedy
+    target: greedy
+
+ensemble_q_learning:
+    num_learners: 8
+    copy_learner_initialisation: False
+    behaviour: epsilon_greedy
+    targets: 
+        - greedy_sample
+        - greedy_mean
+        - greedy_vote
+    parallelise_ensemble: False
+
+vanilla_dqn:
+    behaviour: epsilon_greedy
+    targets: 
+
+independent_ensemble_dqn:
+    num_learners: 4
+    copy_learner_initialisation: False
+    share_replay_buffer: True
+    behaviour: epsilon_greedy
+    targets: 
+    parallelise_ensemble: False
+
+bootstrapped_ensemble_dqn:
+    num_learners: 4
+    copy_learner_initialisation: False
+    shared_layers: [0, 1, 2, 3, 4]
+    behaviour: epsilon_greedy
+    targets: 
+    mask_probability: 0.5
+
+dqn:
+    batch_size: 32
+    num_replay_fill_trajectories: 10000
+    replay_buffer_size: 100000
+    target_network_update_period: 10000
+    normalise_state: True
+    gradient_clipping:
+
+    optimiser: adam
+
+    layer_specifications:
+        - conv:
+            in_channels: 1
+            num_filters: 8 
+            kernel_size: 3
+            stride: 2
+            nonlinearity:  relu
+            bias_initialisation: 
+            weight_initialisation:
+        - conv:
+            in_channels: 8
+            num_filters: 8
+            kernel_size: 2
+            stride: 1
+            nonlinearity:  relu
+            bias_initialisation: 
+            weight_initialisation:
+        - flatten:
+            nonlinearity: identity
+        - fc:
+            in_features: 648
+            out_features: 512
+            nonlinearity: relu
+            bias_initialisation: 
+            weight_initialisation:
+        - fc:
+            in_features: 512
+            nonlinearity: identity
+            bias_initialisation: 
+            weight_initialisation:
+
+training:
+    num_episodes: 6000
+    test_frequency: 50
+    testing: 
+        # - greedy
+        # - no_rep
+
+logging:
+    print_frequency: 1
+    checkpoint_frequency: 500
+    model_checkpoint_frequency:
+    animation_library: matplotlib_animation
+    animation_file_format: gif
+    arrays:
+        - [value_function, 10]
+        # - [individual_value_functions, 50]
+        # - [value_function_std, 10]
+        # - [policy_entropy, 10]
+    scalars:
+        - [train_episode_reward, 1]
+        - [train_episode_length, 1]
+        # - [average_action_value, 50]
+        # - [loss, 1]
+        # - [epsilon, 1]
+        - [[train_episode_reward_ensemble_runner, 8], 1]
+        - [[train_episode_length_ensemble_runner, 8], 1]
+        # - [ensemble_episode_reward_std, 1]
+        # - [ensemble_episode_length_std, 1]
+        - [mean_epsilon, 1]
+        - [mean_lr_scaling, 1]
+        - [mean_visitation_penalty, 1]
+        - [next_state_policy_entropy_mean, 1]
+        - [current_state_max_uncertainty_mean, 1]
+        - [current_state_select_uncertainty_mean, 1]
+        - [current_state_policy_entropy_mean, 1]
+        - [current_state_mean_uncertainty_mean, 1]
+        - [next_state_mean_uncertainty_mean, 1]
+        - [next_state_max_uncertainty_mean, 1]
+        # - [no_repeat_test_episode_reward, 1]
+        # - [no_repeat_test_episode_length, 1]
+        # - [cycle_count, 1]
+    visualisations:
+        - [value_function, 10]
+        # - [value_function_std, 50]
+        # - [individual_value_functions, 50]
+        # - visitation_count_heatmap
+        # - [individual_test_run, 200]
+        - [individual_train_run, 500]
+    post_visualisations:
+        - value_function
+        # - value_function_std
+        # - policy_entropy
+
+plotting:
+    xlabel: epoch
+    smoothing: 20
+        
