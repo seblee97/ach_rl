@@ -128,11 +128,6 @@ class QLearningRunner(base_runner.BaseRunner):
             action = self._learner.select_behaviour_action(state)
             reward, new_state = self._environment.step(action)
 
-            # state here refers to overall state of agent/env system.
-            current_state_info = self._information_computer(
-                state=state, action=action, next_state=new_state
-            )
-
             penalty = self._visitation_penalty(
                 episode=episode,
                 penalty_info={},
