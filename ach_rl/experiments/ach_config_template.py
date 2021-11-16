@@ -479,46 +479,44 @@ class AChConfigTemplate:
     _expected_uncertainty_lr_scaler_template = config_template.Template(
         fields=[
             config_field.Field(
-                name=constants.Constants.LR_SCALER_UPDATE_PERIOD,
+                name=constants.LR_SCALER_UPDATE_PERIOD,
                 types=[int],
                 requirements=[lambda x: x > 0],
             ),
             config_field.Field(
-                name=constants.Constants.ACTION_FUNCTION,
+                name=constants.ACTION_FUNCTION,
                 types=[str],
-                requirements=[
-                    lambda x: x in [constants.Constants.MAX, constants.Constants.MEAN]
-                ],
-                key=constants.Constants.LR_SCALER_ACTION_FUNCTION,
+                requirements=[lambda x: x in [constants.MAX, constants.MEAN]],
+                key=constants.LR_SCALER_ACTION_FUNCTION,
             ),
         ],
         level=[
-            constants.Constants.LEARNER,
-            constants.Constants.LR_SCALER,
-            constants.Constants.EXPECTED_UNCERTAINTY,
+            constants.LEARNER,
+            constants.LR_SCALER,
+            constants.EXPECTED_UNCERTAINTY,
         ],
-        dependent_variables=[constants.Constants.LR_SCALER_TYPE],
+        dependent_variables=[constants.LR_SCALER_TYPE],
         dependent_variables_required_values=[
-            [constants.Constants.EXPECTED_UNCERTAINTY],
+            [constants.EXPECTED_UNCERTAINTY],
         ],
     )
 
     _lr_scaler_template = config_template.Template(
         fields=[
             config_field.Field(
-                name=constants.Constants.TYPE,
+                name=constants.TYPE,
                 types=[str, type(None)],
                 requirements=[
                     lambda x: x is None
                     or x
                     in [
-                        constants.Constants.EXPECTED_UNCERTAINTY,
+                        constants.EXPECTED_UNCERTAINTY,
                     ]
                 ],
-                key=constants.Constants.LR_SCALER_TYPE,
+                key=constants.LR_SCALER_TYPE,
             ),
         ],
-        level=[constants.Constants.LEARNER, constants.Constants.LR_SCALER],
+        level=[constants.LEARNER, constants.LR_SCALER],
         nested_templates=[
             _expected_uncertainty_lr_scaler_template,
         ],
@@ -573,70 +571,66 @@ class AChConfigTemplate:
     _expected_uncertainty_epsilon_template = config_template.Template(
         fields=[
             config_field.Field(
-                name=constants.Constants.EPSILON_UPDATE_PERIOD,
+                name=constants.EPSILON_UPDATE_PERIOD,
                 types=[int],
                 requirements=[lambda x: x > 0],
             ),
             config_field.Field(
-                name=constants.Constants.ACTION_FUNCTION,
+                name=constants.ACTION_FUNCTION,
                 types=[str],
-                requirements=[
-                    lambda x: x in [constants.Constants.MAX, constants.CONSTANTS.MEAN]
-                ],
-                key=constants.Constants.EPSILON_ACTION_FUNCTION,
+                requirements=[lambda x: x in [constants.MAX, constants.MEAN]],
+                key=constants.EPSILON_ACTION_FUNCTION,
             ),
             config_field.Field(
-                name=constants.Constants.MINIMUM_VALUE,
+                name=constants.MINIMUM_VALUE,
                 types=[int, float],
                 requirements=[lambda x: x >= 0 and x <= 1],
             ),
         ],
         level=[
-            constants.Constants.LEARNER,
-            constants.Constants.EPSILON,
-            constants.Constants.EXPECTED_UNCERTAINTY,
+            constants.LEARNER,
+            constants.EPSILON,
+            constants.EXPECTED_UNCERTAINTY,
         ],
-        dependent_variables=[constants.Constants.SCHEDULE],
+        dependent_variables=[constants.SCHEDULE],
         dependent_variables_required_values=[
-            [constants.Constants.EXPECTED_UNCERTAINTY],
+            [constants.EXPECTED_UNCERTAINTY],
         ],
     )
 
     _unexpected_uncertainty_epsilon_template = config_template.Template(
         fields=[
             config_field.Field(
-                name=constants.Constants.EPSILON_UPDATE_PERIOD,
+                name=constants.EPSILON_UPDATE_PERIOD,
                 types=[int],
                 requirements=[lambda x: x > 0],
             ),
             config_field.Field(
-                name=constants.Constants.ACTION_FUNCTION,
+                name=constants.ACTION_FUNCTION,
                 types=[str],
-                requirements=[
-                    lambda x: x in [constants.Constants.MAX, constants.Constants.MEAN]
-                ],
-                key=constants.Constants.EPSILON_ACTION_FUNCTION,
+                requirements=[lambda x: x in [constants.MAX, constants.MEAN]],
+                key=constants.EPSILON_ACTION_FUNCTION,
             ),
             config_field.Field(
-                name=constants.Constants.MOVING_AVERAGE_WINDOW,
+                name=constants.MOVING_AVERAGE_WINDOW,
                 types=[int],
                 requirements=[lambda x: x > 0],
-                key=constants.Constants.EPSILON_MOVING_AVERAGE_WINDOW,
+                key=constants.EPSILON_MOVING_AVERAGE_WINDOW,
             ),
             config_field.Field(
-                name=constants.Constants.MINIMUM_VALUE,
+                name=constants.MINIMUM_VALUE,
                 types=[int, float],
                 requirements=[lambda x: x >= 0 and x <= 1],
             ),
         ],
         level=[
-            constants.Constants.LEARNER,
-            constants.Constants.EPSILON,
-            constants.Constants.UNEXPECTED_UNCERTAINTY,
+            constants.LEARNER,
+            constants.EPSILON,
+            constants.UNEXPECTED_UNCERTAINTY,
         ],
-        dependent_variables=[constants.Constants.SCHEDULE],
+        dependent_variables=[constants.SCHEDULE],
         dependent_variables_required_values=[
-            [constants.Constants.UNEXPECTED_UNCERTAINTY],
+            [constants.UNEXPECTED_UNCERTAINTY],
         ],
     )
 
@@ -648,14 +642,14 @@ class AChConfigTemplate:
                 requirements=[
                     lambda x: x
                     in [
-                        constants.Constants.CONSTANT,
-                        constants.Constants.LINEAR_DECAY,
-                        constants.Constants.UNEXPECTED_UNCERTAINTY,
+                        constants.CONSTANT,
+                        constants.LINEAR_DECAY,
+                        constants.UNEXPECTED_UNCERTAINTY,
                     ]
                 ],
             ),
         ],
-        level=[constants.Constants.LEARNER, constants.Constants.EPSILON],
+        level=[constants.LEARNER, constants.EPSILON],
         nested_templates=[
             _constant_epsilon_template,
             _linear_decay_epsilon_template,
