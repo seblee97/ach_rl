@@ -115,7 +115,7 @@ class TabularLearner(base_learner.BaseLearner):
             )
         elif initialisation_strategy_name == constants.RANDOM_UNIFORM:
             return np.random.rand(len(self._state_space), len(self._action_space))
-        elif initialisation_strategy_name == constants.Constants.RANDOM_NORMAL:
+        elif initialisation_strategy_name == constants.RANDOM_NORMAL:
             return np.random.normal(
                 loc=0, scale=0.1, size=(len(self._state_space), len(self._action_space))
             )
@@ -237,6 +237,8 @@ class TabularLearner(base_learner.BaseLearner):
         if self._behaviour == constants.GREEDY:
             action = self._greedy_action(state=state)
         elif self._behaviour == constants.EPSILON_GREEDY:
+            if epsilon is None:
+                epsilon = self._epsilon.value
             action = self._epsilon_greedy_action(state=state, epsilon=epsilon)
         return action
 
