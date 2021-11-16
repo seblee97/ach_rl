@@ -4,6 +4,7 @@ from typing import Any
 from typing import Dict
 from typing import List
 from typing import Tuple
+from typing import Type
 from typing import Union
 
 from ach_rl import constants
@@ -12,6 +13,9 @@ from ach_rl.environments import atari
 from ach_rl.environments import base_environment
 from ach_rl.environments import wrapper_atari
 from ach_rl.experiments import ach_config
+from ach_rl.information_computers import base_information_computer
+from ach_rl.information_computers import network_information_computer
+from ach_rl.information_computers import tabular_information_computer
 from ach_rl.utils import epsilon_schedules
 from ach_rl.visitation_penalties import \
     adaptive_arriving_uncertainty_visitation_penalty
@@ -20,7 +24,6 @@ from ach_rl.visitation_penalties import base_visitation_penalty
 from ach_rl.visitation_penalties import exponential_decay_visitation_penalty
 from ach_rl.visitation_penalties import hard_coded_visitation_penalty
 from ach_rl.visitation_penalties import linear_decay_visitation_penalty
-from ach_rl.visitation_penalties import network_visitation_penalty
 from ach_rl.visitation_penalties import policy_entropy_penalty
 from ach_rl.visitation_penalties import potential_adaptive_uncertainty_penalty
 from ach_rl.visitation_penalties import potential_policy_entropy_penalty
@@ -28,7 +31,6 @@ from ach_rl.visitation_penalties import reducing_entropy_window_penalty
 from ach_rl.visitation_penalties import reducing_variance_window_penalty
 from ach_rl.visitation_penalties import sigmoidal_decay_visitation_penalty
 from ach_rl.visitation_penalties import signed_uncertainty_window_penalty
-from ach_rl.visitation_penalties import tabular_visitation_penalty
 from key_door import key_door_env
 from key_door import visualisation_env
 from run_modes import base_runner
@@ -59,6 +61,7 @@ class SetupRunner(base_runner.BaseRunner):
 
         # component setup
         self._environment = self._setup_environment(config=config)
+        self._information_computer = self._setup_information_computer(config=config)
         if config.visitation_penalty_type is None:
             self._visitation_penalty = None
         else:
@@ -179,6 +182,38 @@ class SetupRunner(base_runner.BaseRunner):
             wrapper = multiroom_curriculum.MultiroomCurriculum
         return wrapper
 
+    def _setup_information_computer(
+        self, config: ach_config.AchConfig
+    ) -> Type[base_information_computer.BaseInformationComputer]:
+        if config.type in [
+            constants.BOOTSTRAPPED_ENSEMBLE_DQN,
+            constants.VANILLA_DQN,
+            constants.INDEPENDENT_ENSEMBLE_DQN,
+        ]:
+            if config.shaping_implementation == constants.TRAIN_Q_NETWORK:
+                use_target_network = False
+            elif config.shaping_implementation == constants.TRAIN_TARGET_NETWORK:
+                use_target_network = True
+            information_computer = (
+                network_information_computer.NetworkInformationComputer(
+                    use_target_network=use_target_network,
+                )
+            )
+        elif config.type in [
+            constants.Q_LEARNING,
+            constants.SARSA_LAMBDA,
+            constants.ENSEMBLE_Q_LEARNING,
+        ]:
+            information_computer = (
+                tabular_information_computer.TabularInformationComputer()
+            )
+        else:
+            raise ValueError(
+                f"Learner type {config.type} has not been grouped as tabular or network, "
+                "so the correct visitation penalty class type cannot be determined."
+            )
+        return information_computer
+
     def _setup_visitation_penalty(
         self, config: ach_config.AchConfig
     ) -> base_visitation_penalty.BaseVisitationPenalty:
@@ -267,34 +302,7 @@ class SetupRunner(base_runner.BaseRunner):
                 f"Visitation penalty type {config.visitation_penalty_type} not recognised"
             )
 
-        if config.type in [
-            constants.BOOTSTRAPPED_ENSEMBLE_DQN,
-            constants.VANILLA_DQN,
-            constants.INDEPENDENT_ENSEMBLE_DQN,
-        ]:
-            if config.shaping_implementation == constants.TRAIN_Q_NETWORK:
-                use_target_network = False
-            elif config.shaping_implementation == constants.TRAIN_TARGET_NETWORK:
-                use_target_network = True
-            visitation_penalty = network_visitation_penalty.NetworkVisitationPenalty(
-                penalty_computer=penalty_computer,
-                use_target_network=use_target_network,
-            )
-        elif config.type in [
-            constants.Q_LEARNING,
-            constants.SARSA_LAMBDA,
-            constants.ENSEMBLE_Q_LEARNING,
-        ]:
-            visitation_penalty = tabular_visitation_penalty.TabularVisitationPenalty(
-                penalty_computer=penalty_computer
-            )
-        else:
-            raise ValueError(
-                f"Learner type {config.type} has not been grouped as tabular or network, "
-                "so the correct visitation penalty class type cannot be determined."
-            )
-
-        return visitation_penalty
+        return penalty_computer
 
     def _setup_epsilon_function(self, config: ach_config.AchConfig):
         """Setup epsilon function."""
