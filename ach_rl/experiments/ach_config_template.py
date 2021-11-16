@@ -476,13 +476,19 @@ class AChConfigTemplate:
         ],
     )
 
+    _hard_coded_lr_scaler_template = config_template.Template(
+        fields=[
+            config_field.Field(name=constants.LR_SCALING, types=[float, int]),
+        ],
+        level=[constants.LEARNER, constants.LR_SCALER, constants.HARD_CODED],
+        dependent_variables=[constants.LR_SCALER_TYPE],
+        dependent_variables_required_values=[
+            [constants.HARD_CODED],
+        ],
+    )
+
     _expected_uncertainty_lr_scaler_template = config_template.Template(
         fields=[
-            config_field.Field(
-                name=constants.LR_SCALER_UPDATE_PERIOD,
-                types=[int],
-                requirements=[lambda x: x > 0],
-            ),
             config_field.Field(
                 name=constants.ACTION_FUNCTION,
                 types=[str],
@@ -508,16 +514,14 @@ class AChConfigTemplate:
                 types=[str, type(None)],
                 requirements=[
                     lambda x: x is None
-                    or x
-                    in [
-                        constants.EXPECTED_UNCERTAINTY,
-                    ]
+                    or x in [constants.EXPECTED_UNCERTAINTY, constants.HARD_CODED]
                 ],
                 key=constants.LR_SCALER_TYPE,
             ),
         ],
         level=[constants.LEARNER, constants.LR_SCALER],
         nested_templates=[
+            _hard_coded_lr_scaler_template,
             _expected_uncertainty_lr_scaler_template,
         ],
     )
@@ -571,11 +575,6 @@ class AChConfigTemplate:
     _expected_uncertainty_epsilon_template = config_template.Template(
         fields=[
             config_field.Field(
-                name=constants.EPSILON_UPDATE_PERIOD,
-                types=[int],
-                requirements=[lambda x: x > 0],
-            ),
-            config_field.Field(
                 name=constants.ACTION_FUNCTION,
                 types=[str],
                 requirements=[lambda x: x in [constants.MAX, constants.MEAN]],
@@ -600,11 +599,6 @@ class AChConfigTemplate:
 
     _unexpected_uncertainty_epsilon_template = config_template.Template(
         fields=[
-            config_field.Field(
-                name=constants.EPSILON_UPDATE_PERIOD,
-                types=[int],
-                requirements=[lambda x: x > 0],
-            ),
             config_field.Field(
                 name=constants.ACTION_FUNCTION,
                 types=[str],
@@ -765,11 +759,6 @@ class AChConfigTemplate:
                 ],
             ),
             config_field.Field(
-                name=constants.PENALTY_UPDATE_PERIOD,
-                types=[int],
-                requirements=[lambda x: x > 0],
-            ),
-            config_field.Field(
                 name=constants.SHAPING_IMPLEMENTATION,
                 types=[str],
                 requirements=[
@@ -780,6 +769,11 @@ class AChConfigTemplate:
                         constants.TRAIN_TARGET_NETWORK,
                     ]
                 ],
+            ),
+            config_field.Field(
+                name=constants.INFORMATION_COMPUTER_UPDATE_PERIOD,
+                types=[int],
+                requirements=[lambda x: x > 0],
             ),
         ],
         level=[constants.LEARNER],
