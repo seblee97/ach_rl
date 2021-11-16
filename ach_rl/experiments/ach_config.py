@@ -55,7 +55,7 @@ class AchConfig(base_configuration.BaseConfiguration):
                 constants.TEST_EPISODE_REWARD,
                 constants.TEST_EPISODE_LENGTH,
                 constants.MEAN_VISITATION_PENALTY,
-                constants.MEAN_PENALTY_INFO,
+                constants.MEAN_INFO,
             ]
             permitted_visuals = [
                 constants.VALUE_FUNCTION,
@@ -72,7 +72,7 @@ class AchConfig(base_configuration.BaseConfiguration):
                 constants.LOSS,
                 constants.EPSILON,
                 constants.MEAN_VISITATION_PENALTY,
-                constants.MEAN_PENALTY_INFO,
+                constants.MEAN_INFO,
             ]
             permitted_visuals = [
                 constants.INDIVIDUAL_TRAIN_RUN,
@@ -106,8 +106,19 @@ class AchConfig(base_configuration.BaseConfiguration):
                 constants.ENSEMBLE_EPISODE_REWARD_STD,
                 constants.ENSEMBLE_EPISODE_LENGTH_STD,
                 constants.MEAN_VISITATION_PENALTY,
-                constants.MEAN_PENALTY_INFO,
-                constants.STD_PENALTY_INFO,
+                f"{constants.NEXT_STATE_POLICY_ENTROPY}_{constants.MEAN}",
+                f"{constants.CURRENT_STATE_POLICY_ENTROPY}_{constants.MEAN}",
+                f"{constants.NEXT_STATE_MEAN_UNCERTAINTY}_{constants.MEAN}",
+                f"{constants.NEXT_STATE_MAX_UNCERTAINTY}_{constants.MEAN}",
+                f"{constants.TEST_EPISODE_LENGTH}_{constants.GREEDY_SAMPLE}",
+                f"{constants.TEST_EPISODE_LENGTH}_{constants.GREEDY_MEAN}",
+                f"{constants.TEST_EPISODE_LENGTH}_{constants.GREEDY_VOTE}",
+                f"{constants.TEST_EPISODE_REWARD}_{constants.GREEDY_SAMPLE}",
+                f"{constants.TEST_EPISODE_REWARD}_{constants.GREEDY_MEAN}",
+                f"{constants.TEST_EPISODE_REWARD}_{constants.GREEDY_VOTE}",
+                f"{constants.CURRENT_STATE_MAX_UNCERTAINTY}_{constants.MEAN}",
+                f"{constants.CURRENT_STATE_MEAN_UNCERTAINTY}_{constants.MEAN}",
+                f"{constants.CURRENT_STATE_SELECT_UNCERTAINTY}_{constants.MEAN}",
                 constants.NO_REPEAT_TEST_EPISODE_REWARD,
                 constants.NO_REPEAT_TEST_EPISODE_LENGTH,
                 constants.CYCLE_COUNT,
@@ -180,8 +191,8 @@ class AchConfig(base_configuration.BaseConfiguration):
                     ]
                 ),
                 constants.MEAN_VISITATION_PENALTY,
-                constants.MEAN_PENALTY_INFO,
-                constants.STD_PENALTY_INFO,
+                constants.MEAN_INFO,
+                constants.STD_INFO,
             ]
             test_constants = [
                 constants.TEST_EPISODE_REWARD,
