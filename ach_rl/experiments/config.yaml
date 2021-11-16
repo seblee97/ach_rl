@@ -76,14 +76,16 @@ learner:
     discount_factor: 0.99 
 
     lr_scaler:
-        type: expected_uncertainty
+        type: hard_coded
 
         expected_uncertainty:
-            lr_scaler_update_period: 1
             action_function: max
 
+        hard_coded:
+            lr_scaling: 1
+
     epsilon:
-        schedule: unexpected_uncertainty
+        schedule: constant
 
         constant:
             value: 0.1
@@ -94,13 +96,11 @@ learner:
             anneal_duration: 100000
 
         unexpected_uncertainty:
-            epsilon_update_period: 1
             action_function: max
             moving_average_window: 5
             minimum_value: 0.1
 
         expected_uncertainty:
-            epsilon_update_period: 1
             action_function: max
             minimum_value: 0.1
     
@@ -124,9 +124,9 @@ learner:
     # signed_uncertainty_window_penalty
     visitation_penalty_type: hard_coded
 
-    # when individual penalties are computed with global values (ensemble-wide),
+    # when individual penalties etc. are computed with global values (ensemble-wide),
     # how often are these global values updated.
-    penalty_update_period: 1
+    information_computer_update_period: 1
 
     # train_q_network, train_target_network, act; only relevant for DQN-based
     shaping_implementation: train_q_network
