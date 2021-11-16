@@ -3,14 +3,13 @@ from typing import List
 from typing import Tuple
 
 import numpy as np
-from ach_rl.visitation_penalties import base_visitation_penalty
+from ach_rl.information_computers import base_information_computer
 
 
-class TabularVisitationPenalty(base_visitation_penalty.BaseVisitationPenalty):
-    def __init__(
-        self, penalty_computer: base_visitation_penalty.BaseVisitationPenaltyComputer
-    ):
-        super().__init__(penalty_computer)
+class TabularInformationComputer(base_information_computer.BaseInformationComputer):
+    def __init__(self):
+        self._state_action_values: List[Dict[Tuple[int], List[float]]]
+        super().__init__()
 
     @property
     def state_action_values(self):

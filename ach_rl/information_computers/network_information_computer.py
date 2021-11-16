@@ -1,18 +1,17 @@
 import torch
 import torch.nn as nn
-from ach_rl.visitation_penalties import base_visitation_penalty
+from ach_rl.information_computers import base_information_computer
 
 
-class NetworkVisitationPenalty(base_visitation_penalty.BaseVisitationPenalty):
+class NetworkInformationComputer(base_information_computer.BaseInformationComputer):
     def __init__(
         self,
-        penalty_computer: base_visitation_penalty.BaseVisitationPenaltyComputer,
         use_target_network: bool = False,
     ):
         self._q_network: nn.Module
         self._target_q_network: nn.Module
         self._use_target_network = use_target_network
-        super().__init__(penalty_computer)
+        super().__init__()
 
     @property
     def q_network(self):
