@@ -5,12 +5,14 @@ import os
 import re
 from typing import Dict
 from typing import Tuple
+from typing import Type
 from typing import Union
 
 import numpy as np
 from ach_rl import constants
 from ach_rl.environments import base_environment
 from ach_rl.experiments import ach_config
+from ach_rl.information_computers import base_information_computer
 from ach_rl.learners import base_learner
 from ach_rl.learners.ensemble_learners import tabular_ensemble_learner
 from ach_rl.learners.ensemble_learners.majority_vote_ensemble_learner import \
@@ -24,6 +26,7 @@ from ach_rl.runners import base_runner
 from ach_rl.utils import cycle_counter
 from ach_rl.utils import decorators
 from ach_rl.utils import experiment_utils
+from ach_rl.visitation_penalties import base_visitation_penalty
 from ach_rl.visitation_penalties.adaptive_arriving_uncertainty_visitation_penalty import \
     AdaptiveArrivingUncertaintyPenalty
 from ach_rl.visitation_penalties.adaptive_uncertainty_visitation_penalty import \
@@ -295,7 +298,7 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
         """
         if episode % self._penalty_update_period == 0:
             self._logger.info("Updating global penalty information...")
-            self._visitation_penalty.state_action_values = (
+            self._information_computer.state_action_values = (
                 self._learner.individual_learner_state_action_values
             )
 
@@ -314,8 +317,8 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
             ensemble_rewards,
             ensemble_step_counts,
             ensemble_mean_penalties,
-            ensemble_mean_penalty_infos,
-            ensemble_std_penalty_infos,
+            ensemble_mean_infos,
+            ensemble_std_infos,
             train_episode_histories,
         ) = train_fn(episode=episode, rng_state=rng_state)
 
@@ -339,52 +342,48 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
                 self._pool.join()
 
         # log data from individual runners in ensemble
-        for i in range(len(self._learner.ensemble)):
-            self._write_scalar(
-                tag=f"{constants.TRAIN_EPISODE_REWARD}_{constants.ENSEMBLE_RUNNER}",
-                episode=episode,
-                scalar=ensemble_rewards[i],
-                df_tag=f"{constants.TRAIN_EPISODE_REWARD}_{constants.ENSEMBLE_RUNNER}_{i}",
-            )
-            self._write_scalar(
-                tag=f"{constants.TRAIN_EPISODE_LENGTH}_{constants.ENSEMBLE_RUNNER}",
-                episode=episode,
-                scalar=ensemble_step_counts[i],
-                df_tag=f"{constants.TRAIN_EPISODE_LENGTH}_{constants.ENSEMBLE_RUNNER}_{i}",
-            )
+        individual_runner_reward_log = {
+            f"{constants.TRAIN_EPISODE_REWARD}_{constants.ENSEMBLE_RUNNER}_{i}": ensemble_rewards[
+                i
+            ]
+            for i in range(len(self._learner.ensemble))
+        }
+        individual_runner_length_log = {
+            f"{constants.TRAIN_EPISODE_LENGTH}_{constants.ENSEMBLE_RUNNER}_{i}": ensemble_rewards[
+                i
+            ]
+            for i in range(len(self._learner.ensemble))
+        }
 
         # averages over ensemble
-        self._write_scalar(
-            tag=constants.ENSEMBLE_EPISODE_REWARD_STD,
-            episode=episode,
-            scalar=std_reward,
-        )
-        self._write_scalar(
-            tag=constants.ENSEMBLE_EPISODE_LENGTH_STD,
-            episode=episode,
-            scalar=std_step_count,
-        )
-        self._write_scalar(
-            tag=constants.MEAN_VISITATION_PENALTY,
-            episode=episode,
-            scalar=np.mean(ensemble_mean_penalties),
-        )
-        for penalty_info, ensemble_penalty_info in ensemble_mean_penalty_infos.items():
-            self._write_scalar(
-                tag=constants.MEAN_PENALTY_INFO,
-                episode=episode,
-                scalar=np.mean(ensemble_penalty_info),
-                df_tag=f"{penalty_info}_mean",
-            )
-        for penalty_info, ensemble_penalty_info in ensemble_std_penalty_infos.items():
-            self._write_scalar(
-                tag=constants.STD_PENALTY_INFO,
-                episode=episode,
-                scalar=np.mean(ensemble_penalty_info),
-                df_tag=f"{penalty_info}_std",
-            )
+        ensemble_average_log = {
+            constants.TRAIN_EPISODE_REWARD: mean_reward,
+            constants.TRAIN_EPISODE_LENGTH: mean_step_count,
+            constants.ENSEMBLE_EPISODE_REWARD_MEAN: mean_reward,
+            constants.ENSEMBLE_EPISODE_LENGTH_MEAN: mean_step_count,
+            constants.ENSEMBLE_EPISODE_REWARD_STD: std_reward,
+            constants.ENSEMBLE_EPISODE_LENGTH_STD: std_step_count,
+            constants.MEAN_VISITATION_PENALTY: np.mean(ensemble_mean_penalties),
+        }
 
-        return mean_reward, mean_step_count
+        ensemble_average_info_log = {
+            f"{info}_mean": np.mean(ensemble_info)
+            for info, ensemble_info in ensemble_mean_infos.items()
+        }
+        ensemble_std_info_log = {
+            f"{info}_std": np.mean(ensemble_info)
+            for info, ensemble_info in ensemble_std_infos.items()
+        }
+
+        logging_dict = {
+            **individual_runner_reward_log,
+            **individual_runner_length_log,
+            **ensemble_average_log,
+            **ensemble_average_info_log,
+            **ensemble_std_info_log,
+        }
+
+        return logging_dict
 
     def _serial_train_episode(
         self,
@@ -399,8 +398,8 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
         ensemble_episode_rewards = []
         ensemble_episode_step_counts = []
         mean_penalties = []
-        mean_penalty_infos = {}
-        std_penalty_infos = {}
+        mean_infos = {}
+        std_infos = {}
         train_episode_histories = []
 
         for i, learner in enumerate(self._learner.ensemble):
@@ -410,13 +409,14 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
                 episode_reward,
                 episode_count,
                 mean_penalty,
-                mean_penalty_info,
-                std_penalty_info,
+                mean_info,
+                std_info,
                 train_episode_history,
             ) = self._single_train_episode(
                 environment=copy.deepcopy(self._environment),
                 learner=learner,
                 visitation_penalty=self._visitation_penalty,
+                information_computer=self._information_computer,
                 episode=episode,
                 learner_seed=i * rng_state,
             )
@@ -424,22 +424,22 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
             ensemble_episode_rewards.append(episode_reward)
             ensemble_episode_step_counts.append(episode_count)
             mean_penalties.append(mean_penalty)
-            for info_key, mean_info in mean_penalty_info.items():
-                if info_key not in mean_penalty_infos:
-                    mean_penalty_infos[info_key] = []
-                mean_penalty_infos[info_key].append(mean_info)
-            for info_key, std_info in std_penalty_info.items():
-                if info_key not in std_penalty_infos:
-                    std_penalty_infos[info_key] = []
-                std_penalty_infos[info_key].append(std_info)
+            for info_key, mean_info in mean_info.items():
+                if info_key not in mean_infos:
+                    mean_infos[info_key] = []
+                mean_infos[info_key].append(mean_info)
+            for info_key, std_info in std_info.items():
+                if info_key not in std_infos:
+                    std_infos[info_key] = []
+                std_infos[info_key].append(std_info)
             train_episode_histories.append(train_episode_history)
 
         return (
             ensemble_episode_rewards,
             ensemble_episode_step_counts,
             mean_penalties,
-            mean_penalty_infos,
-            std_penalty_infos,
+            mean_infos,
+            std_infos,
             train_episode_histories,
         )
 
@@ -502,7 +502,8 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
     def _single_train_episode(
         environment: base_environment.BaseEnvironment,
         learner: base_learner.BaseLearner,
-        visitation_penalty,
+        information_computer: Type[base_information_computer.BaseInformationComputer],
+        visitation_penalty: Type[base_visitation_penalty.BaseVisitationPenalty],
         episode: int,
         learner_seed: int,
     ) -> Union[None, Tuple[float, int]]:
@@ -526,7 +527,7 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
         episode_reward = 0
 
         penalties = []
-        penalty_infos = {}
+        state_infos = {}
 
         state = environment.reset_environment(train=True)
 
@@ -534,15 +535,21 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
             action = learner.select_behaviour_action(state)
             reward, next_state = environment.step(action)
 
-            penalty, penalty_info = visitation_penalty(
-                episode=episode, state=state, action=action, next_state=next_state
+            # state here refers to overall state of agent/env system.
+            current_state_info = information_computer(
+                state=state, action=action, next_state=next_state
+            )
+
+            penalty = visitation_penalty(
+                episode=episode, penalty_info=current_state_info
             )
 
             penalties.append(penalty)
-            for info_key, info in penalty_info.items():
-                if info_key not in penalty_infos.keys():
-                    penalty_infos[info_key] = []
-                penalty_infos[info_key].append(info)
+
+            for info_key, info in current_state_info.items():
+                if info_key not in state_infos.keys():
+                    state_infos[info_key] = []
+                state_infos[info_key].append(info)
 
             learner.step(
                 state,
@@ -556,16 +563,16 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
             episode_reward += reward
 
         mean_penalties = np.mean(penalties)
-        mean_penalty_info = {k: np.mean(v) for k, v in penalty_infos.items()}
-        std_penalty_info = {k: np.std(v) for k, v in penalty_infos.items()}
+        mean_info = {k: np.mean(v) for k, v in state_infos.items()}
+        std_info = {k: np.std(v) for k, v in state_infos.items()}
 
         return (
             learner,
             episode_reward,
             environment.episode_step_count,
             mean_penalties,
-            mean_penalty_info,
-            std_penalty_info,
+            mean_info,
+            std_info,
             environment.train_episode_history,
         )
 
