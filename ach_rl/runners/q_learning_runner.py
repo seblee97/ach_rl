@@ -128,24 +128,27 @@ class QLearningRunner(base_runner.BaseRunner):
             action = self._learner.select_behaviour_action(state)
             reward, new_state = self._environment.step(action)
 
-            penalty = self._visitation_penalty(
+            visitation_penalty = self._visitation_penalty(
                 episode=episode,
                 penalty_info={},
             )
 
+            lr_scaling = self._lr_scaler(episode=episode, lr_scaling_info={})
+
             self._learner.step(
-                state,
-                action,
-                reward,
-                new_state,
-                self._environment.active,
-                penalty,
+                state=state,
+                action=action,
+                reward=reward,
+                new_state=new_state,
+                active=self._environment.active,
+                visitation_penalty=visitation_penalty,
+                learning_rate_scaling=lr_scaling,
             )
             state = new_state
             episode_reward += reward
 
         logging_dict = {
-            constants.MEAN_VISITATION_PENALTY: penalty,
+            constants.MEAN_VISITATION_PENALTY: visitation_penalty,
             constants.TRAIN_EPISODE_REWARD: episode_reward,
             constants.TRAIN_EPISODE_LENGTH: self._environment.episode_step_count,
         }
