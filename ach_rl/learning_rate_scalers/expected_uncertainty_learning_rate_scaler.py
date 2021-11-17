@@ -13,10 +13,10 @@ class ExpectedUncertaintyLearningRateScaler(
     def __init__(self, action_function: str):
         self._action_function = action_function
 
-    def _compute_lr_scaling(self, episode: int, lr_info: Dict[str, Any]):
-        if self._action_function == constants.Constants.MAX:
-            lr_scaling = lr_info[constants.Constants.CURRENT_STATE_MAX_UNCERTAINTY]
-        elif self._action_function == constants.Constants.MEAN:
-            lr_scaling = lr_info[constants.Constants.CURRENT_STATE_MEAN_UNCERTAINTY]
+    def __call__(self, episode: int, lr_scaling_info: Dict[str, Any]):
+        if self._action_function == constants.MAX:
+            lr_scaling = lr_scaling_info[constants.CURRENT_STATE_MAX_UNCERTAINTY]
+        elif self._action_function == constants.MEAN:
+            lr_scaling = lr_scaling_info[constants.CURRENT_STATE_MEAN_UNCERTAINTY]
 
         return lr_scaling
