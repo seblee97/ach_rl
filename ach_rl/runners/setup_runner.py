@@ -12,7 +12,9 @@ from ach_rl.curricula import base_curriculum
 from ach_rl.environments import atari
 from ach_rl.environments import base_environment
 from ach_rl.environments import wrapper_atari
+from ach_rl.epsilon_computers import constant_epsilon_computer
 from ach_rl.epsilon_computers import expected_uncertainty_epsilon_computer
+from ach_rl.epsilon_computers import linear_decay_epsilon_computer
 from ach_rl.epsilon_computers import unexpected_uncertainty_epsilon_computer
 from ach_rl.experiments import ach_config
 from ach_rl.information_computers import base_information_computer
@@ -20,7 +22,7 @@ from ach_rl.information_computers import network_information_computer
 from ach_rl.information_computers import tabular_information_computer
 from ach_rl.learning_rate_scalers import \
     expected_uncertainty_learning_rate_scaler
-from ach_rl.utils import epsilon_schedules
+from ach_rl.learning_rate_scalers import hard_coded_learning_rate_scaler
 from ach_rl.visitation_penalties import \
     adaptive_arriving_uncertainty_visitation_penalty
 from ach_rl.visitation_penalties import adaptive_uncertainty_visitation_penalty
@@ -71,7 +73,6 @@ class SetupRunner(base_runner.BaseRunner):
         else:
             self._visitation_penalty = self._setup_visitation_penalty(config=config)
         self._epsilon_computer = self._setup_epsilon_computer(config=config)
-        self._epsilon_function = self._setup_epsilon_function(config=config)
         self._lr_scaler = self._setup_lr_scaler(config=config)
         self._learner = self._setup_learner(config=config)
 
@@ -323,25 +324,17 @@ class SetupRunner(base_runner.BaseRunner):
                 moving_average_window=config.epsilon_moving_average_window,
                 minimum_value=config.minimum_value,
             )
-        else:
-            epsilon_computer = None
-        return epsilon_computer
-
-    def _setup_epsilon_function(self, config: ach_config.AchConfig):
-        """Setup epsilon function."""
-        if config.schedule == constants.CONSTANT:
-            epsilon_function = epsilon_schedules.ConstantEpsilon(value=config.value)
+        elif config.schedule == constants.CONSTANT:
+            epsilon_computer = constant_epsilon_computer.ConstantEpsilonComputer(
+                epsilon=config.value
+            )
         elif config.schedule == constants.LINEAR_DECAY:
-            epsilon_function = epsilon_schedules.LinearDecayEpsilon(
+            epsilon_computer = linear_decay_epsilon_computer.LinearDecayEpsilonComputer(
                 initial_value=config.initial_value,
                 final_value=config.final_value,
                 anneal_duration=config.anneal_duration,
             )
-        else:
-            # placeholder epsilon function, computer will be used.
-            # NaN string used to ensure error is thrown if it is used.
-            epsilon_function = epsilon_schedules.ConstantEpsilon(value="NaN")
-        return epsilon_function
+        return epsilon_computer
 
     def _setup_lr_scaler(self, config: ach_config.AchConfig):
         """Setup LR scaler"""
@@ -349,8 +342,10 @@ class SetupRunner(base_runner.BaseRunner):
             lr_scaler = expected_uncertainty_learning_rate_scaler.ExpectedUncertaintyLearningRateScaler(
                 action_function=config.lr_scaler_action_function,
             )
-        else:
-            lr_scaler = None
+        elif config.lr_scaler_type == constants.HARD_CODED:
+            lr_scaler = hard_coded_learning_rate_scaler.HardCodedLearningRateScaler(
+                hard_coded_lr_scaling=config.lr_scaling
+            )
         return lr_scaler
 
     @abc.abstractmethod
