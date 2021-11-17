@@ -21,7 +21,6 @@ class TabularLearner(base_learner.BaseLearner):
         state_space: List[Tuple[int, int]],
         learning_rate: float,
         gamma: float,
-        epsilon: epsilon_schedules.EpsilonSchedule,
         initialisation_strategy: Dict,
         behaviour: str,
         target: str,
@@ -61,7 +60,6 @@ class TabularLearner(base_learner.BaseLearner):
         self._target = target
         self._learning_rate = learning_rate
         self._gamma = gamma
-        self._epsilon = epsilon
 
     def train(self):
         pass
@@ -215,14 +213,10 @@ class TabularLearner(base_learner.BaseLearner):
         """
         if self._target == constants.GREEDY:
             action = self._greedy_action(state=state)
-        elif self._target == constants.EPSILON_GREEDY:
-            action = self._epsilon_greedy_action(
-                state=state, epsilon=self._epsilon.value
-            )
         return action
 
     def select_behaviour_action(
-        self, state: Tuple[int, int], epsilon: Optional[float] = None
+        self, state: Tuple[int, int], epsilon: float
     ) -> Tuple[int, float]:
         """Select action with behaviour policy, i.e. policy collecting trajectory data
         and generating behaviour. Sarsa lambda is on-policy so this is the same as the
@@ -237,8 +231,6 @@ class TabularLearner(base_learner.BaseLearner):
         if self._behaviour == constants.GREEDY:
             action = self._greedy_action(state=state)
         elif self._behaviour == constants.EPSILON_GREEDY:
-            if epsilon is None:
-                epsilon = self._epsilon.value
             action = self._epsilon_greedy_action(state=state, epsilon=epsilon)
         return action
 
