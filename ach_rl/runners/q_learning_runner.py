@@ -31,7 +31,6 @@ class QLearningRunner(base_runner.BaseRunner):
             behaviour=config.behaviour,
             target=config.target,
             initialisation_strategy=initialisation_strategy,
-            epsilon=self._epsilon_function,
             learning_rate=config.learning_rate,
             gamma=config.discount_factor,
             split_value_function=config.split_value_function,
@@ -125,7 +124,10 @@ class QLearningRunner(base_runner.BaseRunner):
         ]
 
         while self._environment.active:
-            action = self._learner.select_behaviour_action(state)
+
+            epsilon = self._epsilon_computer(episode=episode, epsilon_info={})
+
+            action = self._learner.select_behaviour_action(state, epsilon=epsilon)
             reward, new_state = self._environment.step(action)
 
             visitation_penalty = self._visitation_penalty(
