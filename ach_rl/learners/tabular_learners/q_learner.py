@@ -21,7 +21,6 @@ class TabularQLearner(tabular_learner.TabularLearner):
         initialisation_strategy: Dict,
         behaviour: str,
         target: str,
-        epsilon: epsilon_schedules.EpsilonSchedule,
         split_value_function: bool,
     ):
         """Class constructor.
@@ -41,13 +40,11 @@ class TabularQLearner(tabular_learner.TabularLearner):
             state_space=state_space,
             learning_rate=learning_rate,
             gamma=gamma,
-            epsilon=epsilon,
             initialisation_strategy=initialisation_strategy,
             behaviour=behaviour,
             target=target,
             split_value_function=split_value_function,
         )
-        self._epsilon = epsilon
 
     def step(
         self,
@@ -107,9 +104,6 @@ class TabularQLearner(tabular_learner.TabularLearner):
                 new_state=new_state,
             )
 
-        # step epsilon
-        next(self._epsilon)
-
     def _step(
         self,
         state_id,
@@ -136,7 +130,14 @@ class TabularQLearner(tabular_learner.TabularLearner):
         self._state_action_values[state_id][action] = updated_state_action_value
 
     def _split_step(
-        self, state_id, action, reward, visitation_penalty, discount, new_state
+        self,
+        state_id,
+        action,
+        reward,
+        visitation_penalty,
+        learning_rate_scaling,
+        discount,
+        new_state,
     ):
         initial_state_action_value = copy.deepcopy(
             self._state_action_values[state_id][action]
