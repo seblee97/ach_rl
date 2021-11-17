@@ -177,7 +177,7 @@ class BaseRunner(setup_runner.SetupRunner):
                 data=self._environment.visitation_counts,
             )
 
-        self._checkpoint(final=True)
+        self._checkpoint(episode=-1, final=True)
 
     @abc.abstractmethod
     def _train_episode(self, episode: int) -> Dict[str, Any]:
