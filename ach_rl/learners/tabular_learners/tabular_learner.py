@@ -9,7 +9,6 @@ from typing import Tuple
 import numpy as np
 from ach_rl import constants
 from ach_rl.learners import base_learner
-from ach_rl.utils import epsilon_schedules
 
 
 class TabularLearner(base_learner.BaseLearner):
