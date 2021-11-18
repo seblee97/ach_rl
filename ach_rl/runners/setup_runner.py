@@ -164,6 +164,8 @@ class SetupRunner(base_runner.BaseRunner):
                 constants.REPRESENTATION: config.representation,
                 constants.EPISODE_TIMEOUT: config.episode_timeout,
             }
+            if config.representation == constants.PIXEL:
+                env_args[constants.SCALING] = config.scaling
         return env_args
 
     def _get_curriculum_args(self, config: ach_config.AchConfig) -> Dict[str, Any]:
