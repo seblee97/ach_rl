@@ -32,7 +32,13 @@ class HardCodedPenalty(base_visitation_penalty.BaseVisitationPenalty):
         if episode == self._next_switch_episode:
             self._get_next_penalty_set()
 
-        reference_measure = penalty_info.get(constants.CURRENT_STATE_MAX_UNCERTAINTY)
+        candidate_reference_measures = [
+            k for k in penalty_info.keys() if constants.UNCERTAINTY in k
+        ]
+        if candidate_reference_measures:
+            reference_measure = penalty_info[candidate_reference_measures[0]]
+        else:
+            reference_measure = None
 
         if reference_measure is None or isinstance(reference_measure, float):
             return self._current_penalty
