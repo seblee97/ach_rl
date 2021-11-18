@@ -135,6 +135,9 @@ class AChConfigTemplate:
                 ],
             ),
             config_field.Field(
+                name=constants.SCALING, types=[int], requirements=[lambda x: x > 0]
+            ),
+            config_field.Field(
                 name=constants.ENCODED_STATE_DIMENSIONS,
                 types=[list],
                 requirements=[lambda x: all(isinstance(y, int) and y > 0 for y in x)],
@@ -1111,76 +1114,7 @@ class AChConfigTemplate:
                 types=[str],
                 requirements=[lambda x: x in [constants.MP4, constants.GIF]],
             ),
-            config_field.Field(
-                name=constants.ARRAYS,
-                types=[list, type(None)],
-                requirements=[
-                    lambda x: x is None
-                    or all(isinstance(y, list) and isinstance(y[1], int) for y in x),
-                    lambda x: x is None
-                    or all(
-                        (
-                            isinstance(z, str)
-                            or (
-                                isinstance(z, list)
-                                and isinstance(z[0], str)
-                                and isinstance(z[1], int)
-                            )
-                            for z in y[0]
-                        )
-                        for y in x
-                    ),
-                ],
-            ),
-            config_field.Field(
-                name=constants.SCALARS,
-                types=[list],
-                requirements=[
-                    lambda x: all(
-                        isinstance(y, list) and isinstance(y[1], int) for y in x
-                    ),
-                    lambda x: all(
-                        (
-                            isinstance(z, str)
-                            or (
-                                isinstance(z, list)
-                                and isinstance(z[0], str)
-                                and isinstance(z[1], int)
-                            )
-                            for z in y[0]
-                        )
-                        for y in x
-                    ),
-                ],
-            ),
-            config_field.Field(
-                name=constants.VISUALISATIONS,
-                types=[list, type(None)],
-                requirements=[
-                    lambda x: x is None
-                    or all(isinstance(y, list) and isinstance(y[1], int) for y in x),
-                    lambda x: x is None
-                    or all(
-                        (
-                            isinstance(z, str)
-                            or (
-                                isinstance(z, list)
-                                and isinstance(z[0], str)
-                                and isinstance(z[1], int)
-                            )
-                            for z in y[0]
-                        )
-                        for y in x
-                    ),
-                ],
-            ),
-            config_field.Field(
-                name=constants.POST_VISUALISATIONS,
-                types=[list, type(None)],
-                requirements=[
-                    lambda x: x is None or all(isinstance(y, str) for y in x),
-                ],
-            ),
+            config_field.Field(name=constants.LOG_SPECIFICATION, types=[str]),
         ],
         level=[constants.LOGGING],
     )
