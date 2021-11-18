@@ -165,6 +165,7 @@ learner:
         type: hard_coded
 
         expected_uncertainty:
+            multiplicative_factor: 1
             action_function: max
 
         hard_coded:
