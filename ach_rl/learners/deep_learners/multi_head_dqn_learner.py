@@ -26,7 +26,7 @@ class MultiHeadDQNLearner(base_learner.BaseLearner):
         optimiser_type: str,
         learning_rate: float,
         gamma: float,
-        epsilon: epsilon_schedules.EpsilonSchedule,
+        # epsilon: epsilon_schedules.EpsilonSchedule,
         target_network_update_period: int,
         device: torch.device,
         gradient_clipping: Union[Tuple, None],
@@ -63,7 +63,7 @@ class MultiHeadDQNLearner(base_learner.BaseLearner):
         self._momentum = momentum
         self._eps = eps
         self._gamma = gamma
-        self._epsilon = epsilon
+        # self._epsilon = epsilon
         self._target_network_update_period = target_network_update_period
         self._device = device
         self._gradient_clipping = gradient_clipping
@@ -127,13 +127,13 @@ class MultiHeadDQNLearner(base_learner.BaseLearner):
         self._target_q_network.eval()
 
     def select_behaviour_action(
-        self, state: np.ndarray, branch: Union[int, None] = None
+        self, state: np.ndarray, epsilon: float, branch: Union[int, None] = None
     ):
         """Action to select for behaviour i.e. for training."""
         # cast state to tensor
         state = torch.from_numpy(state).to(torch.float).to(self._device)
 
-        if random.random() < self._epsilon.value:
+        if random.random() < epsilon:
             action = random.choice(self._action_space)
         else:
             self._q_network.eval()
@@ -232,7 +232,7 @@ class MultiHeadDQNLearner(base_learner.BaseLearner):
 
         self._num_training_steps += 1
 
-        # step epsilon
-        next(self._epsilon)
+        # # step epsilon
+        # next(self._epsilon)
 
-        return loss.item(), self._epsilon.value
+        return loss.item()  # , #self._epsilon.value
