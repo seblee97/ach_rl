@@ -577,7 +577,7 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
             state_info = {**current_state_info, **select_info, **next_state_info}
 
             penalty = visitation_penalty(episode=episode, penalty_info=state_info)
-            lr_scaling = lr_scaler(episode=episode, lr_scaling_info=current_state_info)
+            lr_scaling = lr_scaler(episode=episode, lr_scaling_info=state_info)
 
             penalties.append(penalty)
             lr_scalings.append(lr_scaling)
