@@ -10,8 +10,9 @@ class ExpectedUncertaintyLearningRateScaler(
 ):
     """LR tuned to 'expected' uncertainty over an ensemble."""
 
-    def __init__(self, action_function: str):
+    def __init__(self, action_function: str, multiplicative_factor: float):
         self._action_function = action_function
+        self._multiplicative_factor = multiplicative_factor
 
     def __call__(self, episode: int, lr_scaling_info: Dict[str, Any]):
         if self._action_function == constants.MAX:
@@ -19,4 +20,4 @@ class ExpectedUncertaintyLearningRateScaler(
         elif self._action_function == constants.MEAN:
             lr_scaling = lr_scaling_info[constants.CURRENT_STATE_MEAN_UNCERTAINTY]
 
-        return lr_scaling
+        return self._multiplicative_factor * lr_scaling
