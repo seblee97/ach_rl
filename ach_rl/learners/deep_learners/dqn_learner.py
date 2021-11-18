@@ -26,7 +26,7 @@ class DQNLearner(base_learner.BaseLearner):
         optimiser_type: str,
         learning_rate: float,
         gamma: float,
-        epsilon: epsilon_schedules.EpsilonSchedule,
+        # epsilon: epsilon_schedules.EpsilonSchedule,
         target_network_update_period: int,
         device: torch.device,
         gradient_clipping: Union[Tuple, None],
@@ -59,7 +59,7 @@ class DQNLearner(base_learner.BaseLearner):
         self._momentum = momentum
         self._eps = eps
         self._gamma = gamma
-        self._epsilon = epsilon
+        # self._epsilon = epsilon
         self._target_network_update_period = target_network_update_period
         self._device = device
         self._gradient_clipping = gradient_clipping
@@ -120,15 +120,12 @@ class DQNLearner(base_learner.BaseLearner):
         self._target_q_network.load_state_dict(self._q_network.state_dict())
         self._target_q_network.eval()
 
-    def select_behaviour_action(
-        self,
-        state: np.ndarray,
-    ):
+    def select_behaviour_action(self, state: np.ndarray, epsilon: float):
         """Action to select for behaviour i.e. for training."""
         # cast state to tensor
         state = torch.from_numpy(state).to(torch.float).to(self._device)
 
-        if random.random() < self._epsilon.value:
+        if random.random() < epsilon:
             action = random.choice(self._action_space)
         else:
             self._q_network.eval()
@@ -159,6 +156,7 @@ class DQNLearner(base_learner.BaseLearner):
         next_state: torch.Tensor,
         active: torch.Tensor,
         visitation_penalty: float,
+        learning_rate_scaling: float,
     ) -> Tuple[float, float]:
         """Training step."""
 
@@ -189,6 +187,10 @@ class DQNLearner(base_learner.BaseLearner):
                         self._gradient_clipping[0], self._gradient_clipping[1]
                     )
 
+        # scale lr
+        for g in self._optimiser.param_groups:
+            g["lr"] = learning_rate_scaling * self._learning_rate
+
         self._optimiser.step()
 
         if self._num_training_steps % self._target_network_update_period == 0:
@@ -196,7 +198,7 @@ class DQNLearner(base_learner.BaseLearner):
 
         self._num_training_steps += 1
 
-        # step epsilon
-        next(self._epsilon)
+        # # step epsilon
+        # next(self._epsilon)
 
-        return loss.item(), self._epsilon.value
+        return loss.item()  # , self._epsilon.value
