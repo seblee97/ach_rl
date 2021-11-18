@@ -338,6 +338,7 @@ SAMPLE_PENALTY = "sample_penalty"
 ACTING_PENALTY = "acting_penalty"
 SCALING = "scaling"
 LOG_SPECIFICATION = "log_specification"
+INITIALISATION_TYPE = "initialisation_type"
 
 ATARI_ENVS = ["PongNoFrameskip-v4", "GravitarNoFrameskip-v4"]
 
