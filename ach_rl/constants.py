@@ -327,6 +327,17 @@ MINIMUM_VALUE = "minimum_value"
 MEAN_EPSILON = "mean_epsilon"
 LR_SCALING = "lr_scaling"
 INFORMATION_COMPUTER_UPDATE_PERIOD = "information_computer_update_period"
+STATE_MAX_UNCERTAINTY = "state_max_uncertainty"
+STATE_MEAN_UNCERTAINTY = "state_mean_uncertainty"
+STATE_POLICY_ENTROPY = "state_policy_entropy"
+CURRENT = "current"
+NEXT = "next"
+SAMPLE = "sample"
+ACTING = "acting"
+SAMPLE_PENALTY = "sample_penalty"
+ACTING_PENALTY = "acting_penalty"
+SCALING = "scaling"
+LOG_SPECIFICATION = "log_specification"
 
 ATARI_ENVS = ["PongNoFrameskip-v4", "GravitarNoFrameskip-v4"]
 
