@@ -42,7 +42,8 @@ class BaseInformationComputer(abc.ABC):
 
         return state_max_uncertainty, state_mean_uncertainty, state_policy_entropy
 
-    def compute_state_information(self, state, current: bool):
+    def compute_state_information(self, state, state_label: str):
+
         state_values = self._compute_state_values(
             state=state
         )  # dims: E x B x A or E x A
@@ -53,18 +54,11 @@ class BaseInformationComputer(abc.ABC):
             state_policy_entropy,
         ) = self._state_quantities(state_values)
 
-        if current:
-            return {
-                constants.CURRENT_STATE_MAX_UNCERTAINTY: state_max_uncertainty,
-                constants.CURRENT_STATE_MEAN_UNCERTAINTY: state_mean_uncertainty,
-                constants.CURRENT_STATE_POLICY_ENTROPY: state_policy_entropy,
-            }
-        else:
-            return {
-                constants.NEXT_STATE_MAX_UNCERTAINTY: state_max_uncertainty,
-                constants.NEXT_STATE_MEAN_UNCERTAINTY: state_mean_uncertainty,
-                constants.NEXT_STATE_POLICY_ENTROPY: state_policy_entropy,
-            }
+        return {
+            f"{state_label}_{constants.STATE_MAX_UNCERTAINTY}": state_max_uncertainty,
+            f"{state_label}_{constants.STATE_MEAN_UNCERTAINTY}": state_mean_uncertainty,
+            f"{state_label}_{constants.STATE_POLICY_ENTROPY}": state_policy_entropy,
+        }
 
     def compute_state_select_information(self, state, action):
         state_values = self._compute_state_values(
