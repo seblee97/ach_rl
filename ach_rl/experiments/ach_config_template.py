@@ -567,6 +567,12 @@ class AChConfigTemplate:
                 requirements=[lambda x: x in [constants.MAX, constants.MEAN]],
                 key=constants.LR_SCALER_ACTION_FUNCTION,
             ),
+            config_field.Field(
+                name=constants.MULTIPLICATIVE_FACTOR,
+                types=[float, int],
+                requirements=[lambda x: x > 0],
+                key=f"{constants.LR_SCALER}_{constants.MULTIPLICATIVE_FACTOR}",
+            ),
         ],
         level=[
             constants.LEARNER,
