@@ -213,7 +213,7 @@ class AChConfigTemplate:
                 ],
             )
         ],
-        level=[constants.LEARNER, constants.HARD_CODED],
+        level=[constants.LEARNER, constants.VISITATION_PENALTY, constants.HARD_CODED],
         dependent_variables=[constants.VISITATION_PENALTY_TYPE],
         dependent_variables_required_values=[[constants.HARD_CODED]],
     )
@@ -226,6 +226,7 @@ class AChConfigTemplate:
         ],
         level=[
             constants.LEARNER,
+            constants.VISITATION_PENALTY,
             constants.DETERMINISTIC_EXPONENTIAL_DECAY,
         ],
         dependent_variables=[constants.VISITATION_PENALTY_TYPE],
@@ -241,6 +242,7 @@ class AChConfigTemplate:
         ],
         level=[
             constants.LEARNER,
+            constants.VISITATION_PENALTY,
             constants.DETERMINISTIC_LINEAR_DECAY,
         ],
         dependent_variables=[constants.VISITATION_PENALTY_TYPE],
@@ -255,6 +257,7 @@ class AChConfigTemplate:
         ],
         level=[
             constants.LEARNER,
+            constants.VISITATION_PENALTY,
             constants.DETERMINISTIC_SIGMOIDAL_DECAY,
         ],
         dependent_variables=[constants.VISITATION_PENALTY_TYPE],
@@ -280,7 +283,11 @@ class AChConfigTemplate:
                 ],
             ),
         ],
-        level=[constants.LEARNER, constants.ADAPTIVE_UNCERTAINTY],
+        level=[
+            constants.LEARNER,
+            constants.VISITATION_PENALTY,
+            constants.ADAPTIVE_UNCERTAINTY,
+        ],
         dependent_variables=[constants.VISITATION_PENALTY_TYPE],
         dependent_variables_required_values=[[constants.ADAPTIVE_UNCERTAINTY]],
     )
@@ -305,6 +312,7 @@ class AChConfigTemplate:
         ],
         level=[
             constants.LEARNER,
+            constants.VISITATION_PENALTY,
             constants.ADAPTIVE_ARRIVING_UNCERTAINTY,
         ],
         dependent_variables=[constants.VISITATION_PENALTY_TYPE],
@@ -343,6 +351,7 @@ class AChConfigTemplate:
         ],
         level=[
             constants.LEARNER,
+            constants.VISITATION_PENALTY,
             constants.POTENTIAL_BASED_ADAPTIVE_UNCERTAINTY,
         ],
         dependent_variables=[constants.VISITATION_PENALTY_TYPE],
@@ -360,6 +369,7 @@ class AChConfigTemplate:
         ],
         level=[
             constants.LEARNER,
+            constants.VISITATION_PENALTY,
             constants.POLICY_ENTROPY_PENALTY,
         ],
         dependent_variables=[constants.VISITATION_PENALTY_TYPE],
@@ -375,6 +385,7 @@ class AChConfigTemplate:
         ],
         level=[
             constants.LEARNER,
+            constants.VISITATION_PENALTY,
             constants.POTENTIAL_BASED_POLICY_ENTROPY_PENALTY,
         ],
         dependent_variables=[constants.VISITATION_PENALTY_TYPE],
@@ -412,6 +423,7 @@ class AChConfigTemplate:
         ],
         level=[
             constants.LEARNER,
+            constants.VISITATION_PENALTY,
             constants.REDUCING_VARIANCE_WINDOW,
         ],
         dependent_variables=[constants.VISITATION_PENALTY_TYPE],
@@ -436,6 +448,7 @@ class AChConfigTemplate:
         ],
         level=[
             constants.LEARNER,
+            constants.VISITATION_PENALTY,
             constants.REDUCING_ENTROPY_WINDOW,
         ],
         dependent_variables=[constants.VISITATION_PENALTY_TYPE],
@@ -471,11 +484,67 @@ class AChConfigTemplate:
         ],
         level=[
             constants.LEARNER,
+            constants.VISITATION_PENALTY,
             constants.SIGNED_UNCERTAINTY_WINDOW,
         ],
         dependent_variables=[constants.VISITATION_PENALTY_TYPE],
         dependent_variables_required_values=[
             [constants.SIGNED_UNCERTAINTY_WINDOW_PENALTY]
+        ],
+    )
+
+    _visitation_penalty_template = config_template.Template(
+        fields=[
+            config_field.Field(
+                name=constants.TYPE,
+                types=[str, type(None)],
+                requirements=[
+                    lambda x: x is None
+                    or x
+                    in [
+                        constants.HARD_CODED,
+                        constants.DETERMINISTIC_EXPONENTIAL_DECAY,
+                        constants.DETERMINISTIC_LINEAR_DECAY,
+                        constants.DETERMINISTIC_SIGMOIDAL_DECAY,
+                        constants.ADAPTIVE_UNCERTAINTY,
+                        constants.ADAPTIVE_ARRIVING_UNCERTAINTY,
+                        constants.POTENTIAL_BASED_ADAPTIVE_UNCERTAINTY,
+                        constants.POLICY_ENTROPY_PENALTY,
+                        constants.POTENTIAL_BASED_POLICY_ENTROPY_PENALTY,
+                        constants.REDUCING_VARIANCE_WINDOW,
+                        constants.REDUCING_ENTROPY_WINDOW,
+                        constants.SIGNED_UNCERTAINTY_WINDOW_PENALTY,
+                    ]
+                ],
+                key=constants.VISITATION_PENALTY_TYPE,
+            ),
+            config_field.Field(
+                name=constants.SHAPING_IMPLEMENTATION,
+                types=[str],
+                requirements=[
+                    lambda x: x
+                    in [
+                        constants.ACT,
+                        constants.TRAIN_Q_NETWORK,
+                        constants.TRAIN_TARGET_NETWORK,
+                    ]
+                ],
+            ),
+        ],
+        level=[constants.LEARNER, constants.VISITATION_PENALTY],
+        nested_templates=[
+            _hard_coded_vp_template,
+            _exponential_decay_vp_template,
+            _linear_decay_vp_template,
+            _sigmoidal_decay_vp_template,
+            _adaptive_uncertainty_template,
+            _adaptive_arriving_uncertainty_template,
+            _potential_based_adaptive_uncertainty_template,
+            _policy_entropy_penalty_template,
+            _potential_based_policy_entropy_penalty_template,
+            _reducing_variance_window_penalty_template,
+            _reducing_entropy_window_penalty_template,
+            _signed_uncertainty_window_penalty_template,
         ],
     )
 
@@ -660,8 +729,8 @@ class AChConfigTemplate:
             config_field.Field(name=constants.LOWER_BOUND, types=[float, int]),
             config_field.Field(name=constants.UPPER_BOUND, types=[float, int]),
         ],
-        level=[constants.LEARNER, constants.RANDOM_UNIFORM],
-        dependent_variables=[constants.INITIALISATION],
+        level=[constants.LEARNER, constants.INITIALISATION, constants.RANDOM_UNIFORM],
+        dependent_variables=[constants.INITIALISATION_TYPE],
         dependent_variables_required_values=[[constants.RANDOM_UNIFORM]],
     )
 
@@ -670,60 +739,16 @@ class AChConfigTemplate:
             config_field.Field(name=constants.MEAN, types=[float, int]),
             config_field.Field(name=constants.VARIANCE, types=[float, int]),
         ],
-        level=[constants.LEARNER, constants.RANDOM_NORMAL],
-        dependent_variables=[constants.INITIALISATION],
+        level=[constants.LEARNER, constants.INITIALISATION, constants.RANDOM_NORMAL],
+        dependent_variables=[constants.INITIALISATION_TYPE],
         dependent_variables_required_values=[[constants.RANDOM_NORMAL]],
     )
 
-    _learner_template = config_template.Template(
+    _initialisation_template = config_template.Template(
         fields=[
             config_field.Field(
                 name=constants.TYPE,
                 types=[str],
-                requirements=[
-                    lambda x: x
-                    in [
-                        constants.SARSA_LAMBDA,
-                        constants.Q_LEARNING,
-                        constants.VANILLA_DQN,
-                        constants.ENSEMBLE_Q_LEARNING,
-                        constants.BOOTSTRAPPED_ENSEMBLE_DQN,
-                        constants.INDEPENDENT_ENSEMBLE_DQN,
-                    ]
-                ],
-            ),
-            config_field.Field(
-                name=constants.PRETRAINED_MODEL_PATH,
-                types=[str, type(None)],
-            ),
-            config_field.Field(
-                name=constants.LEARNING_RATE,
-                types=[float],
-                requirements=[lambda x: x > 0],
-            ),
-            config_field.Field(
-                name=constants.GRADIENT_MOMENTUM,
-                types=[float],
-                requirements=[lambda x: x >= 0],
-            ),
-            config_field.Field(
-                name=constants.SQUARED_GRADIENT_MOMENTUM,
-                types=[float],
-                requirements=[lambda x: x >= 0],
-            ),
-            config_field.Field(
-                name=constants.MIN_SQUARED_GRADIENT,
-                types=[float],
-                requirements=[lambda x: x >= 0],
-            ),
-            config_field.Field(
-                name=constants.DISCOUNT_FACTOR,
-                types=[float, int],
-                requirements=[lambda x: x <= 1 and x >= 0],
-            ),
-            config_field.Field(
-                name=constants.INITIALISATION,
-                types=[str, float, int],
                 requirements=[
                     lambda x: x
                     in [
@@ -734,69 +759,13 @@ class AChConfigTemplate:
                     ]
                     or isinstance(x, (int, float))
                 ],
-            ),
-            config_field.Field(
-                name=constants.SPLIT_VALUE_FUNCTION,
-                types=[bool],
-            ),
-            config_field.Field(
-                name=constants.VISITATION_PENALTY_TYPE,
-                types=[str, type(None)],
-                requirements=[
-                    lambda x: x is None
-                    or x
-                    in [
-                        constants.HARD_CODED,
-                        constants.DETERMINISTIC_EXPONENTIAL_DECAY,
-                        constants.DETERMINISTIC_LINEAR_DECAY,
-                        constants.DETERMINISTIC_SIGMOIDAL_DECAY,
-                        constants.ADAPTIVE_UNCERTAINTY,
-                        constants.ADAPTIVE_ARRIVING_UNCERTAINTY,
-                        constants.POTENTIAL_BASED_ADAPTIVE_UNCERTAINTY,
-                        constants.POLICY_ENTROPY_PENALTY,
-                        constants.POTENTIAL_BASED_POLICY_ENTROPY_PENALTY,
-                        constants.REDUCING_VARIANCE_WINDOW,
-                        constants.REDUCING_ENTROPY_WINDOW,
-                        constants.SIGNED_UNCERTAINTY_WINDOW_PENALTY,
-                    ]
-                ],
-            ),
-            config_field.Field(
-                name=constants.SHAPING_IMPLEMENTATION,
-                types=[str],
-                requirements=[
-                    lambda x: x
-                    in [
-                        constants.ACT,
-                        constants.TRAIN_Q_NETWORK,
-                        constants.TRAIN_TARGET_NETWORK,
-                    ]
-                ],
-            ),
-            config_field.Field(
-                name=constants.INFORMATION_COMPUTER_UPDATE_PERIOD,
-                types=[int],
-                requirements=[lambda x: x > 0],
+                key=constants.INITIALISATION_TYPE,
             ),
         ],
-        level=[constants.LEARNER],
+        level=[constants.LEARNER, constants.INITIALISATION],
         nested_templates=[
-            _epsilon_template,
-            _lr_scaler_template,
             _random_uniform_template,
             _random_normal_template,
-            _hard_coded_vp_template,
-            _exponential_decay_vp_template,
-            _linear_decay_vp_template,
-            _sigmoidal_decay_vp_template,
-            _adaptive_uncertainty_template,
-            _adaptive_arriving_uncertainty_template,
-            _potential_based_adaptive_uncertainty_template,
-            _policy_entropy_penalty_template,
-            _potential_based_policy_entropy_penalty_template,
-            _reducing_variance_window_penalty_template,
-            _reducing_entropy_window_penalty_template,
-            _signed_uncertainty_window_penalty_template,
         ],
     )
 
@@ -826,7 +795,7 @@ class AChConfigTemplate:
         dependent_variables_required_values=[
             [constants.SARSA_LAMBDA],
         ],
-        level=[constants.SARSA_LAMBDA],
+        level=[constants.LEARNER, constants.SARSA_LAMBDA],
     )
 
     _q_learning_template = config_template.Template(
@@ -848,7 +817,7 @@ class AChConfigTemplate:
         ],
         dependent_variables=[constants.TYPE],
         dependent_variables_required_values=[[constants.Q_LEARNING]],
-        level=[constants.Q_LEARNING],
+        level=[constants.LEARNER, constants.Q_LEARNING],
     )
 
     _ensemble_q_learning_template = config_template.Template(
@@ -889,7 +858,7 @@ class AChConfigTemplate:
         ],
         dependent_variables=[constants.TYPE],
         dependent_variables_required_values=[[constants.ENSEMBLE_Q_LEARNING]],
-        level=[constants.ENSEMBLE_Q_LEARNING],
+        level=[constants.LEARNER, constants.ENSEMBLE_Q_LEARNING],
     )
 
     _vanilla_dqn_template = config_template.Template(
@@ -911,7 +880,7 @@ class AChConfigTemplate:
         dependent_variables_required_values=[
             [constants.VANILLA_DQN],
         ],
-        level=[constants.VANILLA_DQN],
+        level=[constants.LEARNER, constants.VANILLA_DQN],
     )
 
     _independent_ensemble_dqn_template = config_template.Template(
@@ -944,7 +913,7 @@ class AChConfigTemplate:
         dependent_variables_required_values=[
             [constants.INDEPENDENT_ENSEMBLE_DQN],
         ],
-        level=[constants.INDEPENDENT_ENSEMBLE_DQN],
+        level=[constants.LEARNER, constants.INDEPENDENT_ENSEMBLE_DQN],
     )
 
     _bootstrapped_ensemble_dqn_template = config_template.Template(
@@ -1000,7 +969,7 @@ class AChConfigTemplate:
         dependent_variables_required_values=[
             [constants.BOOTSTRAPPED_ENSEMBLE_DQN],
         ],
-        level=[constants.BOOTSTRAPPED_ENSEMBLE_DQN],
+        level=[constants.LEARNER, constants.BOOTSTRAPPED_ENSEMBLE_DQN],
     )
 
     _dqn_template = config_template.Template(
@@ -1055,7 +1024,79 @@ class AChConfigTemplate:
                 constants.INDEPENDENT_ENSEMBLE_DQN,
             ]
         ],
-        level=[constants.DQN],
+        level=[constants.LEARNER, constants.DQN],
+    )
+
+    _learner_template = config_template.Template(
+        fields=[
+            config_field.Field(
+                name=constants.TYPE,
+                types=[str],
+                requirements=[
+                    lambda x: x
+                    in [
+                        constants.SARSA_LAMBDA,
+                        constants.Q_LEARNING,
+                        constants.VANILLA_DQN,
+                        constants.ENSEMBLE_Q_LEARNING,
+                        constants.BOOTSTRAPPED_ENSEMBLE_DQN,
+                        constants.INDEPENDENT_ENSEMBLE_DQN,
+                    ]
+                ],
+            ),
+            config_field.Field(
+                name=constants.PRETRAINED_MODEL_PATH,
+                types=[str, type(None)],
+            ),
+            config_field.Field(
+                name=constants.LEARNING_RATE,
+                types=[float],
+                requirements=[lambda x: x > 0],
+            ),
+            config_field.Field(
+                name=constants.GRADIENT_MOMENTUM,
+                types=[float],
+                requirements=[lambda x: x >= 0],
+            ),
+            config_field.Field(
+                name=constants.SQUARED_GRADIENT_MOMENTUM,
+                types=[float],
+                requirements=[lambda x: x >= 0],
+            ),
+            config_field.Field(
+                name=constants.MIN_SQUARED_GRADIENT,
+                types=[float],
+                requirements=[lambda x: x >= 0],
+            ),
+            config_field.Field(
+                name=constants.DISCOUNT_FACTOR,
+                types=[float, int],
+                requirements=[lambda x: x <= 1 and x >= 0],
+            ),
+            config_field.Field(
+                name=constants.SPLIT_VALUE_FUNCTION,
+                types=[bool],
+            ),
+            config_field.Field(
+                name=constants.INFORMATION_COMPUTER_UPDATE_PERIOD,
+                types=[int],
+                requirements=[lambda x: x > 0],
+            ),
+        ],
+        level=[constants.LEARNER],
+        nested_templates=[
+            _epsilon_template,
+            _lr_scaler_template,
+            _initialisation_template,
+            _visitation_penalty_template,
+            _sarsa_lambda_template,
+            _q_learning_template,
+            _vanilla_dqn_template,
+            _ensemble_q_learning_template,
+            _bootstrapped_ensemble_dqn_template,
+            _independent_ensemble_dqn_template,
+            _dqn_template,
+        ],
     )
 
     _training_template = config_template.Template(
@@ -1168,13 +1209,6 @@ class AChConfigTemplate:
             _multiroom_template,
             _atari_template,
             _learner_template,
-            _sarsa_lambda_template,
-            _q_learning_template,
-            _vanilla_dqn_template,
-            _ensemble_q_learning_template,
-            _bootstrapped_ensemble_dqn_template,
-            _independent_ensemble_dqn_template,
-            _dqn_template,
             _training_template,
             _logging_template,
             _plotting_template,
