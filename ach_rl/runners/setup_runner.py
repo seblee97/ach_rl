@@ -343,6 +343,7 @@ class SetupRunner(base_runner.BaseRunner):
         if config.lr_scaler_type == constants.EXPECTED_UNCERTAINTY:
             lr_scaler = expected_uncertainty_learning_rate_scaler.ExpectedUncertaintyLearningRateScaler(
                 action_function=config.lr_scaler_action_function,
+                multiplicative_factor=config.lr_scaler_multiplicative_factor,
             )
         elif config.lr_scaler_type == constants.HARD_CODED:
             lr_scaler = hard_coded_learning_rate_scaler.HardCodedLearningRateScaler(
