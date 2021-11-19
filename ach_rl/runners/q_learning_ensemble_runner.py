@@ -71,6 +71,7 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
             f"{constants.CURRENT_STATE_MEAN_UNCERTAINTY}_{constants.MEAN}",
             f"{constants.CURRENT_STATE_SELECT_UNCERTAINTY}_{constants.MEAN}",
         ]
+        return columns
 
     def _setup_learner(self, config: ach_config.AchConfig):  # TODO: similar to envs
         """Initialise learner specified in configuration."""
@@ -99,14 +100,14 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
         return learner
 
     def _get_initialisation_strategy(self, config: ach_config.AchConfig):
-        if config.initialisation == constants.RANDOM_UNIFORM:
+        if config.initialisation_type == constants.RANDOM_UNIFORM:
             initialisation_strategy = {
                 constants.RANDOM_UNIFORM: {
                     constants.LOWER_BOUND: config.lower_bound,
                     constants.UPPER_BOUND: config.upper_bound,
                 }
             }
-        elif config.initialisation == constants.RANDOM_NORMAL:
+        elif config.initialisation_type == constants.RANDOM_NORMAL:
             initialisation_strategy = {
                 constants.RANDOM_NORMAL: {
                     constants.MEAN: config.mean,
@@ -114,7 +115,7 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
                 }
             }
         else:
-            initialisation_strategy == {config.initialisation}
+            initialisation_strategy == {config.initialisation_type}
         return initialisation_strategy
 
     def _get_individual_q_learner(
@@ -559,7 +560,7 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
         while environment.active:
 
             current_state_info = information_computer.compute_state_information(
-                state=state, current=True
+                state=state, state_label=constants.CURRENT
             )
 
             epsilon = epsilon_computer(episode=episode, epsilon_info=current_state_info)
@@ -568,7 +569,7 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
             reward, next_state = environment.step(action)
 
             next_state_info = information_computer.compute_state_information(
-                state=next_state, current=False
+                state=next_state, state_label=constants.NEXT
             )
             select_info = information_computer.compute_state_select_information(
                 state=state, action=action
