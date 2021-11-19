@@ -135,7 +135,7 @@ if __name__ == "__main__":
                 num_cpus=args.num_cpus,
                 num_gpus=args.num_gpus,
                 memory=args.mem,
-                timeout=args.timeout,
+                walltime=args.timeout,
             )
 
     else:
