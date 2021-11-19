@@ -24,7 +24,7 @@ class UnexpectedUncertaintyEpsilonComputer(base_epsilon_computer.BaseEpsilonComp
         self._policy_entropy_history = {}
 
     def __call__(self, episode: int, epsilon_info: Dict[str, Any]):
-        state = epsilon_info[constants.Constants.STATE]
+        state = epsilon_info[constants.STATE]
         if state not in self._policy_entropy_history:
             self._policy_entropy_history[state] = collections.deque(
                 maxlen=self._moving_average_window
@@ -35,7 +35,7 @@ class UnexpectedUncertaintyEpsilonComputer(base_epsilon_computer.BaseEpsilonComp
         previous_moving_average = np.mean(self._policy_entropy_history[state])
 
         self._policy_entropy_history[state].append(
-            epsilon_info[constants.Constants.NORMALISED_POLICY_ENTROPY]
+            epsilon_info[constants.NORMALISED_POLICY_ENTROPY]
         )
 
         new_moving_average = np.mean(self._policy_entropy_history[state])
