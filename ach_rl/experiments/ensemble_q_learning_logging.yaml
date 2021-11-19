@@ -1,0 +1,33 @@
+arrays:
+    - [value_function, 10]
+
+scalars:
+    - [train_episode_reward, 1]
+    - [train_episode_length, 1]
+    - [mean_epsilon, 1]
+    - [std_epsilon, 1]
+    - [mean_lr_scaling, 1]
+    - [std_lr_scaling, 1]
+    - [mean_sample_penalty, 1]
+    - [std_sample_penalty, 1]
+    - [mean_acting_penalty, 1]
+    - [std_acting_penalty, 1]
+    - [current_state_max_uncertainty, 1]
+    - [current_state_mean_uncertainty, 1]
+    - [current_state_policy_entropy, 1]
+    - [current_state_select_uncertainty, 1]
+    - [next_state_max_uncertainty, 1]
+    - [next_state_mean_uncertainty, 1]
+    - [next_state_policy_entropy, 1]
+    - [[train_episode_reward_ensemble_runner, 8], 1]
+    - [[train_episode_length_ensemble_runner, 8], 1]
+    - [ensemble_episode_reward_std, 1]
+    - [ensemble_episode_length_std, 1]
+    
+visualisations:
+    - [value_function, 10]
+    - [individual_train_run, 500]
+post_visualisations:
+    - value_function
+    # - value_function_std
+    # - policy_entropy
