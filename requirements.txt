@@ -13,3 +13,4 @@ torch==1.7.0
 torchvision==0.8.1
 
 -e git://github.com/seblee97/config_package.git#egg=config-manager-seblee97
+-e git://github.com/seblee97/key_door_env.git#egg=key-door-seblee97
