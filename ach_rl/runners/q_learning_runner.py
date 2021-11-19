@@ -38,14 +38,14 @@ class QLearningRunner(base_runner.BaseRunner):
         return learner
 
     def _get_initialisation_strategy(self, config: ach_config.AchConfig):
-        if config.initialisation == constants.RANDOM_UNIFORM:
+        if config.initialisation_type == constants.RANDOM_UNIFORM:
             initialisation_strategy = {
                 constants.RANDOM_UNIFORM: {
                     constants.LOWER_BOUND: config.lower_bound,
                     constants.UPPER_BOUND: config.upper_bound,
                 }
             }
-        elif config.initialisation == constants.RANDOM_NORMAL:
+        elif config.initialisation_type == constants.RANDOM_NORMAL:
             initialisation_strategy = {
                 constants.RANDOM_NORMAL: {
                     constants.MEAN: config.mean,
