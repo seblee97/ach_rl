@@ -29,9 +29,9 @@ multiroom_curriculum:
         - [["change_key_positions", [[17, 5], [18, 5]]], ["change_reward_positions", [[16, 5], [31, 4]]]]
 
 multiroom:
-    map_ascii_path: maps/square_multi_room.txt
-    map_yaml_path: maps/square_multi_room.yaml
-    episode_timeout: 800 # infinity if not given
+    map_ascii_path: maps/three_room.txt
+    map_yaml_path: maps/three_room.yaml
+    episode_timeout: 400 # infinity if not given
     plot_origin: lower
     
     reward_specifications:
@@ -39,7 +39,7 @@ multiroom:
             mean: 1
             variance: 0
 
-    representation: pixel # agent_position for tabular or pixel for DL
+    representation: agent_position # agent_position for tabular or pixel for DL
     scaling: 1
 
     encoded_state_dimensions: [1,21,21] # for use with DL method
@@ -66,7 +66,7 @@ atari:
 
 
 learner: 
-    type: vanilla_dqn
+    type: ensemble_q_learning
 
     sarsa_lambda:
         trace_lambda: 0.05
@@ -284,7 +284,7 @@ logging:
     model_checkpoint_frequency:
     animation_library: matplotlib_animation
     animation_file_format: gif
-    log_specification: dqn_logging.yaml
+    log_specification: q_learning_logging.yaml
 
 plotting:
     xlabel: epoch
