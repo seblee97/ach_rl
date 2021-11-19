@@ -15,13 +15,13 @@ class ExpectedUncertaintyEpsilonComputer(base_epsilon_computer.BaseEpsilonComput
         self._action_function = action_function
 
     def __call__(self, episode: int, epsilon_info: Dict[str, Any]):
-        if self._action_function == constants.Constants.MAX:
+        if self._action_function == constants.MAX:
             computed_epsilon = (
-                1 - 1 / epsilon_info[constants.Constants.CURRENT_STATE_MAX_UNCERTAINTY]
+                1 - 1 / epsilon_info[constants.CURRENT_STATE_MAX_UNCERTAINTY]
             )
-        elif self._action_function == constants.Constants.MEAN:
+        elif self._action_function == constants.MEAN:
             computed_epsilon = (
-                1 - 1 / epsilon_info[constants.Constants.CURRENT_STATE_MEAN_UNCERTAINTY]
+                1 - 1 / epsilon_info[constants.CURRENT_STATE_MEAN_UNCERTAINTY]
             )
 
         return np.amax([computed_epsilon, self._minimum_value])
