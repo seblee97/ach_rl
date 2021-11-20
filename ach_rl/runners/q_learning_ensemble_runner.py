@@ -70,6 +70,8 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
             f"{constants.CURRENT_STATE_MAX_UNCERTAINTY}_{constants.MEAN}",
             f"{constants.CURRENT_STATE_MEAN_UNCERTAINTY}_{constants.MEAN}",
             f"{constants.CURRENT_STATE_SELECT_UNCERTAINTY}_{constants.MEAN}",
+            constants.Constants.ENSEMBLE_EPISODE_REWARD_STD,
+            constants.Constants.ENSEMBLE_EPISODE_LENGTH_STD,
         ]
         return columns
 
