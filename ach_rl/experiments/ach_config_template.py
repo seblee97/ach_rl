@@ -716,6 +716,7 @@ class AChConfigTemplate:
                     in [
                         constants.CONSTANT,
                         constants.LINEAR_DECAY,
+                        constants.EXPECTED_UNCERTAINTY,
                         constants.UNEXPECTED_UNCERTAINTY,
                     ]
                 ],
