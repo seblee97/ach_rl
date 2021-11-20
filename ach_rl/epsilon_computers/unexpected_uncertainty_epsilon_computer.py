@@ -35,7 +35,7 @@ class UnexpectedUncertaintyEpsilonComputer(base_epsilon_computer.BaseEpsilonComp
         previous_moving_average = np.mean(self._policy_entropy_history[state])
 
         self._policy_entropy_history[state].append(
-            epsilon_info[constants.NORMALISED_POLICY_ENTROPY]
+            epsilon_info[f"{constants.CURRENT}_{constants.NORMALISED_POLICY_ENTROPY}"]
         )
 
         new_moving_average = np.mean(self._policy_entropy_history[state])
