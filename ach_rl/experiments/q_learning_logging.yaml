@@ -1,0 +1,21 @@
+arrays:
+    - [value_function, 10]
+
+scalars:
+    - [train_episode_reward, 1]
+    - [train_episode_length, 1]
+    - [mean_epsilon, 1]
+    - [std_epsilon, 1]
+    - [mean_lr_scaling, 1]
+    - [std_lr_scaling, 1]
+    - [mean_visitation_penalty, 1]
+    
+visualisations:
+    - [value_function, 10]
+    - [individual_train_run, 500]
+post_visualisations:
+    - value_function
+    # - value_function_std
+    # - policy_entropy
+
+
