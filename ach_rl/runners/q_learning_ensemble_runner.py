@@ -41,8 +41,10 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
     """Runner for Q-learning ensemble."""
 
     def __init__(self, config: ach_config.AchConfig, unique_id: str):
+
         self._num_learners = config.num_learners
         self._targets = config.targets
+
         super().__init__(config=config, unique_id=unique_id)
 
         self._parallelise_ensemble = config.parallelise_ensemble
@@ -70,9 +72,10 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
             f"{constants.CURRENT_STATE_MAX_UNCERTAINTY}_{constants.MEAN}",
             f"{constants.CURRENT_STATE_MEAN_UNCERTAINTY}_{constants.MEAN}",
             f"{constants.CURRENT_STATE_SELECT_UNCERTAINTY}_{constants.MEAN}",
-            constants.Constants.ENSEMBLE_EPISODE_REWARD_STD,
-            constants.Constants.ENSEMBLE_EPISODE_LENGTH_STD,
+            constants.ENSEMBLE_EPISODE_REWARD_STD,
+            constants.ENSEMBLE_EPISODE_LENGTH_STD,
         ]
+
         return columns
 
     def _setup_learner(self, config: ach_config.AchConfig):  # TODO: similar to envs
