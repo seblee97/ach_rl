@@ -48,6 +48,8 @@ class BaseInformationComputer(abc.ABC):
             state=state
         )  # dims: E x B x A or E x A
 
+        num_actions = state_values.shape[-1]
+
         (
             state_max_uncertainty,
             state_mean_uncertainty,
@@ -55,9 +57,12 @@ class BaseInformationComputer(abc.ABC):
         ) = self._state_quantities(state_values)
 
         return {
+            constants.STATE: state,
             f"{state_label}_{constants.STATE_MAX_UNCERTAINTY}": state_max_uncertainty,
             f"{state_label}_{constants.STATE_MEAN_UNCERTAINTY}": state_mean_uncertainty,
             f"{state_label}_{constants.STATE_POLICY_ENTROPY}": state_policy_entropy,
+            f"{state_label}_{constants.NORMALISED_POLICY_ENTROPY}": state_policy_entropy
+            / np.log(num_actions),
         }
 
     def compute_state_select_information(self, state, action):
