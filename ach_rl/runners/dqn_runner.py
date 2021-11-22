@@ -405,23 +405,26 @@ class DQNRunner(base_runner.BaseRunner):
             if self._visitation_penalty is None:
                 penalty = 0
             else:
-                sample_current_state_info = (
-                    self._information_computer.compute_state_information(
-                        state=state_sample,
-                        state_label=f"{constants.SAMPLE}_{constants.CURRENT}",
-                    )
-                )
-                sample_next_state_info = (
-                    self._information_computer.compute_state_information(
-                        state=next_state_sample,
-                        state_label=f"{constants.SAMPLE}_{constants.NEXT}",
-                    )
-                )
-                sample_select_info = (
-                    self._information_computer.compute_state_select_information(
-                        state=state_sample, action=action_sample
-                    )
-                )
+                sample_current_state_info = {}
+                sample_next_state_info = {}
+                sample_select_info = {}
+                # sample_current_state_info = (
+                #     self._information_computer.compute_state_information(
+                #         state=state_sample,
+                #         state_label=f"{constants.SAMPLE}_{constants.CURRENT}",
+                #     )
+                # )
+                # sample_next_state_info = (
+                #     self._information_computer.compute_state_information(
+                #         state=next_state_sample,
+                #         state_label=f"{constants.SAMPLE}_{constants.NEXT}",
+                #     )
+                # )
+                # sample_select_info = (
+                #     self._information_computer.compute_state_select_information(
+                #         state=state_sample, action=action_sample
+                #     )
+                # )
 
                 sample_state_info = {
                     **{
