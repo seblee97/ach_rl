@@ -1,6 +1,7 @@
 from typing import Any
 from typing import Dict
 from typing import List
+from typing import Optional
 
 import numpy as np
 from ach_rl import constants
@@ -28,20 +29,30 @@ class HardCodedPenalty(base_visitation_penalty.BaseVisitationPenalty):
         except StopIteration:
             pass
 
-    def __call__(self, episode: int, penalty_info: Dict[str, Any]) -> float:
+    def __call__(
+        self,
+        episode: int,
+        penalty_info: Dict[str, Any],
+        batch_dimension: Optional[int] = None,
+    ) -> float:
         if episode == self._next_switch_episode:
             self._get_next_penalty_set()
 
-        candidate_reference_measures = [
-            k for k in penalty_info.keys() if constants.UNCERTAINTY in k
-        ]
-        if candidate_reference_measures:
-            reference_measure = penalty_info[candidate_reference_measures[0]]
-        else:
-            reference_measure = None
-
-        if reference_measure is None or isinstance(reference_measure, float):
-            return self._current_penalty
-        elif isinstance(reference_measure, np.ndarray):
-            batch_dimension = reference_measure.shape[0]
+        if batch_dimension is not None:
             return self._current_penalty * np.ones(batch_dimension)
+        else:
+            return self._current_penalty
+
+        # candidate_reference_measures = [
+        #     k for k in penalty_info.keys() if constants.UNCERTAINTY in k
+        # ]
+        # if candidate_reference_measures:
+        #     reference_measure = penalty_info[candidate_reference_measures[0]]
+        # else:
+        #     reference_measure = None
+
+        # if reference_measure is None or isinstance(reference_measure, float):
+        #     return self._current_penalty
+        # elif isinstance(reference_measure, np.ndarray):
+        #     batch_dimension = reference_measure.shape[0]
+        #     return self._current_penalty * np.ones(batch_dimension)
