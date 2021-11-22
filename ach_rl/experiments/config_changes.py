@@ -124,7 +124,7 @@ unexpected_uncertainty_epsilon_changes = {
             }
         }
     ]
-    for i, j in itertools.product([5, 10, 50], [0.1, 1, 10, 100])
+    for i, j in itertools.product([5, 10, 50], [0.01, 0.1])
 }
 
 expected_uncertainty_epsilon_changes = {
@@ -141,7 +141,7 @@ expected_uncertainty_epsilon_changes = {
             }
         }
     ]
-    for i in [0.01, 0.1, 1]
+    for i in [0.01, 0.1]
 }
 
 vp_types = {
