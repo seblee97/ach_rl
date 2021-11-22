@@ -16,7 +16,7 @@ class BaseVisitationPenalty(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def __call__(self, episode: int, penalty_info: Dict[str, Any]):
+    def __call__(self, episode: int, penalty_info: Dict[str, Any], **kwargs):
         pass
 
 
