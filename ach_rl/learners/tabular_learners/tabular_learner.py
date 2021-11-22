@@ -47,6 +47,10 @@ class TabularLearner(base_learner.BaseLearner):
         self._state_action_values = self._initialise_values(
             initialisation_strategy=initialisation_strategy
         )
+        self._latest_state_action_values = {
+            self._id_state_mapping[i]: action_values
+            for i, action_values in enumerate(self._state_action_values)
+        }
 
         if self._split_value_function:
             self._ancillary_state_action_values = self._initialise_values(
@@ -59,12 +63,17 @@ class TabularLearner(base_learner.BaseLearner):
         self._target = target
         self._learning_rate = learning_rate
         self._gamma = gamma
+        self._training = True
 
     def train(self):
-        pass
+        self._training = True
 
     def eval(self):
-        pass
+        self._training = False
+        self._latest_state_action_values = {
+            self._id_state_mapping[i]: action_values
+            for i, action_values in enumerate(self._state_action_values)
+        }
 
     @property
     def action_space(self) -> List[int]:
@@ -84,17 +93,22 @@ class TabularLearner(base_learner.BaseLearner):
 
     @property
     def state_action_values(self) -> Dict[Tuple[int, int], np.ndarray]:
-        values = {
-            self._id_state_mapping[i]: action_values
-            for i, action_values in enumerate(self._state_action_values)
-        }
-        if self._split_value_function:
+        if self._training:
             values = {
                 self._id_state_mapping[i]: action_values
-                + values[self._id_state_mapping[i]]
-                for i, action_values in enumerate(self._ancillary_state_action_values)
+                for i, action_values in enumerate(self._state_action_values)
             }
-        return values
+            if self._split_value_function:
+                values = {
+                    self._id_state_mapping[i]: action_values
+                    + values[self._id_state_mapping[i]]
+                    for i, action_values in enumerate(
+                        self._ancillary_state_action_values
+                    )
+                }
+            return values
+        else:
+            return self._latest_state_action_values
 
     def _initialise_values(self, initialisation_strategy: str) -> np.ndarray:
         """Initialise values for each state, action pair in state-action space.
@@ -139,9 +153,9 @@ class TabularLearner(base_learner.BaseLearner):
         state_id = self._state_id_mapping[state]
 
         if other_state_action_values is not None:
-            state_action_values = copy.deepcopy(other_state_action_values[state_id])
+            state_action_values = other_state_action_values[state_id]
         else:
-            state_action_values = copy.deepcopy(self._state_action_values[state_id])
+            state_action_values = self._state_action_values[state_id]
 
         return np.amax(state_action_values)
 
