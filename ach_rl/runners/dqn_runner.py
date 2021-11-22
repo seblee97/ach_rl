@@ -36,10 +36,11 @@ class DQNRunner(base_runner.BaseRunner):
         self._mask_probability = Union[float, None]
         self._ensemble: bool
 
-        scaled_x_y_dims = config.scaling * config.encoded_state_dimensions[1:]
-        scaled_state_dims = [config.encoded_state_dimensions[0]]
-        scaled_state_dims.extend(scaled_x_y_dims)
-        self._state_dim = tuple(scaled_state_dims)
+        self._state_dim = tuple(
+            config.encoded_state_dimensions[0:1]
+            + [config.scaling * config.encoded_state_dimensions[1]]
+            + [config.scaling * config.encoded_state_dimensions[1]]
+        )
 
         self._targets = config.targets
         super().__init__(config=config, unique_id=unique_id)
@@ -71,19 +72,6 @@ class DQNRunner(base_runner.BaseRunner):
             f"{constants.STD}_{constants.SAMPLE_PENALTY}",
             f"{constants.MEAN}_{constants.ACTING_PENALTY}",
             f"{constants.STD}_{constants.ACTING_PENALTY}",
-            f"{constants.CURRENT}_{constants.STATE_MAX_UNCERTAINTY}",
-            f"{constants.CURRENT}_{constants.STATE_MEAN_UNCERTAINTY}",
-            constants.CURRENT_STATE_SELECT_UNCERTAINTY,
-            f"{constants.CURRENT}_{constants.STATE_POLICY_ENTROPY}",
-            f"{constants.NEXT}_{constants.STATE_MEAN_UNCERTAINTY}",
-            f"{constants.NEXT}_{constants.STATE_MAX_UNCERTAINTY}",
-            f"{constants.NEXT}_{constants.STATE_POLICY_ENTROPY}",
-            f"{constants.SAMPLE}_{constants.CURRENT}_{constants.STATE_MEAN_UNCERTAINTY}",
-            f"{constants.SAMPLE}_{constants.CURRENT}_{constants.STATE_MAX_UNCERTAINTY}",
-            f"{constants.SAMPLE}_{constants.CURRENT}_{constants.STATE_POLICY_ENTROPY}",
-            f"{constants.SAMPLE}_{constants.NEXT}_{constants.STATE_MEAN_UNCERTAINTY}",
-            f"{constants.SAMPLE}_{constants.NEXT}_{constants.STATE_MAX_UNCERTAINTY}",
-            f"{constants.SAMPLE}_{constants.NEXT}_{constants.STATE_POLICY_ENTROPY}",
         ]
         return columns
 
@@ -319,12 +307,16 @@ class DQNRunner(base_runner.BaseRunner):
 
         while self._environment.active:
 
-            current_state_info = self._information_computer.compute_state_information(
-                state=torch.from_numpy(state).to(
-                    device=self._device, dtype=torch.float
-                ),
-                state_label=constants.CURRENT,
-            )
+            current_state_info = {}
+            next_state_info = {}
+            select_info = {}
+
+            # current_state_info = self._information_computer.compute_state_information(
+            #     state=torch.from_numpy(state).to(
+            #         device=self._device, dtype=torch.float
+            #     ),
+            #     state_label=constants.CURRENT,
+            # )
 
             epsilon = self._epsilon_computer(
                 episode=episode, epsilon_info=current_state_info
@@ -339,18 +331,18 @@ class DQNRunner(base_runner.BaseRunner):
 
             reward, next_state = self._environment.step(action)
 
-            next_state_info = self._information_computer.compute_state_information(
-                state=torch.from_numpy(next_state).to(
-                    device=self._device, dtype=torch.float
-                ),
-                state_label=constants.NEXT,
-            )
-            select_info = self._information_computer.compute_state_select_information(
-                state=torch.from_numpy(next_state).to(
-                    device=self._device, dtype=torch.float
-                ),
-                action=action,
-            )
+            # next_state_info = self._information_computer.compute_state_information(
+            #     state=torch.from_numpy(next_state).to(
+            #         device=self._device, dtype=torch.float
+            #     ),
+            #     state_label=constants.NEXT,
+            # )
+            # select_info = self._information_computer.compute_state_select_information(
+            #     state=torch.from_numpy(next_state).to(
+            #         device=self._device, dtype=torch.float
+            #     ),
+            #     action=action,
+            # )
 
             acting_state_info = {**current_state_info, **select_info, **next_state_info}
 
@@ -432,13 +424,27 @@ class DQNRunner(base_runner.BaseRunner):
                 )
 
                 sample_state_info = {
-                    **{k: np.mean(v) for k, v in sample_current_state_info.items()},
-                    **{k: np.mean(v) for k, v in sample_next_state_info.items()},
-                    **{k: np.mean(v) for k, v in sample_select_info.items()},
+                    **{
+                        k: np.mean(v)
+                        for k, v in sample_current_state_info.items()
+                        if k is not constants.STATE
+                    },
+                    **{
+                        k: np.mean(v)
+                        for k, v in sample_next_state_info.items()
+                        if k is not constants.STATE
+                    },
+                    **{
+                        k: np.mean(v)
+                        for k, v in sample_select_info.items()
+                        if k is not constants.STATE
+                    },
                 }
 
                 sample_penalty = self._visitation_penalty(
-                    episode=episode, penalty_info=sample_current_state_info
+                    episode=episode,
+                    penalty_info=sample_current_state_info,
+                    batch_dimension=self._batch_size,
                 )
                 learning_rate_scaling = self._lr_scaler(
                     episode=episode, lr_scaling_info=sample_state_info
@@ -491,8 +497,12 @@ class DQNRunner(base_runner.BaseRunner):
             episode_loss += loss
 
         all_info = {**acting_state_infos, **sample_state_infos}
-        mean_info = {k: np.mean(v) for k, v in all_info.items()}
-        std_info = {k: np.std(v) for k, v in all_info.items()}
+        mean_info = {
+            k: np.mean(v) for k, v in all_info.items() if k is not constants.STATE
+        }
+        std_info = {
+            k: np.std(v) for k, v in all_info.items() if k is not constants.STATE
+        }
 
         mean_sample_penalty = np.mean(sample_penalties)
         std_sample_penalty = np.std(sample_penalties)
