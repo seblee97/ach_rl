@@ -99,7 +99,7 @@ expected_uncertainty_max_lr_scaler_changes = {
             }
         }
     ]
-    for i in [0.001, 0.01, 0.1, 1, 10]
+    for i in [0.1, 1, 10, 100, 1000]
 }
 
 constant_epsilon_changes = {
@@ -110,7 +110,7 @@ constant_epsilon_changes = {
 }
 
 unexpected_uncertainty_epsilon_changes = {
-    f"unexpected_uncertainty_epsilon_{i}": [
+    f"unexpected_uncertainty_epsilon_{i}_{j}": [
         {
             "learner": {
                 "epsilon": {
