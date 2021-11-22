@@ -171,6 +171,16 @@ class BaseRunner(setup_runner.SetupRunner):
                 train_step_count=episode_logging_dict[constants.TRAIN_EPISODE_LENGTH],
             )
 
+            if i != 0 and self._visualisation_iteration(
+                constants.INDIVIDUAL_TRAIN_RUN, i
+            ):
+                self._environment.visualise_episode_history(
+                    save_path=os.path.join(
+                        self._rollout_folder_path,
+                        f"{constants.INDIVIDUAL_TRAIN_RUN}_{i}.mp4",
+                    )
+                )
+
         if constants.VISITATION_COUNT_HEATMAP in self._visualisations:
             self._data_logger.plot_array_data(
                 name=constants.VISITATION_COUNT_HEATMAP,
