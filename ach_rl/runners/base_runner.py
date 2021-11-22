@@ -231,6 +231,12 @@ class BaseRunner(setup_runner.SetupRunner):
             episode_reward: scalar reward accumulated over episode.
             num_steps: number of steps taken for episode.
         """
+
+        self._logger.info(
+            "Performing greedy test episode with action selection method: "
+            f"{action_selection_method}"
+        )
+
         action_selection_method = (
             action_selection_method or self._learner.select_target_action
         )
