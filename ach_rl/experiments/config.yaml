@@ -181,6 +181,7 @@ learner:
             initial_value: 0.9
             final_value: 0.02
             anneal_duration: 100000
+            decay_timeframe: step
 
         unexpected_uncertainty:
             action_function: max
