@@ -319,7 +319,7 @@ class DQNRunner(base_runner.BaseRunner):
             # )
 
             epsilon = self._epsilon_computer(
-                epsilon_info=current_state_info, step=self._step_count
+                epsilon_info=current_state_info, step=self._step_count, episode=episode
             )
 
             if self._ensemble:
