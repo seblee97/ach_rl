@@ -638,6 +638,11 @@ class AChConfigTemplate:
                 types=[int],
                 requirements=[lambda x: x > 0],
             ),
+            config_field.Field(
+                name=constants.DECAY_TIMEFRAME,
+                types=[str],
+                requirements=[lambda x: x in [constants.STEP, constants.EPISODE]],
+            ),
         ],
         level=[
             constants.LEARNER,
