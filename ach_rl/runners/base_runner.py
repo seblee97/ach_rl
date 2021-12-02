@@ -23,6 +23,9 @@ class BaseRunner(setup_runner.SetupRunner):
         super().__init__(config=config, unique_id=unique_id)
 
         self._apply_curriculum = config.apply_curriculum
+        if self._apply_curriculum:
+            self._transition_episodes = iter(config.transition_episodes)
+            self._next_transition_episode = next(self._transition_episodes)
         self._print_frequency = config.print_frequency or np.inf
         self._checkpoint_frequency = config.checkpoint_frequency
         self._model_checkpoint_frequency = config.model_checkpoint_frequency
@@ -141,16 +144,9 @@ class BaseRunner(setup_runner.SetupRunner):
         for tag, scalar in logging_dict.items():
             self._write_scalar(tag=tag, episode=episode, scalar=scalar)
 
+    @abc.abstractmethod
     def _generate_visualisations(self, episode: int):
-        if episode != 0 and self._visualisation_iteration(
-            constants.INDIVIDUAL_TRAIN_RUN, episode + 1
-        ):
-            self._environment.visualise_episode_history(
-                save_path=os.path.join(
-                    self._rollout_folder_path,
-                    f"{constants.INDIVIDUAL_TRAIN_RUN}_{episode + 1}.mp4",
-                )
-            )
+        pass
 
         # if self._visualisation_iteration(constants.VALUE_FUNCTION, episode + 1):
         #     self._environment.plot_heatmap_over_env(
@@ -161,6 +157,13 @@ class BaseRunner(setup_runner.SetupRunner):
         #         ),
         #     )
 
+    def _transition_environment(self):
+        next(self._environment)
+        try:
+            self._next_transition_episode = next(self._transition_episodes)
+        except StopIteration:
+            self._next_transition_episode = np.inf
+
     def train(self) -> None:
         """Perform training (and validation) on given number of episodes."""
 
@@ -169,6 +172,10 @@ class BaseRunner(setup_runner.SetupRunner):
         # self._pre_train_logging()
 
         for i in range(self._num_episodes):
+
+            if self._apply_curriculum:
+                if i != 0 and i % self._next_transition_episode == 0:
+                    self._transition_environment()
 
             episode_start_time = time.time()
 
