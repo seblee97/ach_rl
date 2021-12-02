@@ -37,6 +37,7 @@ from ach_rl.visitation_penalties import reducing_entropy_window_penalty
 from ach_rl.visitation_penalties import reducing_variance_window_penalty
 from ach_rl.visitation_penalties import sigmoidal_decay_visitation_penalty
 from ach_rl.visitation_penalties import signed_uncertainty_window_penalty
+from key_door import curriculum_env
 from key_door import key_door_env
 from key_door import visualisation_env
 from run_modes import base_runner
@@ -108,21 +109,21 @@ class SetupRunner(base_runner.BaseRunner):
         """
         environment_args = self._get_environment_args(config=config)
 
+        if config.environment == constants.MINIGRID:
+            environment = minigrid.MiniGrid(**environment_args)
+        elif config.environment == constants.ATARI:
+            if config.implementation == constants.WRAPPER:
+                environment = wrapper_atari.AtariEnv(**environment_args)
+            elif config.implementation == constants.FUNCTIONAL:
+                environment = atari.AtariEnv(**environment_args)
+        elif config.environment == constants.MULTIROOM:
+            environment = key_door_env.KeyDoorGridworld(**environment_args)
+            environment = visualisation_env.VisualisationEnv(environment)
+
         if config.apply_curriculum:
             curriculum_args = self._get_curriculum_args(config=config)
             curriculum_wrapper = self.get_curriculum_wrapper(config.environment)
-            environment = curriculum_wrapper(**environment_args, **curriculum_args)
-        else:
-            if config.environment == constants.MINIGRID:
-                environment = minigrid.MiniGrid(**environment_args)
-            elif config.environment == constants.ATARI:
-                if config.implementation == constants.WRAPPER:
-                    environment = wrapper_atari.AtariEnv(**environment_args)
-                elif config.implementation == constants.FUNCTIONAL:
-                    environment = atari.AtariEnv(**environment_args)
-            elif config.environment == constants.MULTIROOM:
-                environment = key_door_env.KeyDoorGridworld(**environment_args)
-                environment = visualisation_env.VisualisationEnv(environment)
+            environment = curriculum_wrapper(environment, **curriculum_args)
 
         return environment
 
@@ -177,8 +178,7 @@ class SetupRunner(base_runner.BaseRunner):
             }
         elif config.environment == constants.MULTIROOM:
             curriculum_args = {
-                constants.TRANSITION_EPISODES: config.transition_episodes,
-                constants.ENVIRONMENT_CHANGES: config.environment_changes,
+                constants.TRANSITIONS: config.map_yaml_paths,
             }
         return curriculum_args
 
@@ -188,7 +188,7 @@ class SetupRunner(base_runner.BaseRunner):
         if environment == constants.MINIGRID:
             wrapper = minigrid_curriculum.MinigridCurriculum
         elif environment == constants.MULTIROOM:
-            wrapper = multiroom_curriculum.MultiroomCurriculum
+            wrapper = curriculum_env.CurriculumEnv
         return wrapper
 
     def _setup_information_computer(
