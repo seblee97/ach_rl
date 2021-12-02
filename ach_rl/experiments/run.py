@@ -24,9 +24,7 @@ parser.add_argument(
     default="config.yaml",
     help="path to base configuration file.",
 )
-parser.add_argument(
-    "--seeds", metavar="-S", default="[0]", help="list of seeds to run."
-)
+parser.add_argument("--seeds", metavar="-S", default=None, help="list of seeds to run.")
 parser.add_argument("--config_changes", metavar="-CC", default="config_changes.py")
 
 # cluster config
