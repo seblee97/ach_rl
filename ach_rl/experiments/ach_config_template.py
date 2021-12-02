@@ -96,7 +96,7 @@ class AChConfigTemplate:
                 requirements=[lambda x: all(isinstance(y, int) for y in x)],
             ),
             config_field.Field(
-                name=constants.ENVIRONMENT_CHANGES,
+                name=constants.MAP_YAML_PATHS,
                 types=[list],
             ),
         ],
