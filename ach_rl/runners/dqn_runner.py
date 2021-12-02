@@ -319,7 +319,7 @@ class DQNRunner(base_runner.BaseRunner):
             # )
 
             epsilon = self._epsilon_computer(
-                episode=episode, epsilon_info=current_state_info
+                epsilon_info=current_state_info, step=self._step_count
             )
 
             if self._ensemble:
@@ -494,6 +494,8 @@ class DQNRunner(base_runner.BaseRunner):
                     visitation_penalty=penalty,
                     learning_rate_scaling=learning_rate_scaling,
                 )
+
+            self._step_count += 1
 
             state = next_state
             episode_reward += reward
