@@ -339,6 +339,8 @@ ACTING_PENALTY = "acting_penalty"
 SCALING = "scaling"
 LOG_SPECIFICATION = "log_specification"
 INITIALISATION_TYPE = "initialisation_type"
+DECAY_TIMEFRAME = "decay_timeframe"
+STEP = "step"
 
 ATARI_ENVS = ["PongNoFrameskip-v4", "GravitarNoFrameskip-v4"]
 
