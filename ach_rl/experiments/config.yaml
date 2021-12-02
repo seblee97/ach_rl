@@ -25,8 +25,7 @@ minigrid_curriculum:
 
 multiroom_curriculum:
     transition_episodes: [5]
-    environment_changes:
-        - [["change_key_positions", [[17, 5], [18, 5]]], ["change_reward_positions", [[16, 5], [31, 4]]]]
+    map_yaml_paths: [maps/square_multi_room_1.yaml]
 
 multiroom:
     map_ascii_path: maps/three_room.txt
