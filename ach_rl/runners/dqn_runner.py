@@ -615,7 +615,7 @@ class DQNRunner(base_runner.BaseRunner):
         logging_dict = {**mean_info, **std_info, **train_log, **ensemble_log}
         return logging_dict
 
-    def __generate_visualisations(self, episode: int):
+    def _generate_visualisations(self, episode: int):
         if episode != 0 and self._visualisation_iteration(
             constants.INDIVIDUAL_TRAIN_RUN, episode + 1
         ):
