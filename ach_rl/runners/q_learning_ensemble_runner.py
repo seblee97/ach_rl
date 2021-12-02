@@ -258,6 +258,7 @@ class EnsembleQLearningRunner(base_runner.BaseRunner):
                 over_actions=constants.MEAN,
             )
 
+    def _generate_visualisations(self, episode: int):
         if episode != 0:
             if self._visualisation_iteration(constants.INDIVIDUAL_TRAIN_RUN, episode):
                 self._environment.visualise_episode_history(
