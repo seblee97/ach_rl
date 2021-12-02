@@ -335,6 +335,7 @@ class SetupRunner(base_runner.BaseRunner):
                 initial_value=config.initial_value,
                 final_value=config.final_value,
                 anneal_duration=config.anneal_duration,
+                decay_timeframe=config.decay_timeframe,
             )
         return epsilon_computer
 
