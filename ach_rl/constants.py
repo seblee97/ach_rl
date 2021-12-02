@@ -341,6 +341,8 @@ LOG_SPECIFICATION = "log_specification"
 INITIALISATION_TYPE = "initialisation_type"
 DECAY_TIMEFRAME = "decay_timeframe"
 STEP = "step"
+MAP_YAML_PATHS = "map_yaml_paths"
+TRANSITIONS = "transitions"
 
 ATARI_ENVS = ["PongNoFrameskip-v4", "GravitarNoFrameskip-v4"]
 
