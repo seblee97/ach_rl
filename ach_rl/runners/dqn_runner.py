@@ -615,6 +615,17 @@ class DQNRunner(base_runner.BaseRunner):
         logging_dict = {**mean_info, **std_info, **train_log, **ensemble_log}
         return logging_dict
 
+    def __generate_visualisations(self, episode: int):
+        if episode != 0 and self._visualisation_iteration(
+            constants.INDIVIDUAL_TRAIN_RUN, episode + 1
+        ):
+            self._environment.visualise_episode_history(
+                save_path=os.path.join(
+                    self._rollout_folder_path,
+                    f"{constants.INDIVIDUAL_TRAIN_RUN}_{episode + 1}.mp4",
+                )
+            )
+
     def _get_visitation_penalty(self, episode: int, state, action: int, next_state):
         if isinstance(self._visitation_penalty, AdaptiveUncertaintyPenalty):
             penalty, penalty_info = self._visitation_penalty(state=state, action=action)
