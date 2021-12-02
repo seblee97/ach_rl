@@ -20,7 +20,7 @@ systematically modify it for each different run.
 import itertools
 
 hard_coded_penalty_changes = {
-    f"hard_coded_penatly_{i}": [
+    f"hard_coded_penalty_{i}": [
         {
             "learner": {
                 "visitation_penalty": {
@@ -34,7 +34,7 @@ hard_coded_penalty_changes = {
 }
 
 policy_entropy_penalty_changes = {
-    f"policy_entropy_penatly_{i}": [
+    f"policy_entropy_penalty_{i}": [
         {
             "learner": {
                 "visitation_penalty": {
@@ -48,7 +48,7 @@ policy_entropy_penalty_changes = {
 }
 
 uncertainty_penalty_changes = {
-    f"uncertainty_penatly_{i}": [
+    f"uncertainty_penalty_{i}": [
         {
             "learner": {
                 "visitation_penalty": {
@@ -62,7 +62,7 @@ uncertainty_penalty_changes = {
 }
 
 baseline_penalty_changes = {
-    "baseline_penatly": [
+    "baseline_penalty": [
         {
             "learner": {
                 "visitation_penalty": {
