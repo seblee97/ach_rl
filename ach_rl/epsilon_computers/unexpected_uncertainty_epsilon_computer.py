@@ -1,6 +1,7 @@
 import collections
 from typing import Any
 from typing import Dict
+from typing import Optional
 from typing import Union
 
 import numpy as np
@@ -23,7 +24,12 @@ class UnexpectedUncertaintyEpsilonComputer(base_epsilon_computer.BaseEpsilonComp
 
         self._policy_entropy_history = {}
 
-    def __call__(self, episode: int, epsilon_info: Dict[str, Any]):
+    def __call__(
+        self,
+        epsilon_info: Dict[str, Any],
+        episode: Optional[int] = None,
+        step: Optional[int] = None,
+    ):
         state = epsilon_info[constants.STATE]
         if state not in self._policy_entropy_history:
             self._policy_entropy_history[state] = collections.deque(

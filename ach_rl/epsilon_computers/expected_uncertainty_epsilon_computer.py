@@ -1,5 +1,6 @@
 from typing import Any
 from typing import Dict
+from typing import Optional
 from typing import Union
 
 import numpy as np
@@ -14,7 +15,12 @@ class ExpectedUncertaintyEpsilonComputer(base_epsilon_computer.BaseEpsilonComput
         self._minimum_value = minimum_value
         self._action_function = action_function
 
-    def __call__(self, episode: int, epsilon_info: Dict[str, Any]):
+    def __call__(
+        self,
+        epsilon_info: Dict[str, Any],
+        episode: Optional[int] = None,
+        step: Optional[int] = None,
+    ):
         if self._action_function == constants.MAX:
             computed_epsilon = (
                 1 - 1 / epsilon_info[constants.CURRENT_STATE_MAX_UNCERTAINTY]
