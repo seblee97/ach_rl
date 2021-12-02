@@ -29,6 +29,7 @@ class BaseRunner(setup_runner.SetupRunner):
         self._test_frequency = config.test_frequency
         self._test_types = config.testing
         self._num_episodes = config.num_episodes
+        self._step_count: int = 0
 
         config.save_configuration(folder_path=config.checkpoint_path)
 
@@ -140,11 +141,28 @@ class BaseRunner(setup_runner.SetupRunner):
         for tag, scalar in logging_dict.items():
             self._write_scalar(tag=tag, episode=episode, scalar=scalar)
 
+    def _generate_visualisations(self, episode: int):
+        if episode != 0 and self._visualisation_iteration(
+            constants.INDIVIDUAL_TRAIN_RUN, episode + 1
+        ):
+            self._environment.visualise_episode_history(
+                save_path=os.path.join(
+                    self._rollout_folder_path,
+                    f"{constants.INDIVIDUAL_TRAIN_RUN}_{episode + 1}.mp4",
+                )
+            )
+
+        # if self._visualisation_iteration(constants.VALUE_FUNCTION, episode + 1):
+        #     self._environment.plot_heatmap_over_env(
+        #         heatmap=averaged_max_values,
+        #         save_name=os.path.join(
+        #             self._visualisations_folder_path,
+        #             f"{episode + 1}",
+        #         ),
+        #     )
+
     def train(self) -> None:
         """Perform training (and validation) on given number of episodes."""
-        # train_reward: float = 0
-        # train_step_count: float = np.inf
-        # episode_duration: float = 0
 
         self._logger.info("Starting Training...")
 
@@ -171,21 +189,7 @@ class BaseRunner(setup_runner.SetupRunner):
                 train_step_count=episode_logging_dict[constants.TRAIN_EPISODE_LENGTH],
             )
 
-            if i != 0 and self._visualisation_iteration(
-                constants.INDIVIDUAL_TRAIN_RUN, i
-            ):
-                self._environment.visualise_episode_history(
-                    save_path=os.path.join(
-                        self._rollout_folder_path,
-                        f"{constants.INDIVIDUAL_TRAIN_RUN}_{i}.mp4",
-                    )
-                )
-
-        if constants.VISITATION_COUNT_HEATMAP in self._visualisations:
-            self._data_logger.plot_array_data(
-                name=constants.VISITATION_COUNT_HEATMAP,
-                data=self._environment.visitation_counts,
-            )
+            self._generate_visualisations(episode=i)
 
         self._checkpoint(episode=-1, final=True)
 
