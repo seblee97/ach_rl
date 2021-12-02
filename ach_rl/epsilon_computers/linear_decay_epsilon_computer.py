@@ -18,6 +18,7 @@ class LinearDecayEpsilonComputer(base_epsilon_computer.BaseEpsilonComputer):
         decay_timeframe: str = "step",
     ):
         self._initial_value = initial_value
+        self._final_value = final_value
         self._anneal_duration = anneal_duration
         self._step_size = (initial_value - final_value) / anneal_duration
         self._decay_timeframe = decay_timeframe
