@@ -116,11 +116,6 @@ class QLearningRunner(base_runner.BaseRunner):
 
         state = self._environment.reset_environment(train=True)
 
-        if episode == 0:
-            self._environment.render(
-                save_path=os.path.join(self._visualisations_folder_path, "map.pdf")
-            )
-
         self._information_computer.state_action_values = [
             self._learner.state_action_values
         ]
