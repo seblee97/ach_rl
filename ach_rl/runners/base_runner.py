@@ -171,6 +171,11 @@ class BaseRunner(setup_runner.SetupRunner):
 
         # self._pre_train_logging()
 
+        self._environment.reset_environment()
+        self._environment.render(
+            save_path=os.path.join(self._visualisations_folder_path, "map.pdf")
+        )
+
         for i in range(self._num_episodes):
 
             if self._apply_curriculum:
