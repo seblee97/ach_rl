@@ -164,6 +164,12 @@ class BaseRunner(setup_runner.SetupRunner):
         except StopIteration:
             self._next_transition_episode = np.inf
 
+    def _render_env(self, name: str):
+        self._environment.reset_environment()
+        self._environment.render(
+            save_path=os.path.join(self._visualisations_folder_path, name)
+        )
+
     def train(self) -> None:
         """Perform training (and validation) on given number of episodes."""
 
@@ -171,16 +177,14 @@ class BaseRunner(setup_runner.SetupRunner):
 
         # self._pre_train_logging()
 
-        self._environment.reset_environment()
-        self._environment.render(
-            save_path=os.path.join(self._visualisations_folder_path, "map.pdf")
-        )
+        self._render_env(name=constants.MAP)
 
         for i in range(self._num_episodes):
 
             if self._apply_curriculum:
                 if i != 0 and i % self._next_transition_episode == 0:
                     self._transition_environment()
+                    self._render_env(name=f"{i}_{constants.MAP}")
 
             episode_start_time = time.time()
 
