@@ -343,6 +343,7 @@ DECAY_TIMEFRAME = "decay_timeframe"
 STEP = "step"
 MAP_YAML_PATHS = "map_yaml_paths"
 TRANSITIONS = "transitions"
+MAP = "map.pdf"
 
 ATARI_ENVS = ["PongNoFrameskip-v4", "GravitarNoFrameskip-v4"]
 
