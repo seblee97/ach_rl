@@ -49,22 +49,19 @@ class BaseRunner(setup_runner.SetupRunner):
     def _array_log_iteration(self, tag: str, episode: int) -> bool:
         """Whether or not array tag should be logged at this episode."""
         if tag in self._array_logging:
-            if episode % self._array_logging[tag] == 0:
-                return True
+            return episode % self._array_logging[tag] == 0
         return False
 
     def _scalar_log_iteration(self, tag: str, episode: int) -> bool:
         """Whether or not scalar tag should be logged at this episode."""
         if tag in self._scalar_logging:
-            if episode % self._scalar_logging[tag] == 0:
-                return True
+            return episode % self._scalar_logging[tag] == 0
         return False
 
     def _visualisation_iteration(self, tag: str, episode: int) -> bool:
         """Whether or not visualistation should be produced at this episode."""
         if tag in self._visualisations:
-            if episode % self._visualisations[tag] == 0:
-                return True
+            return episode % self._visualisations[tag] == 0
         return False
 
     def _write_scalar(
