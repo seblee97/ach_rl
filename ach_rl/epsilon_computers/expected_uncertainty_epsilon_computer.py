@@ -33,6 +33,6 @@ class ExpectedUncertaintyEpsilonComputer(base_epsilon_computer.BaseEpsilonComput
             f"Dimensions here are {uncertainty_metric.shape}."
         )
 
-        computed_epsilon = 1 - 1 / uncertainty_metric.item()
+        computed_epsilon = 1 / (1 + np.exp(-uncertainty_metric.item()))
 
         return np.amax([computed_epsilon, self._minimum_value])
