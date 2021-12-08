@@ -46,25 +46,26 @@ from run_modes import base_runner
 class SetupRunner(base_runner.BaseRunner):
     def __init__(self, config: ach_config.AchConfig, unique_id: str) -> None:
 
+        self._scalar_logging = self._setup_logging_frequencies(config.scalars)
+        self._array_logging = self._setup_logging_frequencies(config.arrays)
+        self._visualisations = self._setup_logging_frequencies(config.visualisations)
+        self._post_visualisations = config.post_visualisations
+
         super().__init__(config=config, unique_id=unique_id)
 
         # logging setup
-        self._array_logging = self._setup_logging_frequencies(config.arrays)
         self._array_folder_path = os.path.join(self._checkpoint_path, constants.ARRAYS)
         self._rollout_folder_path = os.path.join(
             self._checkpoint_path, constants.ROLLOUTS
+        )
+        self._visualisations_folder_path = os.path.join(
+            self._checkpoint_path, constants.VISUALISATIONS
         )
         os.makedirs(name=self._array_folder_path, exist_ok=True)
         os.makedirs(name=self._rollout_folder_path, exist_ok=True)
         for tag in self._array_logging.keys():
             os.makedirs(name=os.path.join(self._array_folder_path, tag), exist_ok=True)
-        self._scalar_logging = self._setup_logging_frequencies(config.scalars)
-        self._visualisations = self._setup_logging_frequencies(config.visualisations)
-        self._visualisations_folder_path = os.path.join(
-            self._checkpoint_path, constants.VISUALISATIONS
-        )
         os.makedirs(name=self._visualisations_folder_path, exist_ok=True)
-        self._post_visualisations = config.post_visualisations
 
         # component setup
         self._environment = self._setup_environment(config=config)
@@ -94,7 +95,8 @@ class SetupRunner(base_runner.BaseRunner):
         if logging_list is not None:
             for i in logging_list:
                 if isinstance(i[0], list):
-                    logging_frequencies[i[0][0]] = i[1]
+                    for j in range(i[0][1]):
+                        logging_frequencies[f"{i[0][0]}_{j}"] = i[1]
                 elif isinstance(i[0], str):
                     logging_frequencies[i[0]] = i[1]
                 else:
