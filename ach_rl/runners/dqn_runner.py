@@ -312,6 +312,10 @@ class DQNRunner(base_runner.BaseRunner):
                 epsilon_info=current_state_info, step=self._step_count, episode=episode
             )
 
+            assert (
+                epsilon <= 1 and epsilon >= 0
+            ), "computed_epsilon must be in range 0, 1"
+
             if self._ensemble:
                 action = self._learner.select_behaviour_action(
                     state, epsilon=epsilon, branch=branch
