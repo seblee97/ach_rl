@@ -413,7 +413,7 @@ class DQNRunner(base_runner.BaseRunner):
                 )
                 sample_select_info = (
                     self._information_computer.compute_state_select_information(
-                        state=state_sample, action=action_sample
+                        state=state_sample, action=experience_sample[1]
                     )
                 )
 
