@@ -34,7 +34,11 @@ class DQNRunner(base_runner.BaseRunner):
     def __init__(self, config: ach_config.AchConfig, unique_id: str):
         self._num_learners: Union[int, None]
         self._mask_probability = Union[float, None]
-        self._ensemble: bool
+
+        if config.type == constants.BOOTSTRAPPED_ENSEMBLE_DQN:
+            self._ensemble = True
+        elif config.type == constants.VANILLA_DQN:
+            self._ensemble = False
 
         self._state_dim = tuple(
             config.encoded_state_dimensions[0:1]
@@ -60,19 +64,7 @@ class DQNRunner(base_runner.BaseRunner):
         self._fill_replay_buffer(num_trajectories=config.num_replay_fill_trajectories)
 
     def _get_data_columns(self):
-        columns = [
-            constants.TRAIN_EPISODE_REWARD,
-            constants.TRAIN_EPISODE_LENGTH,
-            constants.LOSS,
-            f"{constants.MEAN}_{constants.EPSILON}",
-            f"{constants.STD}_{constants.EPSILON}",
-            f"{constants.MEAN}_{constants.LR_SCALING}",
-            f"{constants.STD}_{constants.LR_SCALING}",
-            f"{constants.MEAN}_{constants.SAMPLE_PENALTY}",
-            f"{constants.STD}_{constants.SAMPLE_PENALTY}",
-            f"{constants.MEAN}_{constants.ACTING_PENALTY}",
-            f"{constants.STD}_{constants.ACTING_PENALTY}",
-        ]
+        columns = list(self._scalar_logging.keys())
         return columns
 
     def _setup_replay_buffer(
@@ -151,7 +143,6 @@ class DQNRunner(base_runner.BaseRunner):
         if config.type == constants.BOOTSTRAPPED_ENSEMBLE_DQN:
             self._num_learners = config.num_learners
             self._mask_probability = config.mask_probability
-            self._ensemble = True
             learner = multi_head_dqn_learner.MultiHeadDQNLearner(
                 action_space=self._environment.action_space,
                 state_dimensions=self._state_dim,
@@ -171,7 +162,6 @@ class DQNRunner(base_runner.BaseRunner):
         elif config.type == constants.VANILLA_DQN:
             self._num_learners = None
             self._mask_probability = None
-            self._ensemble = False
             learner = dqn_learner.DQNLearner(
                 action_space=self._environment.action_space,
                 state_dimensions=self._state_dim,
@@ -311,12 +301,12 @@ class DQNRunner(base_runner.BaseRunner):
             next_state_info = {}
             select_info = {}
 
-            # current_state_info = self._information_computer.compute_state_information(
-            #     state=torch.from_numpy(state).to(
-            #         device=self._device, dtype=torch.float
-            #     ),
-            #     state_label=constants.CURRENT,
-            # )
+            current_state_info = self._information_computer.compute_state_information(
+                state=torch.from_numpy(state).to(
+                    device=self._device, dtype=torch.float
+                ),
+                state_label=constants.CURRENT,
+            )
 
             epsilon = self._epsilon_computer(
                 epsilon_info=current_state_info, step=self._step_count, episode=episode
@@ -331,18 +321,18 @@ class DQNRunner(base_runner.BaseRunner):
 
             reward, next_state = self._environment.step(action)
 
-            # next_state_info = self._information_computer.compute_state_information(
-            #     state=torch.from_numpy(next_state).to(
-            #         device=self._device, dtype=torch.float
-            #     ),
-            #     state_label=constants.NEXT,
-            # )
-            # select_info = self._information_computer.compute_state_select_information(
-            #     state=torch.from_numpy(next_state).to(
-            #         device=self._device, dtype=torch.float
-            #     ),
-            #     action=action,
-            # )
+            next_state_info = self._information_computer.compute_state_information(
+                state=torch.from_numpy(next_state).to(
+                    device=self._device, dtype=torch.float
+                ),
+                state_label=constants.NEXT,
+            )
+            select_info = self._information_computer.compute_state_select_information(
+                state=torch.from_numpy(next_state).to(
+                    device=self._device, dtype=torch.float
+                ),
+                action=action,
+            )
 
             acting_state_info = {**current_state_info, **select_info, **next_state_info}
 
@@ -408,23 +398,24 @@ class DQNRunner(base_runner.BaseRunner):
                 sample_current_state_info = {}
                 sample_next_state_info = {}
                 sample_select_info = {}
-                # sample_current_state_info = (
-                #     self._information_computer.compute_state_information(
-                #         state=state_sample,
-                #         state_label=f"{constants.SAMPLE}_{constants.CURRENT}",
-                #     )
-                # )
-                # sample_next_state_info = (
-                #     self._information_computer.compute_state_information(
-                #         state=next_state_sample,
-                #         state_label=f"{constants.SAMPLE}_{constants.NEXT}",
-                #     )
-                # )
-                # sample_select_info = (
-                #     self._information_computer.compute_state_select_information(
-                #         state=state_sample, action=action_sample
-                #     )
-                # )
+
+                sample_current_state_info = (
+                    self._information_computer.compute_state_information(
+                        state=state_sample,
+                        state_label=f"{constants.SAMPLE}_{constants.CURRENT}",
+                    )
+                )
+                sample_next_state_info = (
+                    self._information_computer.compute_state_information(
+                        state=next_state_sample,
+                        state_label=f"{constants.SAMPLE}_{constants.NEXT}",
+                    )
+                )
+                sample_select_info = (
+                    self._information_computer.compute_state_select_information(
+                        state=state_sample, action=action_sample
+                    )
+                )
 
                 sample_state_info = {
                     **{
@@ -450,7 +441,9 @@ class DQNRunner(base_runner.BaseRunner):
                     batch_dimension=self._batch_size,
                 )
                 learning_rate_scaling = self._lr_scaler(
-                    episode=episode, lr_scaling_info=sample_state_info
+                    episode=episode,
+                    lr_scaling_info=sample_state_info,
+                    state_label=f"{constants.SAMPLE}_{constants.CURRENT}",
                 )
 
                 sample_penalties.append(np.mean(sample_penalty))
