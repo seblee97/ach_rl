@@ -25,8 +25,8 @@ class BaseInformationComputer(abc.ABC):
         state_max_action_values = np.amax(state_values, axis=-1)  # E x B
         state_max_action_indices = np.argmax(state_values, axis=-1)  # E x B
 
-        state_max_uncertainty = np.std(state_max_action_values, axis=0)
-        state_mean_uncertainty = np.mean(np.std(state_values, axis=0), axis=-1)
+        state_max_uncertainty = np.std(state_max_action_values, axis=0)  # B
+        state_mean_uncertainty = np.mean(np.std(state_values, axis=0), axis=-1)  # B
 
         if len(state_max_action_indices.shape) == 1:
             state_policy_entropy = custom_functions.policy_entropy(
