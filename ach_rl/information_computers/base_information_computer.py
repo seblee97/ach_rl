@@ -70,8 +70,8 @@ class BaseInformationComputer(abc.ABC):
             state=state
         )  # dims: E x B x A or E x A
         if len(state_values.shape) == 2:
-            state_select = state_values[:, action]
+            state_select = state_values[:, action.cpu().numpy()]
         elif len(state_values.shape) == 3:
-            state_select = state_values[:, :, action]
+            state_select = state_values[:, :, action.cpu().numpy()]
         state_select_uncertainty = np.std(state_select, axis=0)
         return {constants.CURRENT_STATE_SELECT_UNCERTAINTY: state_select_uncertainty}
