@@ -196,6 +196,7 @@ class MultiHeadDQNLearner(base_learner.BaseLearner):
         next_state: torch.Tensor,
         active: torch.Tensor,
         visitation_penalty: float,
+        learning_rate_scaling: float,
         mask: Union[torch.Tensor, None] = None,
     ) -> Tuple[float, float]:
         """Training step."""
@@ -224,6 +225,10 @@ class MultiHeadDQNLearner(base_learner.BaseLearner):
                 param.grad.data.clamp_(
                     self._gradient_clipping[0], self._gradient_clipping[1]
                 )
+
+        # scale lr
+        for g in self._optimiser.param_groups:
+            g["lr"] = learning_rate_scaling * self._learning_rate
 
         self._optimiser.step()
 
