@@ -22,12 +22,17 @@ class ExpectedUncertaintyEpsilonComputer(base_epsilon_computer.BaseEpsilonComput
         step: Optional[int] = None,
     ):
         if self._action_function == constants.MAX:
-            computed_epsilon = (
-                1 - 1 / epsilon_info[constants.CURRENT_STATE_MAX_UNCERTAINTY]
-            )
+            uncertainty_metric = epsilon_info[constants.CURRENT_STATE_MAX_UNCERTAINTY]
         elif self._action_function == constants.MEAN:
-            computed_epsilon = (
-                1 - 1 / epsilon_info[constants.CURRENT_STATE_MEAN_UNCERTAINTY]
-            )
+            uncertainty_metric = epsilon_info[constants.CURRENT_STATE_MEAN_UNCERTAINTY]
+
+        assert (
+            len(uncertainty_metric.shape) == 1 and uncertainty_metric.shape[0] == 1
+        ), (
+            "uncertainty_metric for epsilon calculation must be scalar."
+            f"Dimensions here are {uncertainty_metric.shape}."
+        )
+
+        computed_epsilon = 1 - 1 / uncertainty_metric.item()
 
         return np.amax([computed_epsilon, self._minimum_value])
