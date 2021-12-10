@@ -28,8 +28,8 @@ multiroom_curriculum:
     map_yaml_paths: [maps/square_multi_room_1.yaml]
 
 multiroom:
-    map_ascii_path: maps/three_room.txt
-    map_yaml_path: maps/three_room.yaml
+    map_ascii_path: maps/square_multi_room.txt
+    map_yaml_path: maps/square_multi_room.yaml
     episode_timeout: 400 # infinity if not given
     plot_origin: lower
     
@@ -38,8 +38,8 @@ multiroom:
             mean: 1
             variance: 0
 
-    representation: agent_position # agent_position for tabular or pixel for DL
-    scaling: 1
+    representation: pixel # agent_position for tabular or pixel for DL
+    scaling: 4
 
     encoded_state_dimensions: [1,21,21] # for use with DL method
     frame_stack: 1 # for use with DL method
@@ -65,7 +65,7 @@ atari:
 
 
 learner: 
-    type: ensemble_q_learning
+    type: bootstrapped_ensemble_dqn
 
     sarsa_lambda:
         trace_lambda: 0.05
@@ -99,16 +99,16 @@ learner:
         parallelise_ensemble: False
 
     bootstrapped_ensemble_dqn:
-        num_learners: 4
+        num_learners: 16
         copy_learner_initialisation: False
-        shared_layers: [0, 1, 2, 3, 4]
+        shared_layers: [0, 1, 2, 3]
         behaviour: epsilon_greedy
         targets: 
-        mask_probability: 0.5
+        mask_probability: 0
 
     dqn:
         batch_size: 32
-        num_replay_fill_trajectories: 50
+        num_replay_fill_trajectories: 5000
         replay_buffer_size: 100000
         target_network_update_period: 10000
         normalise_state: True
@@ -124,32 +124,32 @@ learner:
                 stride: 2
                 nonlinearity:  relu
                 bias_initialisation: 
-                weight_initialisation:
+                weight_initialisation: 
             - conv:
                 in_channels: 8
-                num_filters: 8
+                num_filters: 4
                 kernel_size: 2
                 stride: 1
                 nonlinearity:  relu
                 bias_initialisation: 
-                weight_initialisation:
+                weight_initialisation: 
             - flatten:
                 nonlinearity: identity
             - fc:
-                in_features: 648
+                in_features: 6400
                 out_features: 512
                 nonlinearity: relu
                 bias_initialisation: 
-                weight_initialisation:
+                weight_initialisation: 
             - fc:
                 in_features: 512
                 nonlinearity: identity
                 bias_initialisation: 
-                weight_initialisation:
+                weight_initialisation: 
 
     pretrained_model_path:
 
-    learning_rate: 0.1
+    learning_rate: 0.001    
     gradient_momentum: 0.95 # unused
     squared_gradient_momentum: 0.95 # unused
     min_squared_gradient: 0.01 # unused
@@ -171,7 +171,7 @@ learner:
             lr_scaling: 1
 
     epsilon:
-        schedule: constant
+        schedule: unexpected_uncertainty
 
         constant:
             value: 0.1
@@ -184,7 +184,7 @@ learner:
 
         unexpected_uncertainty:
             action_function: max
-            moving_average_window: 5
+            moving_average_window: 50
             minimum_value: 0.1
 
         expected_uncertainty:
@@ -284,7 +284,7 @@ logging:
     model_checkpoint_frequency:
     animation_library: matplotlib_animation
     animation_file_format: gif
-    log_specification: q_learning_logging.yaml
+    log_specification: ensemble_dqn_logging.yaml
 
 plotting:
     xlabel: epoch
