@@ -5,6 +5,7 @@ from typing import Optional
 from typing import Union
 
 import numpy as np
+import torch
 from ach_rl import constants
 from ach_rl.epsilon_computers import base_epsilon_computer
 
@@ -23,6 +24,7 @@ class UnexpectedUncertaintyEpsilonComputer(base_epsilon_computer.BaseEpsilonComp
         self._minimum_value = minimum_value
 
         self._policy_entropy_history = {}
+        self._tensor_id_mapping = {}
 
     def __call__(
         self,
@@ -30,21 +32,26 @@ class UnexpectedUncertaintyEpsilonComputer(base_epsilon_computer.BaseEpsilonComp
         episode: Optional[int] = None,
         step: Optional[int] = None,
     ):
+
         state = epsilon_info[constants.STATE]
-        if state not in self._policy_entropy_history:
-            self._policy_entropy_history[state] = collections.deque(
+        state_hash = hash(state.cpu().numpy().tobytes())
+
+        if state_hash not in self._policy_entropy_history:
+            self._policy_entropy_history[state_hash] = collections.deque(
                 maxlen=self._moving_average_window
             )
             # fill with single element to avoid NaN.
-            self._policy_entropy_history[state].append(0)
+            self._policy_entropy_history[state_hash].append(0)
 
-        previous_moving_average = np.mean(self._policy_entropy_history[state])
+        previous_moving_average = np.mean(self._policy_entropy_history[state_hash])
 
-        self._policy_entropy_history[state].append(
-            epsilon_info[f"{constants.CURRENT}_{constants.NORMALISED_POLICY_ENTROPY}"]
+        self._policy_entropy_history[state_hash].append(
+            epsilon_info[
+                f"{constants.CURRENT}_{constants.NORMALISED_POLICY_ENTROPY}"
+            ].item()
         )
 
-        new_moving_average = np.mean(self._policy_entropy_history[state])
+        new_moving_average = np.mean(self._policy_entropy_history[state_hash])
         moving_average_difference = new_moving_average - previous_moving_average
 
         computed_epsilon = abs(moving_average_difference)
