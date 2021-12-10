@@ -200,17 +200,19 @@ class MultiHeadDQNLearner(base_learner.BaseLearner):
         mask: Union[torch.Tensor, None] = None,
     ) -> Tuple[float, float]:
         """Training step."""
-        state_value_estimates = self._q_network.forward_all_heads(state)
+        state_value_estimates = self._q_network.forward_all_heads(state)  # E x B x A
 
         # add batch dimension, copy for each branch dimension for indexing
         action_index = (
             action.unsqueeze(-1).repeat(self._num_branches, 1, 1).to(torch.int64)
-        )
-        estimate = torch.gather(state_value_estimates, 2, action_index).squeeze()
+        )  # E x B x 1
+        estimate = torch.gather(
+            state_value_estimates, 2, action_index
+        ).squeeze()  # E x B
 
         max_target = torch.max(
             self._target_q_network.forward_all_heads(next_state), axis=2
-        ).values.detach()
+        ).values.detach()  # E x B
 
         target = reward + visitation_penalty + active * self._gamma * max_target
 
