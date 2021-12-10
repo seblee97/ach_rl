@@ -1,5 +1,4 @@
 import abc
-
 from typing import Any
 
 
@@ -19,4 +18,9 @@ class BaseLearner(abc.ABC):
 
     @abc.abstractmethod
     def select_target_action(self, state: Any) -> None:
+        pass
+
+    @abc.abstractmethod
+    def step(self, *args, **kwargs) -> None:
+        """Update relevant data for learner."""
         pass
