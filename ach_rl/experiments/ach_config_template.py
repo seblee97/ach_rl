@@ -108,6 +108,19 @@ class AChConfigTemplate:
         dependent_variables_required_values=[[constants.MULTIROOM], [True]],
     )
 
+    _partially_observed_template = config_template.Template(
+        fields=[
+            config_field.Field(
+                name=constants.FIELD_OF_VIEW,
+                types=[list],
+                requirements=[lambda x: all([isinstance(y, int) and y > 0 for y in x])],
+            )
+        ],
+        level=[constants.MULTIROOM, constants.PO_PIXEL],
+        dependent_variables=[constants.REPRESENTATION],
+        dependent_variables_required_values=[[constants.PO_PIXEL]],
+    )
+
     _multiroom_template = config_template.Template(
         fields=[
             config_field.Field(name=constants.MAP_ASCII_PATH, types=[str]),
@@ -131,7 +144,8 @@ class AChConfigTemplate:
                 name=constants.REPRESENTATION,
                 types=[str],
                 requirements=[
-                    lambda x: x in [constants.PIXEL, constants.AGENT_POSITION]
+                    lambda x: x
+                    in [constants.PIXEL, constants.PO_PIXEL, constants.AGENT_POSITION]
                 ],
             ),
             config_field.Field(
@@ -153,6 +167,7 @@ class AChConfigTemplate:
             constants.ENVIRONMENT,
         ],
         dependent_variables_required_values=[[constants.MULTIROOM]],
+        nested_templates=[_partially_observed_template],
     )
 
     _atari_template = config_template.Template(
