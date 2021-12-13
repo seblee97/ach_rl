@@ -344,6 +344,10 @@ STEP = "step"
 MAP_YAML_PATHS = "map_yaml_paths"
 TRANSITIONS = "transitions"
 MAP = "map.pdf"
+PO_PIXEL = "po_pixel"
+FIELD_OF_VIEW = "field_of_view"
+FIELD_X = "field_x"
+FIELD_Y = "field_y"
 
 ATARI_ENVS = ["PongNoFrameskip-v4", "GravitarNoFrameskip-v4"]
 
