@@ -38,11 +38,15 @@ multiroom:
             mean: 1
             variance: 0
 
-    representation: pixel # agent_position for tabular or pixel for DL
+    representation: po_pixel # agent_position for tabular or po_pixel or pixel for DL
     scaling: 4
 
-    encoded_state_dimensions: [1,21,21] # for use with DL method
+    encoded_state_dimensions: [1,7,7] # for use with DL method
     frame_stack: 1 # for use with DL method
+
+    po_pixel:
+        field_of_view: [3, 3]
+        # include_xy: True
 
 atari:
     atari_env_name: "PongNoFrameskip-v4"
@@ -136,13 +140,13 @@ learner:
             - flatten:
                 nonlinearity: identity
             - fc:
-                in_features: 6400
-                out_features: 512
+                in_features: 576
+                out_features: 256
                 nonlinearity: relu
                 bias_initialisation: 
                 weight_initialisation: 
             - fc:
-                in_features: 512
+                in_features: 256
                 nonlinearity: identity
                 bias_initialisation: 
                 weight_initialisation: 
