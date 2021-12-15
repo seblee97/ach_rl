@@ -180,80 +180,6 @@ class DQNRunner(base_runner.BaseRunner):
             raise ValueError(f"Learner type {learner} not recognised.")
         return learner
 
-    def _pre_episode_log(self, episode: int):
-        """Logging pre-episode. Includes value-function, individual run."""
-        visualisation_configurations = [
-            (constants.MAX_VALUES_PDF, True, False),
-            (constants.QUIVER_VALUES_PDF, False, True),
-            (constants.QUIVER_MAX_VALUES_PDF, True, True),
-        ]
-        if self._visualisation_iteration(
-            constants.VALUE_FUNCTION, episode
-        ) or self._array_log_iteration(constants.VALUE_FUNCTION, episode):
-            # compute state action values for a tabular env
-            state_action_values = {}
-            for tuple_state in self._environment.state_space:
-                with torch.no_grad():
-                    np_state_representation = (
-                        self._environment.get_state_representation(
-                            tuple_state=tuple_state
-                        )
-                    )
-                    # stacked_representation = np.repeat(
-                    #     np_state_representation, self._environment.frame_stack, 0
-                    # )
-                    pixel_state = torch.from_numpy(np_state_representation).to(
-                        device=self._device, dtype=torch.float
-                    )
-                    state_action_values[tuple_state] = (
-                        self._learner.q_network(pixel_state).cpu().numpy().squeeze()
-                    )
-
-        if self._visualisation_iteration(constants.VALUE_FUNCTION, episode):
-            for visualisation_configuration in visualisation_configurations:
-                self._logger.info(
-                    "Serial value function visualisation: "
-                    f"{visualisation_configuration[0]}"
-                )
-                self._environment.plot_value_function(
-                    values=state_action_values,
-                    save_path=os.path.join(
-                        self._visualisations_folder_path,
-                        f"{episode}_{visualisation_configuration[0]}",
-                    ),
-                    plot_max_values=visualisation_configuration[1],
-                    quiver=visualisation_configuration[2],
-                    over_actions=constants.MAX,
-                )
-        if self._visualisation_iteration(constants.VISITATION_COUNT_HEATMAP, episode):
-            self._environment.plot_value_function(
-                values=self._learner.state_visitation_counts,
-                save_path=os.path.join(
-                    self._visualisations_folder_path,
-                    f"{episode}_{constants.VISITATION_COUNT_HEATMAP_PDF}",
-                ),
-                plot_max_values=True,
-                quiver=False,
-                over_actions=constants.SELECT,
-            )
-        if episode != 0:
-            if self._visualisation_iteration(constants.INDIVIDUAL_TRAIN_RUN, episode):
-                self._data_logger.plot_array_data(
-                    name=f"{constants.INDIVIDUAL_TRAIN_RUN}_{episode}",
-                    data=self._environment.plot_episode_history(),
-                )
-            if self._visualisation_iteration(constants.INDIVIDUAL_TEST_RUN, episode):
-                self._data_logger.plot_array_data(
-                    name=f"{constants.INDIVIDUAL_TEST_RUN}_{episode}",
-                    data=self._environment.plot_episode_history(train=False),
-                )
-        if self._array_log_iteration(constants.VALUE_FUNCTION, episode):
-            self._write_array(
-                tag=constants.VALUE_FUNCTION,
-                episode=episode,
-                array=state_action_values,
-            )
-
     def _train_episode(self, episode: int) -> Tuple[float, int]:
         """Perform single training loop (per learner in ensemble).
 
@@ -621,6 +547,108 @@ class DQNRunner(base_runner.BaseRunner):
                     self._rollout_folder_path,
                     f"{constants.INDIVIDUAL_TRAIN_RUN}_{episode + 1}.mp4",
                 )
+            )
+
+        visualisation_configurations = [
+            (constants.MAX_VALUES_PDF, True, False),
+            (constants.QUIVER_VALUES_PDF, False, True),
+            (constants.QUIVER_MAX_VALUES_PDF, True, True),
+        ]
+
+        visualise_value_function_condition = self._visualisation_iteration(
+            constants.VALUE_FUNCTION, episode
+        )
+        array_value_function_condition = self._array_log_iteration(
+            constants.VALUE_FUNCTION, episode
+        )
+        visualise_value_function_std_condition = self._visualisation_iteration(
+            constants.VALUE_FUNCTION_STD, episode
+        )
+
+        if any(
+            [
+                visualise_value_function_condition,
+                array_value_function_condition,
+                visualise_value_function_std_condition,
+            ]
+        ):
+            # compute state action values for a non-tabular env
+            raw_state_action_values = {}
+            state_action_value_means = {}
+            state_action_value_stds = {}
+            for tuple_state in self._environment.state_space:
+                with torch.no_grad():
+                    np_state_representation = (
+                        self._environment.get_state_representation(
+                            tuple_state=tuple_state
+                        )
+                    )
+                    pixel_state = torch.from_numpy(np_state_representation).to(
+                        device=self._device, dtype=torch.float
+                    )
+                    all_branch_values = self._learner.q_network.forward_all_heads(
+                        pixel_state
+                    )  # E x 1 x A
+
+                    raw_state_action_values[tuple_state] = all_branch_values
+
+                    all_branch_max_values = torch.max(all_branch_values, axis=2).values
+                    mean_max_values = torch.mean(all_branch_max_values)
+                    std_max_values = torch.std(all_branch_max_values)
+                    state_action_value_means[
+                        tuple_state
+                    ] = mean_max_values.cpu().numpy()
+                    state_action_value_stds[tuple_state] = std_max_values.cpu().numpy()
+
+        if self._visualisation_iteration(constants.VALUE_FUNCTION, episode):
+            for visualisation_configuration in visualisation_configurations:
+                self._logger.info(
+                    "Serial value function visualisation: "
+                    f"{visualisation_configuration[0]}"
+                )
+                averaged_values_position = (
+                    self._environment.average_values_over_positional_states(
+                        state_action_value_means
+                    )
+                )
+                self._environment.plot_heatmap_over_env(
+                    heatmap=averaged_values_position,
+                    save_name=os.path.join(
+                        self._visualisations_folder_path,
+                        f"{episode}_{visualisation_configuration[0]}",
+                    ),
+                )
+        if self._visualisation_iteration(constants.VALUE_FUNCTION_STD, episode):
+
+            self._logger.info("Value function std visualisation...")
+            averaged_values_position = (
+                self._environment.average_values_over_positional_states(
+                    state_action_value_stds
+                )
+            )
+            self._environment.plot_heatmap_over_env(
+                heatmap=averaged_values_position,
+                save_name=os.path.join(
+                    self._visualisations_folder_path,
+                    f"{episode}_{constants.VALUE_FUNCTION_STD_PDF}",
+                ),
+            )
+        if self._visualisation_iteration(constants.VISITATION_COUNT_HEATMAP, episode):
+            self._environment.plot_value_function(
+                values=self._learner.state_visitation_counts,
+                save_path=os.path.join(
+                    self._visualisations_folder_path,
+                    f"{episode}_{constants.VISITATION_COUNT_HEATMAP_PDF}",
+                ),
+                plot_max_values=True,
+                quiver=False,
+                over_actions=constants.SELECT,
+            )
+        if self._array_log_iteration(constants.VALUE_FUNCTION, episode):
+            self._write_array(
+                tag=constants.VALUE_FUNCTION,
+                episode=episode,
+                array=raw_state_action_values,
             )
 
     def _get_visitation_penalty(self, episode: int, state, action: int, next_state):
