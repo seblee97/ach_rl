@@ -41,10 +41,10 @@ class BaseRunner(setup_runner.SetupRunner):
         """Instantiate learner specified in configuration."""
         pass
 
-    @abc.abstractmethod
-    def _pre_episode_log(self, episode: int):
-        """Define logging functionality for prior to each training episode."""
-        pass
+    # @abc.abstractmethod
+    # def _pre_episode_log(self, episode: int):
+    #     """Define logging functionality for prior to each training episode."""
+    #     pass
 
     def _array_log_iteration(self, tag: str, episode: int) -> bool:
         """Whether or not array tag should be logged at this episode."""
