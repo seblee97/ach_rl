@@ -1,5 +1,5 @@
 arrays:
-    - [value_function, 10]
+    - [value_function, 1]
 
 scalars:
     - [train_episode_reward, 1]
@@ -13,11 +13,12 @@ scalars:
     - [std_sample_penalty, 1]
     - [mean_acting_penalty, 1]
     - [std_acting_penalty, 1]
-    - [[branch_loss, 4], 1]
-    - [[branch_reward, 4], 1]
+    - [[branch_loss, 16], 1]
+    - [[branch_reward, 16], 1]
     
 visualisations:
-    - [value_function, 10]
+    - [value_function, 500]
+    - [value_function_std, 500]
     - [individual_train_run, 500]
 post_visualisations:
     - value_function
