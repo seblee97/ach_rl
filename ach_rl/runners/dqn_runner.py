@@ -600,7 +600,9 @@ class DQNRunner(base_runner.BaseRunner):
                         pixel_state
                     )  # E x 1 x A
 
-                    raw_state_action_values[tuple_state] = all_branch_values
+                    raw_state_action_values[
+                        tuple_state
+                    ] = all_branch_values.cpu().numpy()
 
                     all_branch_max_values = torch.max(all_branch_values, axis=2).values
                     mean_max_values = torch.mean(all_branch_max_values)
@@ -658,7 +660,7 @@ class DQNRunner(base_runner.BaseRunner):
             self._write_array(
                 tag=constants.VALUE_FUNCTION,
                 episode=episode,
-                array=raw_state_action_values.cpu(),
+                array=raw_state_action_values,
             )
 
     def _get_visitation_penalty(self, episode: int, state, action: int, next_state):
