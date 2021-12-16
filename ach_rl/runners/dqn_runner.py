@@ -548,6 +548,16 @@ class DQNRunner(base_runner.BaseRunner):
                     f"{constants.INDIVIDUAL_TRAIN_RUN}_{episode + 1}.mp4",
                 )
             )
+        if episode != 0 and self._visualisation_iteration(
+            constants.INDIVIDUAL_TRAIN_RUN_PARTIAL, episode + 1
+        ):
+            self._environment.visualise_episode_history(
+                save_path=os.path.join(
+                    self._rollout_folder_path,
+                    f"{constants.INDIVIDUAL_TRAIN_RUN_PARTIAL}_{episode + 1}.mp4",
+                ),
+                history=constants.TRAIN_PARTIAL,
+            )
 
         visualisation_configurations = [
             (constants.MAX_VALUES_PDF, True, False),
