@@ -658,7 +658,7 @@ class DQNRunner(base_runner.BaseRunner):
             self._write_array(
                 tag=constants.VALUE_FUNCTION,
                 episode=episode,
-                array=raw_state_action_values,
+                array=raw_state_action_values.cpu(),
             )
 
     def _get_visitation_penalty(self, episode: int, state, action: int, next_state):
