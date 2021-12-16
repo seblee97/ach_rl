@@ -348,6 +348,9 @@ PO_PIXEL = "po_pixel"
 FIELD_OF_VIEW = "field_of_view"
 FIELD_X = "field_x"
 FIELD_Y = "field_y"
+INDIVIDUAL_TRAIN_RUN_PARTIAL = "individual_train_run_partial"
+TRAIN_PARTIAL = "train_partial"
+TEST_PARTIAL = "test_partial"
 
 ATARI_ENVS = ["PongNoFrameskip-v4", "GravitarNoFrameskip-v4"]
 
