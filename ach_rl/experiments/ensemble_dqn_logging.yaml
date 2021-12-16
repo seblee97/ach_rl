@@ -20,6 +20,7 @@ visualisations:
     - [value_function, 500]
     - [value_function_std, 500]
     - [individual_train_run, 500]
+    - [individual_train_run_partial, 100]
 post_visualisations:
     - value_function
     # - value_function_std
