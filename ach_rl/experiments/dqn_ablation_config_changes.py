@@ -9,40 +9,34 @@ systematically modify it for each different run.
 
 import itertools
 
-timeout_changes = {
-    f"timeout_{i}": [{"multiroom": {"episode_timeout": i}}] for i in [800]
-}
+timeout_changes = {f"t_{i}": [{"multiroom": {"episode_timeout": i}}] for i in [800]}
 
 num_learner_changes = {
-    f"num_learners_{i}": [
-        {"learner": {"bootstrapped_ensemble_dqn": {"num_learners": i}}}
-    ]
+    f"nl_{i}": [{"learner": {"bootstrapped_ensemble_dqn": {"num_learners": i}}}]
     for i in [4, 16, 32]
 }
 
 shared_layer_changes = {
-    "shared_layer_1": [
+    "sl_1": [
         {"learner": {"bootstrapped_ensemble_dqn": {"shared_layers": [0, 1, 2, 3]}}},
     ],
-    "shared_layer_2": [
+    "sl_2": [
         {"learner": {"bootstrapped_ensemble_dqn": {"shared_layers": [0, 1, 2]}}},
     ],
 }
 
 mask_probability_changes = {
-    f"mask_probability_{i}": [
-        {"learner": {"bootstrapped_ensemble_dqn": {"mask_probability": i}}}
-    ]
+    f"mp_{i}": [{"learner": {"bootstrapped_ensemble_dqn": {"mask_probability": i}}}]
     for i in [0.5, 0.75, 1]
 }
 
 buffer_size_changes = {
-    f"buffer_size_{i}": [{"learner": {"dqn": {"replay_buffer_size": i}}}]
+    f"bs_{i}": [{"learner": {"dqn": {"replay_buffer_size": i}}}]
     for i in [1000, 10000, 100000]
 }
 
 target_net_update_changes = {
-    f"update_period_{i}": [{"learner": {"dqn": {"target_network_update_period": i}}}]
+    f"up_{i}": [{"learner": {"dqn": {"target_network_update_period": i}}}]
     for i in [500, 10000, 50000]
 }
 
@@ -51,7 +45,7 @@ learning_rate_changes = {
 }
 
 anneal_duration_changes = {
-    f"anneal_{i}": [{"learner": {"epsilon": {"linear_decay": {"anneal_duration": i}}}}]
+    f"an_{i}": [{"learner": {"epsilon": {"linear_decay": {"anneal_duration": i}}}}]
     for i in [10000, 1000000, 5000000]
 }
 
