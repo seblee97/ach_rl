@@ -51,7 +51,7 @@ learning_rate_changes = {
 }
 
 anneal_duration_changes = {
-    f"anneal_{i}": [{"learner": {"epsilon": {"linear_decy": {"anneal_duration": i}}}}]
+    f"anneal_{i}": [{"learner": {"epsilon": {"linear_decay": {"anneal_duration": i}}}}]
     for i in [10000, 1000000, 5000000]
 }
 
