@@ -216,7 +216,10 @@ class MultiHeadDQNLearner(base_learner.BaseLearner):
 
         target = reward + visitation_penalty + active * self._gamma * max_target
 
-        loss = torch.mean(mask.T * self._loss_module(estimate, target))
+        raw_loss = self._loss_module(estimate, target)
+        masked_loss = mask.T * raw_loss
+
+        loss = torch.mean(torch.sum(masked_loss, axis=1) / torch.sum(mask.T, axis=1))
 
         self._optimiser.zero_grad()
         loss.backward()
