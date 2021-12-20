@@ -726,6 +726,61 @@ class AChConfigTemplate:
         ],
     )
 
+    _linear_uncertainty_squeeze_epsilon_template = config_template.Template(
+        fields=[
+            config_field.Field(
+                name=constants.ACTION_FUNCTION,
+                types=[str],
+                requirements=[lambda x: x in [constants.MAX, constants.MEAN]],
+                key=constants.EPSILON_ACTION_FUNCTION,
+            ),
+            config_field.Field(
+                name=constants.MINIMUM_VALUE,
+                types=[int, float],
+                requirements=[lambda x: x >= 0 and x <= 1],
+            ),
+        ],
+        level=[
+            constants.LEARNER,
+            constants.EPSILON,
+            constants.LINEAR_UNCERTAINTY_SQUEEZE,
+        ],
+        dependent_variables=[constants.SCHEDULE],
+        dependent_variables_required_values=[
+            [constants.LINEAR_UNCERTAINTY_SQUEEZE],
+        ],
+    )
+
+    _percentile_linear_uncertainty_squeeze_epsilon_template = config_template.Template(
+        fields=[
+            config_field.Field(
+                name=constants.ACTION_FUNCTION,
+                types=[str],
+                requirements=[lambda x: x in [constants.MAX, constants.MEAN]],
+                key=constants.EPSILON_ACTION_FUNCTION,
+            ),
+            config_field.Field(
+                name=constants.MINIMUM_VALUE,
+                types=[int, float],
+                requirements=[lambda x: x >= 0 and x <= 1],
+            ),
+            config_field.Field(
+                name=constants.MAX_VALUE_PERCENTILE,
+                types=[int],
+                requirements=[lambda x: x >= 0 and x <= 100],
+            ),
+        ],
+        level=[
+            constants.LEARNER,
+            constants.EPSILON,
+            constants.PERCENTILE_LINEAR_UNCERTAINTY_SQUEEZE,
+        ],
+        dependent_variables=[constants.SCHEDULE],
+        dependent_variables_required_values=[
+            [constants.PERCENTILE_LINEAR_UNCERTAINTY_SQUEEZE],
+        ],
+    )
+
     _epsilon_template = config_template.Template(
         fields=[
             config_field.Field(
@@ -748,6 +803,8 @@ class AChConfigTemplate:
             _linear_decay_epsilon_template,
             _expected_uncertainty_epsilon_template,
             _unexpected_uncertainty_epsilon_template,
+            _linear_uncertainty_squeeze_epsilon_template,
+            _percentile_linear_uncertainty_squeeze_epsilon_template,
         ],
     )
 
