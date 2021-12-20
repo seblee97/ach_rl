@@ -15,6 +15,10 @@ from ach_rl.environments import wrapper_atari
 from ach_rl.epsilon_computers import constant_epsilon_computer
 from ach_rl.epsilon_computers import expected_uncertainty_epsilon_computer
 from ach_rl.epsilon_computers import linear_decay_epsilon_computer
+from ach_rl.epsilon_computers import \
+    linear_uncertainty_squeeze_epsilon_computer
+from ach_rl.epsilon_computers import \
+    percentile_linear_uncertainty_squeeze_epsilon_computer
 from ach_rl.epsilon_computers import unexpected_uncertainty_epsilon_computer
 from ach_rl.experiments import ach_config
 from ach_rl.information_computers import base_information_computer
@@ -341,6 +345,17 @@ class SetupRunner(base_runner.BaseRunner):
                 final_value=config.final_value,
                 anneal_duration=config.anneal_duration,
                 decay_timeframe=config.decay_timeframe,
+            )
+        elif config.schedule == constants.LINEAR_UNCERTAINTY_SQUEEZE:
+            epsilon_computer = linear_uncertainty_squeeze_epsilon_computer.LinearUncertaintySqueezeEpsilonComputer(
+                action_function=config.epsilon_action_function,
+                minimum_value=config.minimum_value,
+            )
+        elif config.schedule == constants.PERCENTILE_LINEAR_UNCERTAINTY_SQUEEZE:
+            epsilon_computer = percentile_linear_uncertainty_squeeze_epsilon_computer.PercentileLinearUncertaintySqueezeEpsilonComputer(
+                action_function=config.epsilon_action_function,
+                minimum_value=config.minimum_value,
+                max_value_percentile=config.max_value_percentile,
             )
         return epsilon_computer
 
