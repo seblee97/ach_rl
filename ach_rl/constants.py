@@ -351,6 +351,9 @@ FIELD_Y = "field_y"
 INDIVIDUAL_TRAIN_RUN_PARTIAL = "individual_train_run_partial"
 TRAIN_PARTIAL = "train_partial"
 TEST_PARTIAL = "test_partial"
+LINEAR_UNCERTAINTY_SQUEEZE = "linear_uncertainty_squeeze"
+PERCENTILE_LINEAR_UNCERTAINTY_SQUEEZE = "percentile_linear_uncertainty_squeeze"
+MAX_VALUE_PERCENTILE = "max_value_percentile"
 
 ATARI_ENVS = ["PongNoFrameskip-v4", "GravitarNoFrameskip-v4"]
 
