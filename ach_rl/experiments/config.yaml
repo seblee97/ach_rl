@@ -38,10 +38,10 @@ multiroom:
             mean: 1
             variance: 0
 
-    representation: po_pixel # agent_position for tabular or po_pixel or pixel for DL
+    representation: pixel # agent_position for tabular or po_pixel or pixel for DL
     scaling: 4
 
-    encoded_state_dimensions: [1,7,7] # for use with DL method
+    encoded_state_dimensions: [1,21,21] # for use with DL method
     frame_stack: 1 # for use with DL method
 
     po_pixel:
@@ -108,7 +108,7 @@ learner:
         shared_layers: [0, 1, 2, 3]
         behaviour: epsilon_greedy
         targets: 
-        mask_probability: 0
+        mask_probability: 0.5
 
     dqn:
         batch_size: 32
@@ -140,7 +140,7 @@ learner:
             - flatten:
                 nonlinearity: identity
             - fc:
-                in_features: 576
+                in_features: 6400
                 out_features: 256
                 nonlinearity: relu
                 bias_initialisation: 
@@ -175,14 +175,14 @@ learner:
             lr_scaling: 1
 
     epsilon:
-        schedule: unexpected_uncertainty
+        schedule: linear_decay
 
         constant:
             value: 0.1
         
         linear_decay:
-            initial_value: 0.9
-            final_value: 0.02
+            initial_value: 0.99
+            final_value: 0.1
             anneal_duration: 100000
             decay_timeframe: step
 
@@ -194,6 +194,15 @@ learner:
         expected_uncertainty:
             action_function: max
             minimum_value: 0.1
+
+        linear_uncertainty_squeeze:
+            action_function: max
+            minimum_value: 0.1
+
+        percentile_linear_uncertainty_squeeze:
+            action_function: max
+            minimum_value: 0.1
+            max_value_percentile: 95
     
     initialisation:
         type: random_normal
@@ -217,7 +226,7 @@ learner:
 
         hard_coded: 
             vp_schedule:
-                - [0, -0.01] # from step 0, 0 penalty
+                - [0, 0.0] # from step 0, 0 penalty
 
         deterministic_exponential_decay:
             # y = Ab^(cx)
@@ -276,8 +285,8 @@ learner:
         shaping_implementation: train_q_network
 
 training:
-    num_episodes: 6000
-    test_frequency: 50
+    num_episodes: 3000
+    test_frequency: 100
     testing: 
         # - greedy
         # - no_rep
