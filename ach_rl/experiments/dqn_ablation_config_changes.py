@@ -60,7 +60,7 @@ key_combos = itertools.product(
 )
 
 CONFIG_CHANGES = {
-    hash("_".join(key_combo)): num_learner_changes[key_combo[0]]
+    str(hash("_".join(key_combo))): num_learner_changes[key_combo[0]]
     + shared_layer_changes[key_combo[1]]
     + mask_probability_changes[key_combo[2]]
     + buffer_size_changes[key_combo[3]]
