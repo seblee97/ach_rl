@@ -354,6 +354,9 @@ TEST_PARTIAL = "test_partial"
 LINEAR_UNCERTAINTY_SQUEEZE = "linear_uncertainty_squeeze"
 PERCENTILE_LINEAR_UNCERTAINTY_SQUEEZE = "percentile_linear_uncertainty_squeeze"
 MAX_VALUE_PERCENTILE = "max_value_percentile"
+WILL_POSNER = "will_posner"
+STANDARD = "standard"
+FORMAT = "format"
 
 ATARI_ENVS = ["PongNoFrameskip-v4", "GravitarNoFrameskip-v4"]
 
