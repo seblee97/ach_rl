@@ -123,6 +123,13 @@ class AChConfigTemplate:
 
     _multiroom_template = config_template.Template(
         fields=[
+            config_field.Field(
+                name=constants.FORMAT,
+                types=[str],
+                requirements=[
+                    lambda x: x in [constants.STANDARD, constants.WILL_POSNER]
+                ],
+            ),
             config_field.Field(name=constants.MAP_ASCII_PATH, types=[str]),
             config_field.Field(name=constants.MAP_YAML_PATH, types=[str]),
             config_field.Field(
