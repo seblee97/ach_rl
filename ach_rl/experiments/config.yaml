@@ -28,9 +28,10 @@ multiroom_curriculum:
     map_yaml_paths: [maps/square_multi_room_1.yaml]
 
 multiroom:
-    map_ascii_path: maps/square_multi_room.txt
-    map_yaml_path: maps/square_multi_room.yaml
-    episode_timeout: 400 # infinity if not given
+    format: will_posner # will_posner or standard
+    map_ascii_path: maps/posner_four_room.txt
+    map_yaml_path: maps/posner_four_room.yaml
+    episode_timeout: 600 # infinity if not given
     plot_origin: lower
     
     reward_specifications:
@@ -39,13 +40,13 @@ multiroom:
             variance: 0
 
     representation: pixel # agent_position for tabular or po_pixel or pixel for DL
-    scaling: 4
+    scaling: 1
 
-    encoded_state_dimensions: [1,21,21] # for use with DL method
+    encoded_state_dimensions: [1,16,23] # for use with DL method
     frame_stack: 1 # for use with DL method
 
     po_pixel:
-        field_of_view: [3, 3]
+        field_of_view: [4, 1]
         # include_xy: True
 
 atari:
@@ -140,7 +141,7 @@ learner:
             - flatten:
                 nonlinearity: identity
             - fc:
-                in_features: 6400
+                in_features: 240
                 out_features: 256
                 nonlinearity: relu
                 bias_initialisation: 
