@@ -43,7 +43,7 @@ class DQNRunner(base_runner.BaseRunner):
         self._state_dim = tuple(
             config.encoded_state_dimensions[0:1]
             + [config.scaling * config.encoded_state_dimensions[1]]
-            + [config.scaling * config.encoded_state_dimensions[1]]
+            + [config.scaling * config.encoded_state_dimensions[2]]
         )
 
         self._targets = config.targets
