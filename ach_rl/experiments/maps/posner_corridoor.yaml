@@ -1,0 +1,37 @@
+start_position: [1, 2]
+
+silver_key_positions:
+    - [3, 3]
+    - [9, 3]
+    - [15, 3]
+    - [21, 3]
+    - [27, 3]
+gold_key_positions:
+    - [3, 1]
+    - [9, 1]
+    - [15, 1]
+    - [21, 1]
+    - [27, 1]
+
+cue_validity: 0.9
+
+door_positions:
+    - [6, 2]
+    - [12, 2]
+    - [18, 2]
+    - [24, 2]
+    - [30, 2]
+
+reward_positions:
+    - [9, 2]
+    - [15, 2]
+    - [21, 2]
+    - [27, 2]
+    - [33, 2]
+
+# provide either one set of statistics (used for all rewards)
+# or one set of statistics for each reward
+reward_statistics:
+    gaussian:
+        mean: 1
+        variance: 0
