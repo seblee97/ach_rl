@@ -11,21 +11,26 @@ from ach_rl.experiments import ach_config
 from ach_rl.learners.deep_learners import dqn_learner
 from ach_rl.learners.deep_learners import multi_head_dqn_learner
 from ach_rl.learners.deep_learners.components import replay_buffer
-from ach_rl.learners.ensemble_learners.majority_vote_ensemble_learner import \
-    MajorityVoteEnsemble
-from ach_rl.learners.ensemble_learners.mean_greedy_ensemble_learner import \
-    MeanGreedyEnsemble
-from ach_rl.learners.ensemble_learners.sample_greedy_ensemble_learner import \
-    SampleGreedyEnsemble
+from ach_rl.learners.ensemble_learners.majority_vote_ensemble_learner import (
+    MajorityVoteEnsemble,
+)
+from ach_rl.learners.ensemble_learners.mean_greedy_ensemble_learner import (
+    MeanGreedyEnsemble,
+)
+from ach_rl.learners.ensemble_learners.sample_greedy_ensemble_learner import (
+    SampleGreedyEnsemble,
+)
 from ach_rl.runners import base_runner
-from ach_rl.visitation_penalties.adaptive_arriving_uncertainty_visitation_penalty import \
-    AdaptiveArrivingUncertaintyPenalty
-from ach_rl.visitation_penalties.adaptive_uncertainty_visitation_penalty import \
-    AdaptiveUncertaintyPenalty
-from ach_rl.visitation_penalties.hard_coded_visitation_penalty import \
-    HardCodedPenalty
-from ach_rl.visitation_penalties.potential_adaptive_uncertainty_penalty import \
-    PotentialAdaptiveUncertaintyPenalty
+from ach_rl.visitation_penalties.adaptive_arriving_uncertainty_visitation_penalty import (
+    AdaptiveArrivingUncertaintyPenalty,
+)
+from ach_rl.visitation_penalties.adaptive_uncertainty_visitation_penalty import (
+    AdaptiveUncertaintyPenalty,
+)
+from ach_rl.visitation_penalties.hard_coded_visitation_penalty import HardCodedPenalty
+from ach_rl.visitation_penalties.potential_adaptive_uncertainty_penalty import (
+    PotentialAdaptiveUncertaintyPenalty,
+)
 
 
 class DQNRunner(base_runner.BaseRunner):
