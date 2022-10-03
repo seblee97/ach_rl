@@ -1,5 +1,5 @@
 arrays:
-    - [value_function, 10]
+    # - [value_function, 250]
 
 scalars:
     - [train_episode_reward, 1]
@@ -9,10 +9,10 @@ scalars:
     - [std_epsilon, 1]
     - [mean_lr_scaling, 1]
     - [std_lr_scaling, 1]
-    - [mean_sample_penalty, 1]
-    - [std_sample_penalty, 1]
-    - [mean_acting_penalty, 1]
-    - [std_acting_penalty, 1]
+    # - [mean_sample_penalty, 1]
+    # - [std_sample_penalty, 1]
+    # - [mean_acting_penalty, 1]
+    # - [std_acting_penalty, 1]
     - [current_state_max_uncertainty, 1]
     - [current_state_mean_uncertainty, 1]
     - [current_state_policy_entropy, 1]
@@ -22,12 +22,12 @@ scalars:
     - [next_state_mean_uncertainty, 1]
     - [next_state_policy_entropy, 1]
     - [next_normalised_policy_entropy, 1]
-    - [[branch_loss, 16], 1]
-    - [[branch_reward, 16], 1]
+    # - [[branch_loss, 16], 1]
+    # - [[branch_reward, 16], 1]
     
 visualisations:
-    - [value_function, 500]
-    - [value_function_std, 500]
+    # - [value_function, 500]
+    # - [value_function_std, 500]
     - [individual_train_run, 25]
     # - [individual_train_run_partial, 25]
 post_visualisations:
