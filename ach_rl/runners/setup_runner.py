@@ -40,7 +40,7 @@ from ach_rl.visitation_penalties import reducing_variance_window_penalty
 from ach_rl.visitation_penalties import sigmoidal_decay_visitation_penalty
 from ach_rl.visitation_penalties import signed_uncertainty_window_penalty
 from key_door import curriculum_env
-from key_door import key_door_env, will_posner_env
+from key_door import key_door_env, will_posner_env, weinan_env
 from key_door import visualisation_env
 from run_modes import base_runner
 
@@ -122,9 +122,11 @@ class SetupRunner(base_runner.BaseRunner):
                 environment = atari.AtariEnv(**environment_args)
         elif config.environment == constants.MULTIROOM:
             if config.format == constants.WILL_POSNER:
-               environment = will_posner_env.WillPosner(**environment_args)
+                environment = will_posner_env.WillPosner(**environment_args)
             elif config.format == constants.STANDARD:
-                environment = key_door_env.KeyDoorGridworld(**environment_args)                
+                environment = key_door_env.KeyDoorGridworld(**environment_args)
+            elif config.format == constants.WEINAN:
+                environment = weinan_env.WeinanEnv(**environment_args)
             environment = visualisation_env.VisualisationEnv(environment)
 
         if config.apply_curriculum:
