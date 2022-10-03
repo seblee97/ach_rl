@@ -82,19 +82,38 @@ if __name__ == "__main__":
             run_methods=["train", "post_process"],
         )
 
-    elif args.mode in [constants.PARALLEL, constants.SERIAL, constants.CLUSTER]:
+    elif args.mode in [
+        constants.SINGLE_PARALLEL,
+        constants.SINGLE_SERIAL,
+        constants.SINGLE_CLUSTER,
+        constants.PARALLEL,
+        constants.SERIAL,
+        constants.CLUSTER,
+    ]:
 
-        seeds = utils.process_seed_arguments(args.seeds)
+        if constants.SINGLE in args.mode:
+            config_changes_path = None
+        else:
+            config_changes_path = args.config_changes
+
+        try:
+            if args.seeds is not None:
+                seeds_arg = int(args.seeds)
+            else:
+                seeds_arg = args.seeds
+        except ValueError:
+            seeds_arg = args.seeds
+        seeds = utils.process_seed_arguments(seeds_arg)
 
         experiment_path, checkpoint_paths = utils.setup_experiment(
             mode="multi",
             results_folder=results_folder,
             config_path=args.config_path,
-            config_changes_path=args.config_changes,
+            config_changes_path=config_changes_path,
             seeds=seeds,
         )
 
-        if args.mode == constants.PARALLEL:
+        if constants.PARALLEL in args.mode:
 
             parallel_run.parallel_run(
                 runner_class=runner_class,
@@ -116,7 +135,7 @@ if __name__ == "__main__":
                 stochastic_packages=["numpy", "torch", "random"],
             )
 
-        elif args.mode == constants.CLUSTER:
+        elif constants.CLUSTER in args.mode:
 
             cluster_run.cluster_run(
                 runner_class_name=runner_class_name,
