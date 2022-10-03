@@ -127,7 +127,8 @@ class AChConfigTemplate:
                 name=constants.FORMAT,
                 types=[str],
                 requirements=[
-                    lambda x: x in [constants.STANDARD, constants.WILL_POSNER]
+                    lambda x: x
+                    in [constants.STANDARD, constants.WILL_POSNER, constants.WEINAN]
                 ],
             ),
             config_field.Field(name=constants.MAP_ASCII_PATH, types=[str]),
