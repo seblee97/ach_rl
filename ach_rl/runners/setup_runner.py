@@ -7,6 +7,12 @@ from typing import Tuple
 from typing import Type
 from typing import Union
 
+from key_door import curriculum_env
+from key_door import key_door_env
+from key_door import posner_env
+from key_door import spatial_keys_env
+from key_door import visualisation_env
+
 from ach_rl import constants
 from ach_rl.curricula import base_curriculum
 from ach_rl.environments import atari
@@ -15,18 +21,20 @@ from ach_rl.environments import wrapper_atari
 from ach_rl.epsilon_computers import constant_epsilon_computer
 from ach_rl.epsilon_computers import expected_uncertainty_epsilon_computer
 from ach_rl.epsilon_computers import linear_decay_epsilon_computer
-from ach_rl.epsilon_computers import linear_uncertainty_squeeze_epsilon_computer
-from ach_rl.epsilon_computers import (
-    percentile_linear_uncertainty_squeeze_epsilon_computer,
-)
+from ach_rl.epsilon_computers import \
+    linear_uncertainty_squeeze_epsilon_computer
+from ach_rl.epsilon_computers import \
+    percentile_linear_uncertainty_squeeze_epsilon_computer
 from ach_rl.epsilon_computers import unexpected_uncertainty_epsilon_computer
 from ach_rl.experiments import ach_config
 from ach_rl.information_computers import base_information_computer
 from ach_rl.information_computers import network_information_computer
 from ach_rl.information_computers import tabular_information_computer
-from ach_rl.learning_rate_scalers import expected_uncertainty_learning_rate_scaler
+from ach_rl.learning_rate_scalers import \
+    expected_uncertainty_learning_rate_scaler
 from ach_rl.learning_rate_scalers import hard_coded_learning_rate_scaler
-from ach_rl.visitation_penalties import adaptive_arriving_uncertainty_visitation_penalty
+from ach_rl.visitation_penalties import \
+    adaptive_arriving_uncertainty_visitation_penalty
 from ach_rl.visitation_penalties import adaptive_uncertainty_visitation_penalty
 from ach_rl.visitation_penalties import base_visitation_penalty
 from ach_rl.visitation_penalties import exponential_decay_visitation_penalty
@@ -39,9 +47,6 @@ from ach_rl.visitation_penalties import reducing_entropy_window_penalty
 from ach_rl.visitation_penalties import reducing_variance_window_penalty
 from ach_rl.visitation_penalties import sigmoidal_decay_visitation_penalty
 from ach_rl.visitation_penalties import signed_uncertainty_window_penalty
-from key_door import curriculum_env
-from key_door import key_door_env, will_posner_env
-from key_door import visualisation_env
 from run_modes import base_runner
 
 
@@ -121,10 +126,12 @@ class SetupRunner(base_runner.BaseRunner):
             elif config.implementation == constants.FUNCTIONAL:
                 environment = atari.AtariEnv(**environment_args)
         elif config.environment == constants.MULTIROOM:
-            if config.format == constants.WILL_POSNER:
-               environment = will_posner_env.WillPosner(**environment_args)
+            if config.format == constants.POSNER:
+                environment = posner_env.PosnerEnv(**environment_args)
+            elif config.format == constants.SPATIAL_KEYS:
+                environment = spatial_keys_env.SpatialKeysEnv(**environment_args)
             elif config.format == constants.STANDARD:
-                environment = key_door_env.KeyDoorGridworld(**environment_args)                
+                environment = key_door_env.KeyDoorEnv(**environment_args)
             environment = visualisation_env.VisualisationEnv(environment)
 
         if config.apply_curriculum:
@@ -171,6 +178,7 @@ class SetupRunner(base_runner.BaseRunner):
                 constants.MAP_YAML_PATH: os.path.join(config.map_yaml_path),
                 constants.REPRESENTATION: config.representation,
                 constants.EPISODE_TIMEOUT: config.episode_timeout,
+                constants.FRAME_STACK: config.frame_stack,
             }
             if config.representation in [constants.PIXEL, constants.PO_PIXEL]:
                 env_args[constants.SCALING] = config.scaling
