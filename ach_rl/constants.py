@@ -354,13 +354,14 @@ TEST_PARTIAL = "test_partial"
 LINEAR_UNCERTAINTY_SQUEEZE = "linear_uncertainty_squeeze"
 PERCENTILE_LINEAR_UNCERTAINTY_SQUEEZE = "percentile_linear_uncertainty_squeeze"
 MAX_VALUE_PERCENTILE = "max_value_percentile"
-WILL_POSNER = "will_posner"
+POSNER = "posner"
 STANDARD = "standard"
 FORMAT = "format"
 SINGLE_PARALLEL = "single_parallel"
 SINGLE_SERIAL = "single_serial"
 SINGLE_CLUSTER = "single_cluster"
 WEINAN = "weinan"
+SPATIAL_KEYS = "spatial_keys"
 
 ATARI_ENVS = ["PongNoFrameskip-v4", "GravitarNoFrameskip-v4"]
 
