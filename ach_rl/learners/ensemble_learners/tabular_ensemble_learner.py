@@ -1,9 +1,9 @@
 import pickle
 from typing import Any
 from typing import List
-from typing import Optional
 
 import numpy as np
+
 from ach_rl.learners import base_learner
 from ach_rl.utils import custom_functions
 
@@ -14,6 +14,7 @@ class TabularEnsembleLearner(base_learner.BaseLearner):
     def __init__(
         self,
         learner_ensemble: List[base_learner.BaseLearner],
+        variance_learner_ensemble: List[base_learner.BaseLearner] = None
     ):
         """Class constructor.
 
@@ -22,6 +23,7 @@ class TabularEnsembleLearner(base_learner.BaseLearner):
             learner_ensemble: list of learners forming ensemble.
         """
         self._learner_ensemble = learner_ensemble
+        self._variance_learner_ensemble = variance_learner_ensemble
 
     def load_model(self, model_path: str):
         with open(model_path, "rb") as file:
@@ -123,3 +125,6 @@ class TabularEnsembleLearner(base_learner.BaseLearner):
     def train(self) -> None:
         for learner in self._learner_ensemble:
             learner.train()
+
+    def step(self):
+        pass
