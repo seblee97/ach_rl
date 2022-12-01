@@ -1,9 +1,9 @@
-import copy
 from typing import List
 from typing import Optional
 from typing import Tuple
 
 import numpy as np
+
 from ach_rl.learners import base_learner
 
 
