@@ -172,6 +172,7 @@ PLOT_ORIGIN = "plot_origin"
 UPPER = "upper"
 LOWER = "lower"
 ENSEMBLE_Q_LEARNING = "ensemble_q_learning"
+MASKED_ENSEMBLE_Q_LEARNING = "masked_ensemble_q_learning"
 NUM_LEARNERS = "num_learners"
 GREEDY_SAMPLE = "greedy_sample"
 GREEDY_MEAN = "greedy_mean"
@@ -362,6 +363,7 @@ SINGLE_SERIAL = "single_serial"
 SINGLE_CLUSTER = "single_cluster"
 WEINAN = "weinan"
 SPATIAL_KEYS = "spatial_keys"
+VARIANCE_ESTIMATION = "variance_estimation"
 
 ATARI_ENVS = ["PongNoFrameskip-v4", "GravitarNoFrameskip-v4"]
 
