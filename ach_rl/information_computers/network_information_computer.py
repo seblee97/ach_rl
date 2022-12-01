@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+
 from ach_rl.information_computers import base_information_computer
 
 
@@ -35,6 +36,8 @@ class NetworkInformationComputer(base_information_computer.BaseInformationComput
                 state_values = self._target_q_network.forward_all_heads(state)
             else:
                 state_values = self._q_network.forward_all_heads(state)
-        # output of forward_all_heads method has dimensions [NUM_LEARNERS x BATCH_SIZE x NUM_ACTIONS]
-        # for penalty compuation we have batch size of 1 and want to squash this dimension
+        # output of forward_all_heads method has dimensions 
+        # [NUM_LEARNERS x BATCH_SIZE x NUM_ACTIONS]
+        # for penalty compuation we have batch size of 1 
+        # and want to squash this dimension
         return state_values.cpu().numpy()
