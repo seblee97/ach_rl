@@ -118,9 +118,7 @@ class SetupRunner(base_runner.BaseRunner):
         """
         environment_args = self._get_environment_args(config=config)
 
-        if config.environment == constants.MINIGRID:
-            environment = minigrid.MiniGrid(**environment_args)
-        elif config.environment == constants.ATARI:
+        if config.environment == constants.ATARI:
             if config.implementation == constants.WRAPPER:
                 environment = wrapper_atari.AtariEnv(**environment_args)
             elif config.implementation == constants.FUNCTIONAL:
@@ -203,9 +201,7 @@ class SetupRunner(base_runner.BaseRunner):
     @staticmethod
     def get_curriculum_wrapper(environment: str) -> base_curriculum.BaseCurriculum:
         """Get relevant wrapper for environment to add curriculum features."""
-        if environment == constants.MINIGRID:
-            wrapper = minigrid_curriculum.MinigridCurriculum
-        elif environment == constants.MULTIROOM:
+        if environment == constants.MULTIROOM:
             wrapper = curriculum_env.CurriculumEnv
         return wrapper
 
@@ -230,6 +226,7 @@ class SetupRunner(base_runner.BaseRunner):
             constants.Q_LEARNING,
             constants.SARSA_LAMBDA,
             constants.ENSEMBLE_Q_LEARNING,
+            constants.MASKED_ENSEMBLE_Q_LEARNING
         ]:
             information_computer = (
                 tabular_information_computer.TabularInformationComputer()
