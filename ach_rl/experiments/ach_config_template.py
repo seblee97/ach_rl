@@ -1,6 +1,7 @@
-from ach_rl import constants
 from config_manager import config_field
 from config_manager import config_template
+
+from ach_rl import constants
 
 
 class AChConfigTemplate:
@@ -957,6 +958,59 @@ class AChConfigTemplate:
         level=[constants.LEARNER, constants.ENSEMBLE_Q_LEARNING],
     )
 
+    _masked_ensemble_q_learning_template = config_template.Template(
+        fields=[
+            config_field.Field(
+                name=constants.NUM_LEARNERS,
+                types=[int],
+                requirements=[lambda x: x >= 1],
+            ),
+            config_field.Field(
+                name=constants.COPY_LEARNER_INITIALISATION,
+                types=[bool],
+            ),
+            config_field.Field(
+                name=constants.BEHAVIOUR,
+                types=[str],
+                requirements=[
+                    lambda x: x in [
+                        constants.GREEDY_SAMPLE,
+                        constants.GREEDY_MEAN,
+                        constants.GREEDY_VOTE,
+                    ]
+                ],
+            ),
+            config_field.Field(
+                name=constants.TARGETS,
+                types=[list],
+                requirements=[
+                    lambda x: x is None
+                    or all(
+                        y
+                        in [
+                            constants.GREEDY_SAMPLE,
+                            constants.GREEDY_MEAN,
+                            constants.GREEDY_VOTE,
+                        ]
+                        for y in x
+                    )
+                ],
+            ),
+            config_field.Field(
+                name=constants.VARIANCE_ESTIMATION,
+                types=[bool],
+            ),
+            config_field.Field(
+                name=constants.MASK_PROBABILITY, 
+                types=[float, int], 
+                requirements=[lambda x: x >= 0 and x <= 1]
+            ),
+        ],
+        dependent_variables=[constants.TYPE],
+        dependent_variables_required_values=[[constants.MASKED_ENSEMBLE_Q_LEARNING]],
+        level=[constants.LEARNER, constants.MASKED_ENSEMBLE_Q_LEARNING],
+    )
+
     _vanilla_dqn_template = config_template.Template(
         fields=[
             config_field.Field(
@@ -1135,6 +1189,7 @@ class AChConfigTemplate:
                         constants.Q_LEARNING,
                         constants.VANILLA_DQN,
                         constants.ENSEMBLE_Q_LEARNING,
+                        constants.MASKED_ENSEMBLE_Q_LEARNING,
                         constants.BOOTSTRAPPED_ENSEMBLE_DQN,
                         constants.INDEPENDENT_ENSEMBLE_DQN,
                     ]
@@ -1189,6 +1244,7 @@ class AChConfigTemplate:
             _q_learning_template,
             _vanilla_dqn_template,
             _ensemble_q_learning_template,
+            _masked_ensemble_q_learning_template,
             _bootstrapped_ensemble_dqn_template,
             _independent_ensemble_dqn_template,
             _dqn_template,
