@@ -5,6 +5,7 @@ from ach_rl import constants
 from ach_rl import runners
 from ach_rl.experiments import ach_config
 from ach_rl.runners import dqn_runner
+from ach_rl.runners import masked_q_learning_ensemble_runner
 from ach_rl.runners import q_learning_ensemble_runner
 from ach_rl.runners import q_learning_runner
 from run_modes import cluster_run
@@ -61,6 +62,13 @@ if __name__ == "__main__":
         runner_module_name = "q_learning_ensemble_runner"
         runner_module_path = os.path.join(
             runners_module_path, "q_learning_ensemble_runner.py"
+        )
+    elif config.type == constants.MASKED_ENSEMBLE_Q_LEARNING:
+        runner_class = masked_q_learning_ensemble_runner.MaskedEnsembleQLearningRunner
+        runner_class_name = "MaskedEnsembleQLearningRunner"
+        runner_module_name = "masked_q_learning_ensemble_runner"
+        runner_module_path = os.path.join(
+            runners_module_path, "masked_q_learning_ensemble_runner.py"
         )
     elif config.type in [constants.VANILLA_DQN, constants.BOOTSTRAPPED_ENSEMBLE_DQN]:
         runner_class = dqn_runner.DQNRunner
